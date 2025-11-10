@@ -8,10 +8,10 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*"
+    "@lotexiu/typescript-config": "1.0.0"
   },
   "dependencies": {
-    "@lotexiu/vite-utils": "workspace:*"
+    "@lotexiu/vite-utils": "0.0.0"
   },
   "exports": {
     "./global": {
