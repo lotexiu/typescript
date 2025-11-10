@@ -11,7 +11,8 @@
     "@lotexiu/typescript-config": "workspace:*"
   },
   "dependencies": {
-    "@lotexiu/vite-utils": "workspace:*"
+    "@lotexiu/vite-utils": "workspace:*",
+    "colorjs.io": "^0.5.2"
   },
   "exports": {
     "./global": {
