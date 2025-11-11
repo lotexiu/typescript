@@ -9,7 +9,6 @@ function set<T extends object, P extends keyof T, V extends T[P]>(
 	value: V,
 	receiver: any
 ): boolean {
-
 	const previousValue = target[property];
 	if (previousValue === value) return true;
 
@@ -24,13 +23,15 @@ function set<T extends object, P extends keyof T, V extends T[P]>(
 	}
 
 	target[property] = value;
-	options.properties?.[property]?.onSet?.(value);
-	options.onChanges?.({
-		name: property,
-		value: value,
-		previousValue: previousValue,
-		state: 'updated'
-	})
+	if (!isProxyKey(property)) {
+		options.properties?.[property]?.onSet?.(value);
+		options.onChanges?.({
+			name: property,
+			value: value,
+			previousValue: previousValue,
+			state: 'updated'
+		})
+	}
 	return true
 }
 
@@ -55,16 +56,20 @@ function get<T extends object, P extends keyof T, V extends T[P]>(
 				break;
 		}
 	}
-
-	const returnedValue = options.properties?.[property]?.onGet?.(value);
-	if (returnedValue !== undefined) return returnedValue;
+	if (!isProxyKey(property)) {
+		const returnedValue = options.properties?.[property]?.onGet?.(value);
+		if (returnedValue !== undefined) return returnedValue;
+	}
 	return value
 }
 
 function isProxyEnabled<T extends object, P extends keyof T>(options: ProxyOptions<T>, property: P) {
-	const isProxyKey = property.toString().startsWith('__') && property.toString().endsWith('Proxy');
-	if (isProxyKey) return false;
+	if (isProxyKey(property)) return false;
 	return (options.allProxy || options.properties?.[property]?.proxyVariable || options.properties?.[property]?.onChanges);
+}
+
+function isProxyKey(property: string | number | symbol): boolean {
+	return property.toString().startsWith('__') && property.toString().endsWith('Proxy');
 }
 
 function deleteProperty<T, P extends keyof T, V extends T[P]>(
@@ -77,12 +82,14 @@ function deleteProperty<T, P extends keyof T, V extends T[P]>(
 	delete target[property];
 	delete target[getProxyKey(property) as P];
 
-	options.onChanges?.({
-		name: property,
-		value: undefined as V,
-		previousValue: previousValue,
-		state: 'deleted'
-	})
+	if (!isProxyKey(property)) {
+		options.onChanges?.({
+			name: property,
+			value: undefined as V,
+			previousValue: previousValue,
+			state: 'deleted'
+		})
+	}
 	return true
 }
 
