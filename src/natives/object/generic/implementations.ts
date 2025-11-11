@@ -27,7 +27,7 @@ export function circularReferenceHandler(): TRemoveCicularReferences {
 }
 
 function addPrefixToKeys<
-  T extends TObject, 
+  T extends TObject,
   Prefix extends string
 >(value: T, prefix: Prefix): TConcatStrIntoKeys<T, Prefix> {
   type PrefixedKeys = TKeyOf<T, {extract:string}, true>;
@@ -78,15 +78,26 @@ function isAClassDeclaration<T>(obj: any): obj is TClazz<T> & T {
   return typeof obj === 'function' && /^class\s/.test(obj.toString());
 }
 
+function differenceBetweenObjects<T extends object>(objA: T, objB: T): Partial<T> {
+  return (Object.keys(objA) as (keyof T)[])
+    .reduce((acc: Partial<T>, key: keyof T): Partial<T> => {
+      if (objA[key] !== objB[key]) {
+        acc[key] = objA[key];
+      }
+      return acc;
+    }, {} as Partial<T>);
+}
+
 export const _Object = {
-  isEmptyObj,
+	isEmptyObj,
 	isAClassDeclaration,
 	circularReferenceHandler,
 	addPrefixToKeys,
 	getValueFromPath,
 	setValueFromPath,
 	removeNullFields,
-  thisAsParameter
+	thisAsParameter,
+	differenceBetweenObjects,
 };
 
 export type TUtilsObject = typeof _Object;

@@ -25,12 +25,12 @@
         "default": "./dist/global.js"
       }
     },
-    "./implementations-DJ_eG06L": {
+    "./implementations-DpCQySQC": {
       "import": {
-        "default": "./dist/implementations-DJ_eG06L.mjs"
+        "default": "./dist/implementations-DpCQySQC.mjs"
       },
       "require": {
-        "default": "./dist/implementations-DJ_eG06L.mjs"
+        "default": "./dist/implementations-DpCQySQC.mjs"
       }
     },
     "./implementations": {
@@ -141,6 +141,16 @@
       "require": {
         "types": "./dist/natives/object/generic/types.d.ts",
         "default": "./dist/natives/object/generic/types.js"
+      }
+    },
+    "./natives/object/generic/utils": {
+      "import": {
+        "types": "./dist/natives/object/generic/utils.d.ts",
+        "default": "./dist/natives/object/generic/utils.mjs"
+      },
+      "require": {
+        "types": "./dist/natives/object/generic/utils.d.ts",
+        "default": "./dist/natives/object/generic/utils.js"
       }
     },
     "./natives/function/generic/implementations": {
