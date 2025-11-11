@@ -1,5 +1,6 @@
 import '@ts/global';
 import type { ProxyOptions } from "./types";
+import { TObject } from '@tsn-object/generic/types';
 
 function set<T extends object, P extends keyof T, V extends T[P]>(
 	options: ProxyOptions<T>,
@@ -8,10 +9,10 @@ function set<T extends object, P extends keyof T, V extends T[P]>(
 	value: V,
 	receiver: any
 ): boolean {
-	
+
 	const previousValue = target[property];
 	if (previousValue === value) return true;
-	
+
 	if (value) {
 		switch (typeof value) {
 			case 'object':
@@ -21,7 +22,7 @@ function set<T extends object, P extends keyof T, V extends T[P]>(
 			break;
 		}
 	}
-	
+
 	target[property] = value;
 	options.properties?.[property]?.onSet?.(value);
 	options.onChanges?.({
@@ -61,7 +62,9 @@ function get<T extends object, P extends keyof T, V extends T[P]>(
 }
 
 function isProxyEnabled<T extends object, P extends keyof T>(options: ProxyOptions<T>, property: P) {
-	return  options.allProxy || options.properties?.[property]?.proxyVariable || options.properties?.[property]?.onChanges;
+	const isProxyKey = property.toString().startsWith('__') && property.toString().endsWith('Proxy');
+	if (isProxyKey) return false;
+	return (options.allProxy || options.properties?.[property]?.proxyVariable || options.properties?.[property]?.onChanges);
 }
 
 function deleteProperty<T, P extends keyof T, V extends T[P]>(
@@ -111,8 +114,13 @@ function proxyHandler<T extends object>(
 	return proxy
 }
 
+function deleteProxy<T>(value: TObject<T>, key: keyof T): void {
+	delete value[getProxyKey(key) as keyof T];
+}
+
 export {
 	proxyHandler,
+	deleteProxy,
 }
 
 export type {
