@@ -45,7 +45,7 @@ function get<T extends object, P extends keyof T, V extends T[P]>(
 
 		switch (typeof value) {
 			case 'function':
-				if (isConfigurable) value = (value as any).rebind(target);
+				if (isConfigurable && !value.fn) value = (value as any).rebind(target);
 				break;
 			case 'object':
 				if (isConfigurable && isProxyEnabled<T, P>(options, property)) {
