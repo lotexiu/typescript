@@ -8,4 +8,8 @@ type TClazz<T = null> = T extends null
 	? TConstructor<any> & Function & NewableFunction
 	: TConstructor<T> & Function & NewableFunction;
 
-export type { TConstructor, TPrototype, TClazz };
+type TExtendClass<T, E> = E extends null
+	? TClazz<T>
+	: TClazz<T&E>
+
+export type { TConstructor, TPrototype, TClazz, TExtendClass};

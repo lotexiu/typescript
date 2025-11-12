@@ -25,12 +25,12 @@
         "default": "./dist/global.js"
       }
     },
-    "./implementations-DpCQySQC": {
+    "./implementations-DADsTbsT": {
       "import": {
-        "default": "./dist/implementations-DpCQySQC.mjs"
+        "default": "./dist/implementations-DADsTbsT.mjs"
       },
       "require": {
-        "default": "./dist/implementations-DpCQySQC.mjs"
+        "default": "./dist/implementations-DADsTbsT.mjs"
       }
     },
     "./implementations": {
