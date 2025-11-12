@@ -5,14 +5,24 @@ import type { TNever } from "@ts/types";
  * @example
  * type FirstElement = First<[number, string, boolean]>; // number
  */
-type TFirst<T extends any[], _nv extends TNever = never> = T extends [infer Rest, ...infer Last] ? Rest : _nv;
+type TFirst<T extends any[], _nv extends TNever = never> = T extends [
+	infer Rest,
+	...infer Last,
+]
+	? Rest
+	: _nv;
 
 /**
  * Returns the last element of an array.
  * @example
  * type LastElement = Last<[number, string, boolean]>; // boolean
  */
-type TLast<T extends any[], _nv extends TNever = never> = T extends [...infer Rest, infer Last] ? Last : _nv;
+type TLast<T extends any[], _nv extends TNever = never> = T extends [
+	...infer Rest,
+	infer Last,
+]
+	? Last
+	: _nv;
 
 /**
  * Represents an array type.
@@ -21,18 +31,20 @@ type TLast<T extends any[], _nv extends TNever = never> = T extends [...infer Re
  * type MixedArray = ArrayType<[number, string]>; // [number, string]
  */
 type TArrayType<
-  Types = any[],
-  Inf extends boolean = false,
-  InfType = TNever,
-  _nv extends TNever = never
+	Types = any[],
+	Inf extends boolean = false,
+	InfType = TNever,
+	_nv extends TNever = never,
 > = [
-  ...Types extends any[] ? Types : [Types],
-  ...Inf extends true ? 
-    InfType extends TNever ?
-      Types extends any[] ? 
-        TLast<Types, _nv>[] : Types[] : 
-      InfType[] : []
-]
+	...(Types extends any[] ? Types : [Types]),
+	...(Inf extends true
+		? InfType extends TNever
+			? Types extends any[]
+				? TLast<Types, _nv>[]
+				: Types[]
+			: InfType[]
+		: []),
+];
 
 /**
  * Defines a value or a read-only array-like structure with a `.length` property and indexed values.
@@ -54,17 +66,19 @@ type TExtractValues<T extends readonly any[]> = T[number];
  * type FiveNumbers = BuildArray<5, [], number>; // number[] with length 5
  */
 type TBuildArray<
-  Length extends number,
-  Acc extends unknown[] = [],
-  Type = any
-> = Acc['length'] extends Length ? Acc : TBuildArray<Length, [...Acc, Type], Type>;
+	Length extends number,
+	Acc extends unknown[] = [],
+	Type = any,
+> = Acc["length"] extends Length
+	? Acc
+	: TBuildArray<Length, [...Acc, Type], Type>;
 
 /**
  * Represents a tuple of two types.
  * @example
  * type PairExample = Pair<string, number>; // [string, number]
  */
-type TPair<T=any,T2=any> = [T, T2]
+type TPair<T = any, T2 = any> = [T, T2];
 
 /**
  * Gets the item type of an array.
@@ -78,24 +92,24 @@ type TItemType<T> = T extends (infer U)[] ? U : never;
  * @example
  * type MyArray = Array<string>; // string[]
  */
-type TArray<T=any> = Array<T>
+type TArray<T = any> = Array<T>;
 
 type TAsArray<T> = T extends any[] ? T : never;
 
 type TOptionalArray<T extends any[]> = {
-  [K in keyof T]?: T[K];
-}
+	[K in keyof T]?: T[K];
+};
 
-export type { 
-  TFirst,
-  TLast,
-  TArrayType,
-  TArrayLike,
-  TExtractValues,
-  TBuildArray,
-  TPair,
-  TItemType,
-  TArray,
-  TAsArray,
-  TOptionalArray,
-}
+export type {
+	TFirst,
+	TLast,
+	TArrayType,
+	TArrayLike,
+	TExtractValues,
+	TBuildArray,
+	TPair,
+	TItemType,
+	TArray,
+	TAsArray,
+	TOptionalArray,
+};

@@ -6,8 +6,8 @@ import { As } from "@ts/types";
 type TCommonFields<T, U> = Pick<T, Extract<keyof T, keyof U>>;
 
 type TPrimitiveObject = {
-  [key: TKeyOf]: any;
-} & Object
+	[key: TKeyOf]: any;
+} & Object;
 
 /**
  * Converts each property of a type into a union of single-property objects.
@@ -22,16 +22,18 @@ type TPrimitiveObject = {
  * // Result: { id: number } | { name: string }
  */
 type TUnionize<T> = {
-  [Key in keyof T]: {
-    [Key2 in Key]: T[Key2];
-  }
+	[Key in keyof T]: {
+		[Key2 in Key]: T[Key2];
+	};
 }[keyof T];
 
-type TObject<T=Object> =
-  T extends Function ? never :
-  T extends Array<any> ? never :
-  T extends object ? T :
-  never;
+type TObject<T = Object> = T extends Function
+	? never
+	: T extends Array<any>
+		? never
+		: T extends object
+			? T
+			: never;
 
 /**
  * Maps a type to a set of return types based on a list of pairs.
@@ -53,15 +55,11 @@ type TObject<T=Object> =
  *
  * // Result: Returns the mapped type for the given key, or never if not found.
  */
-type TCustomReturn <
-Type, 
-Returns extends TPair<any, any>[]
-> = {
-  [Return in TKeyOf<Returns>]: 
-    Type extends Returns[Return][0] ?
-      Returns[Return][1] :
-      never
-}[number]
+type TCustomReturn<Type, Returns extends TPair<any, any>[]> = {
+	[Return in TKeyOf<Returns>]: Type extends Returns[Return][0]
+		? Returns[Return][1]
+		: never;
+}[number];
 
 /**
  * Returns the keys that are of a specific type in the target object.
@@ -79,12 +77,9 @@ Returns extends TPair<any, any>[]
  *
  * @returns A union of keys whose values match the specified type.
  */
-type TKeysOfType<
-  Target, 
-  Type
-> = {
-  [Key in TKeyOf<Target>]: Target[Key] extends Type ? Key : never
-}[TKeyOf<Target>]
+type TKeysOfType<Target, Type> = {
+	[Key in TKeyOf<Target>]: Target[Key] extends Type ? Key : never;
+}[TKeyOf<Target>];
 
 /**
  * Returns the key if it exists in the target and matches the type.
@@ -102,11 +97,11 @@ type TKeysOfType<
  *
  * @returns The key if it matches the type, otherwise never.
  */
-type THasExactKey <
-  Target, 
-  Key extends TKeyOf<Target>,
-  Type extends Target[Key]
-> = Target[Key] extends Type ? Key : never
+type THasExactKey<
+	Target,
+	Key extends TKeyOf<Target>,
+	Type extends Target[Key],
+> = Target[Key] extends Type ? Key : never;
 
 /**
  * Concatenates a prefix and capitalizes the first letter of each method key.
@@ -125,11 +120,10 @@ type THasExactKey <
  * //   prefixGetAge(): number;
  * // }
  */
-type TConcatStrIntoKeys<Base, Prefix extends string|null|undefined> = {
-  [Key in TKeyOf<Base> as 
-    Key extends string ? `${Prefix}${Capitalize<Key>}`
-    : never
-  ]: Base[Key];
+type TConcatStrIntoKeys<Base, Prefix extends string | null | undefined> = {
+	[Key in TKeyOf<Base> as Key extends string
+		? `${Prefix}${Capitalize<Key>}`
+		: never]: Base[Key];
 };
 
 /**
@@ -166,7 +160,7 @@ type TEntriesReturn<T> = [TKeyOf<T>, TTypeFromKey<T, TKeyOf<T>>];
  * @example
  * const cleaned = removeCircularReferences(obj);
  */
-type TRemoveCicularReferences = TFunction<[string, any], any> ;
+type TRemoveCicularReferences = TFunction<[string, any], any>;
 
 /**
  * Makes all properties of an object or array deeply optional.
@@ -181,30 +175,29 @@ type TRemoveCicularReferences = TFunction<[string, any], any> ;
  * type PartialExample = DeepPartial<Example>;
  * // { id?: number; nested?: { value?: string } }
  */
-type TDeepPartial<T> =
-  T extends (...args: any[]) => any ? any :
-  T extends Array<infer U> ? Array<TDeepPartial<U>> :
-  T extends object ? {
-    [K in keyof T]?: TDeepPartial<T[K]>|T[K]
-  } :
-  T;
+type TDeepPartial<T> = T extends (...args: any[]) => any
+	? any
+	: T extends Array<infer U>
+		? Array<TDeepPartial<U>>
+		: T extends object
+			? {
+					[K in keyof T]?: TDeepPartial<T[K]> | T[K];
+				}
+			: T;
 
-type TAsKeys<
-  T,
-  Else = never
-> = T extends TKeyOf ? T : Else;
+type TAsKeys<T, Else = never> = T extends TKeyOf ? T : Else;
 
-type TRecord<T, R> = 
-  T extends TAsKeys<T>
-    ? { [key in T]: R }
-    : T extends TAsArray<T>
-      ? { [key in TAsArray<T>[number]]: R }
-      : { [key in TKeyOf<T>]: R }
+type TRecord<T, R> =
+	T extends TAsKeys<T>
+		? { [key in T]: R }
+		: T extends TAsArray<T>
+			? { [key in TAsArray<T>[number]]: R }
+			: { [key in TKeyOf<T>]: R };
 
 type TKeyOfOptions<T> = TUnionize<{
-  extract?: keyof T,
-  exclude?: keyof T,
-}>
+	extract?: keyof T;
+	exclude?: keyof T;
+}>;
 
 /**
  * Type that returns the keys of a type as a union of strings.
@@ -220,33 +213,33 @@ type TKeyOfOptions<T> = TUnionize<{
  * type Keys = KeyOf<Example>; // "id" | "name"
  */
 type TKeyOf<
-  T=any, 
-  KeyType extends (TKeyOfOptions<WeakValidation extends true ? any : T>|null)=null,
-  WeakValidation extends boolean = true
-> = 
-  KeyType extends null 
-    ? keyof T 
-    : KeyType extends { extract: infer E }
-      ? Extract<keyof T, E & string>
-      : KeyType extends { exclude: infer Ex }
-        ? Exclude<keyof T, Ex & string>
-        : keyof T
-;
+	T = any,
+	KeyType extends TKeyOfOptions<
+		WeakValidation extends true ? any : T
+	> | null = null,
+	WeakValidation extends boolean = true,
+> = KeyType extends null
+	? keyof T
+	: KeyType extends { extract: infer E }
+		? Extract<keyof T, E & string>
+		: KeyType extends { exclude: infer Ex }
+			? Exclude<keyof T, Ex & string>
+			: keyof T;
 
 export type {
-  TCommonFields,
-  TRemoveCicularReferences,
-  TPrimitiveObject,
-  TObject,
-  TEntriesReturn,
-  TTypeFromKey,
-  TConcatStrIntoKeys,
-  TKeysOfType,
-  TCustomReturn,
-  TDeepPartial,
-  THasExactKey,
-  TAsKeys,
-  TRecord,
-  TKeyOf,
-  TKeyOfOptions
+	TCommonFields,
+	TRemoveCicularReferences,
+	TPrimitiveObject,
+	TObject,
+	TEntriesReturn,
+	TTypeFromKey,
+	TConcatStrIntoKeys,
+	TKeysOfType,
+	TCustomReturn,
+	TDeepPartial,
+	THasExactKey,
+	TAsKeys,
+	TRecord,
+	TKeyOf,
+	TKeyOfOptions,
 };

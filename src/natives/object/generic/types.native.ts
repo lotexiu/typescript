@@ -23,8 +23,8 @@ type _IReadonly<T> = Readonly<T>;
  * type PickExample = _Pick<{ a: number; b: string }, 'a'>; // { a: number }
  */
 type _IPick<T, KeyType> = {
-  [K in keyof T as K extends KeyType ? K : never]: T[K]
-}
+	[K in keyof T as K extends KeyType ? K : never]: T[K];
+};
 
 /**
  * Constructs a type with a set of properties K of type T.
@@ -51,10 +51,10 @@ type _IOmit<T, K extends keyof any> = Omit<T, K>;
 type _IPartial<T> = Partial<T>;
 
 export type {
-  _IRequired as Required,
-  _IReadonly as Readonly,
-  _IPick as Pick,
-  _IRecord as Record,
-  _IOmit as Omit,
-  _IPartial as Partial,
-}
+	_IRequired as Required,
+	_IReadonly as Readonly,
+	_IPick as Pick,
+	_IRecord as Record,
+	_IOmit as Omit,
+	_IPartial as Partial,
+};

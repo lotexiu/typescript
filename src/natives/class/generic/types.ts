@@ -1,15 +1,11 @@
-type TConstructor<T=any> = new (...args: any[]) => T;
+type TConstructor<T = any> = new (...args: any[]) => T;
 
 type TPrototype<T> = {
-  constructor: TConstructor<T>;
-} ;
+	constructor: TConstructor<T>;
+};
 
-type TClazz<T=null> = T extends null 
+type TClazz<T = null> = T extends null
 	? TConstructor<any> & Function & NewableFunction
 	: TConstructor<T> & Function & NewableFunction;
 
-export type {
-	TConstructor,
-	TPrototype,
-	TClazz,
-}
+export type { TConstructor, TPrototype, TClazz };

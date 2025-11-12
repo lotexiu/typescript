@@ -1,24 +1,28 @@
-import '@ts/global';
+import "@ts/global";
 import type { ProxyOptions } from "./types";
-import { TObject } from '@tsn-object/generic/types';
+import { TObject } from "@tsn-object/generic/types";
 
 function set<T extends object, P extends keyof T, V extends T[P]>(
 	options: ProxyOptions<T>,
 	target: T,
 	property: P,
 	value: V,
-	receiver: any
+	receiver: any,
 ): boolean {
 	const previousValue = target[property];
 	if (previousValue === value) return true;
 
 	if (value) {
 		switch (typeof value) {
-			case 'object':
+			case "object":
 				if (options.properties && isProxyEnabled<T, P>(options, property)) {
-					createProxyProperty(target, property, options.properties?.[property]?.options);
+					createProxyProperty(
+						target,
+						property,
+						options.properties?.[property]?.options,
+					);
 				}
-			break;
+				break;
 		}
 	}
 
@@ -29,29 +33,33 @@ function set<T extends object, P extends keyof T, V extends T[P]>(
 			name: property,
 			value: value,
 			previousValue: previousValue,
-			state: 'updated'
-		})
+			state: "updated",
+		});
 	}
-	return true
+	return true;
 }
 
 function get<T extends object, P extends keyof T, V extends T[P]>(
 	options: ProxyOptions<T>,
 	target: T,
-	property: P
+	property: P,
 ): V {
 	let value: V = target[property] as V;
 	if (value) {
 		const descriptor = Object.getOwnPropertyDescriptor(target, property);
-		const isConfigurable = (!descriptor || descriptor.configurable !== false);
+		const isConfigurable = !descriptor || descriptor.configurable !== false;
 
 		switch (typeof value) {
-			case 'function':
+			case "function":
 				if (isConfigurable && !value.fn) value = (value as any).rebind(target);
 				break;
-			case 'object':
+			case "object":
 				if (isConfigurable && isProxyEnabled<T, P>(options, property)) {
-					value = createProxyProperty(target, property, options.properties?.[property]?.options) as V;
+					value = createProxyProperty(
+						target,
+						property,
+						options.properties?.[property]?.options,
+					) as V;
 				}
 				break;
 		}
@@ -60,22 +68,32 @@ function get<T extends object, P extends keyof T, V extends T[P]>(
 		const returnedValue = options.properties?.[property]?.onGet?.(value);
 		if (returnedValue !== undefined) return returnedValue;
 	}
-	return value
+	return value;
 }
 
-function isProxyEnabled<T extends object, P extends keyof T>(options: ProxyOptions<T>, property: P) {
+function isProxyEnabled<T extends object, P extends keyof T>(
+	options: ProxyOptions<T>,
+	property: P,
+) {
 	if (isProxyKey(property)) return false;
-	return (options.allProxy || options.properties?.[property]?.proxyVariable || options.properties?.[property]?.onChanges);
+	return (
+		options.allProxy ||
+		options.properties?.[property]?.proxyVariable ||
+		options.properties?.[property]?.onChanges
+	);
 }
 
 function isProxyKey(property: string | number | symbol): boolean {
-	return property.toString().startsWith('__') && property.toString().endsWith('Proxy');
+	return (
+		property.toString().startsWith("__") &&
+		property.toString().endsWith("Proxy")
+	);
 }
 
 function deleteProperty<T, P extends keyof T, V extends T[P]>(
 	options: ProxyOptions<T>,
 	target: T,
-	property: P
+	property: P,
 ): boolean {
 	const previousValue = target[property];
 
@@ -87,49 +105,50 @@ function deleteProperty<T, P extends keyof T, V extends T[P]>(
 			name: property,
 			value: undefined as V,
 			previousValue: previousValue,
-			state: 'deleted'
-		})
+			state: "deleted",
+		});
 	}
-	return true
+	return true;
 }
 
 function createProxyProperty<
 	T extends object,
 	P extends keyof T,
-	V extends T[P]
-> (target:T, property: P, options?: ProxyOptions<V>): V {
+	V extends T[P],
+>(target: T, property: P, options?: ProxyOptions<V>): V {
 	const proxyProperty = getProxyKey(property) as P;
-	if (target[property] && !target[proxyProperty] && typeof target[property] === 'object') {
+	if (
+		target[property] &&
+		!target[proxyProperty] &&
+		typeof target[property] === "object"
+	) {
 		target[proxyProperty] = proxyHandler(target[property], options as any);
 	}
 	return target[proxyProperty] as V;
 }
 
-function getProxyKey<T extends (string|number|symbol)>(property: T): `__${T&string}Proxy` {
-	return `__${property.toString()}Proxy` as any
+function getProxyKey<T extends string | number | symbol>(
+	property: T,
+): `__${T & string}Proxy` {
+	return `__${property.toString()}Proxy` as any;
 }
 
 function proxyHandler<T extends object>(
 	targetObj: T,
-	options: ProxyOptions<T> = {}
+	options: ProxyOptions<T> = {},
 ): T {
-	const proxy = new Proxy(targetObj,{
+	const proxy = new Proxy(targetObj, {
 		set: (set as any).bind(null, options),
 		get: (get as any).bind(null, options),
 		deleteProperty: (deleteProperty as any).bind(null, options),
 	});
-	return proxy
+	return proxy;
 }
 
 function deleteProxy<T>(value: TObject<T>, key: keyof T): void {
 	delete value[getProxyKey(key) as keyof T];
 }
 
-export {
-	proxyHandler,
-	deleteProxy,
-}
+export { proxyHandler, deleteProxy };
 
-export type {
-	ProxyOptions,
-}
+export type { ProxyOptions };

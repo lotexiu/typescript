@@ -1,6 +1,6 @@
 /**
  * Recursively unwraps the "awaited" type of a type. Non-promise thenables should resolve to `never`. This emulates the behavior of `await`.
- * 
+ *
  * @example
  * type AwaitedString = _Awaited<Promise<string>>; // string
  */
@@ -8,7 +8,7 @@ type _IAwaited<T> = Awaited<T>;
 
 /**
  * Marker for type position without inference.
- * 
+ *
  * @example
  * type NoInferExample<T> = _NoInfer<T>;
  */
@@ -39,9 +39,9 @@ type _IExclude<T, U> = Exclude<T, U>;
 type _IExtract<T, U> = Extract<T, U>;
 
 export type {
-  _IAwaited as Awaited, 
-  _INoInfer as NoInfer,
-  _INonNullable as NonNullable,
-  _IExclude as Exclude,
-  _IExtract as Extract,
-}
+	_IAwaited as Awaited,
+	_INoInfer as NoInfer,
+	_INonNullable as NonNullable,
+	_IExclude as Exclude,
+	_IExtract as Extract,
+};
