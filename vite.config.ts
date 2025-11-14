@@ -31,14 +31,15 @@ export default defineConfig({
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
 		lib: {
 			entry: entries,
+			formats: ["cjs", "es"],
 		},
 		emptyOutDir: false,
 		rollupOptions: {
 			external: externalDependencies(),
 			output: {
 				dir: "dist",
-				format: "es",
 				assetFileNames: "[name].[ext]",
+				exports:"named"
 			},
 		},
 	},
