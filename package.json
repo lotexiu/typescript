@@ -25,12 +25,12 @@
         "default": "./dist/global.js"
       }
     },
-    "./implementations-DADsTbsT": {
+    "./implementations-Dbc-Zsk3": {
       "import": {
-        "default": "./dist/implementations-DADsTbsT.mjs"
+        "default": "./dist/implementations-Dbc-Zsk3.js"
       },
       "require": {
-        "default": "./dist/implementations-DADsTbsT.mjs"
+        "default": "./dist/implementations-Dbc-Zsk3.js"
       }
     },
     "./implementations": {
