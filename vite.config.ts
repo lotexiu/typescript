@@ -4,11 +4,11 @@ import path from "path";
 import {
 	externalDependencies,
 	extractTsconfigAliases,
-	getLibraryEntries,
-	loadRootPackage,
+	getLibraryEntries
 } from "@lotexiu/vite-utils/utils";
 import { updatePackageJsonPlugin } from "@lotexiu/vite-utils/plugins/MainPackage";
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
+import { preserveKeywordsPlugin } from "@lotexiu/vite-utils/plugins/PreserveKeywords";
 
 const libSrc = path.resolve(__dirname, "src");
 const entries = getLibraryEntries(libSrc);
@@ -18,6 +18,7 @@ export default defineConfig({
 		alias: extractTsconfigAliases(),
 	},
 	plugins: [
+		preserveKeywordsPlugin(),
 		dts({
 			include: ["src"],
 			outDir: "dist",
@@ -27,11 +28,11 @@ export default defineConfig({
 		updatePackageJsonPlugin(),
 	],
 	build: {
+		minify: false, // Obrigatório para que o refresh rapido do react funcione.
 		lib: {
 			entry: entries,
 		},
 		emptyOutDir: false,
-		// ... outras configurações ...
 		rollupOptions: {
 			external: externalDependencies(),
 			output: {

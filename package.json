@@ -25,12 +25,12 @@
         "default": "./dist/global.js"
       }
     },
-    "./implementations-Dbc-Zsk3": {
+    "./implementations-B0GbiRCi": {
       "import": {
-        "default": "./dist/implementations-Dbc-Zsk3.js"
+        "default": "./dist/implementations-B0GbiRCi.mjs"
       },
       "require": {
-        "default": "./dist/implementations-Dbc-Zsk3.js"
+        "default": "./dist/implementations-B0GbiRCi.mjs"
       }
     },
     "./implementations": {

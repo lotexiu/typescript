@@ -35,6 +35,18 @@ type TObject<T = Object> = T extends Function
 			? T
 			: never;
 
+
+type TMapRec<Type, Default, PairList extends TPair<any, any>[]> =
+  PairList extends [infer Head, ...infer Tail] // Get first Pair from the list
+    ? Head extends TPair<infer K, infer V> // Get K and V from the Pair
+      ? Type extends K // Check if Type matches K
+        ? V // If it matches, return V
+        : Tail extends TPair<any, any>[] // If it doesn't match, go to the next Pair
+          ? TMapRec<Type, Default, Tail> // Recursive call with the rest of the tuple (Tail)
+          : Default // If Tail is empty (end reached), return Default
+      : Default
+    : Default; // If the list R is empty at the start, return Default
+
 /**
  * Maps a type to a set of return types based on a list of pairs.
  *
@@ -42,7 +54,7 @@ type TObject<T = Object> = T extends Function
  * @template Returns - An array of pairs [key, returnType].
  *
  * @example
- * type CReturn<T> = CustomReturn<T, [
+ * type CReturn<T> = TMap<T, 'defaultValue', [
  *   ["X", string],
  *   ["Y" | "K", number]
  * ]>;
@@ -51,15 +63,15 @@ type TObject<T = Object> = T extends Function
  * type Result2 = CReturn<"Y">; // number
  * type Result3 = CReturn<"K">; // number
  * type Result4 = CReturn<"X">; // string
- * type Result5 = CReturn<"Z">; // never
+ * type Result5 = CReturn<"Z">; // 'defaultValue'
  *
  * // Result: Returns the mapped type for the given key, or never if not found.
  */
-type TCustomReturn<Type, Returns extends TPair<any, any>[]> = {
-	[Return in TKeyOf<Returns>]: Type extends Returns[Return][0]
-		? Returns[Return][1]
-		: never;
-}[number];
+type TMap<
+	Type,
+	Default,
+	Returns extends TPair<any, any>[]
+> = TMapRec<Type, Default, Returns>;
 
 /**
  * Returns the keys that are of a specific type in the target object.
@@ -235,7 +247,7 @@ export type {
 	TTypeFromKey,
 	TConcatStrIntoKeys,
 	TKeysOfType,
-	TCustomReturn,
+	TMap,
 	TDeepPartial,
 	THasExactKey,
 	TAsKeys,
