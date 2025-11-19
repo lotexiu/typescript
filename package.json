@@ -1,9 +1,24 @@
 {
-  "name": "@lotexiu/typescript-main",
+  "name": "@lotexiu/typescript",
   "version": "1.0.0",
-  "private": "false",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lotexiu/typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/lotexiu/typescript/issues"
+  },
+  "homepage": "https://github.com/lotexiu/typescript#readme",
+  "keywords": [
+    "library",
+    "typescript",
+    "lotexiu",
+    "colorjs.io"
+  ],
   "scripts": {
-    "build": "pnpm clean && vite build",
+    "build": "vite build",
     "dev": "vite build --watch",
     "clean": "rm -rf dist"
   },
@@ -13,5 +28,128 @@
   "dependencies": {
     "@lotexiu/vite-utils": "workspace:*",
     "colorjs.io": "^0.5.2"
+  },
+  "files": [
+    "dist",
+    "index.js",
+    "index.d.ts"
+  ],
+  "exports": {
+    "./package.json": {
+      "default": "./package.json"
+    },
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
+    "./global": {
+      "types": "./dist/global.d.ts",
+      "import": "./dist/global.js",
+      "default": "./dist/global.js"
+    },
+    "./implementations": {
+      "types": "./dist/implementations.d.ts",
+      "import": "./dist/implementations.js",
+      "default": "./dist/implementations.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "default": "./dist/types.js"
+    },
+    "./theme/implementations": {
+      "types": "./dist/theme/implementations.d.ts",
+      "import": "./dist/theme/implementations.js",
+      "default": "./dist/theme/implementations.js"
+    },
+    "./theme/types": {
+      "types": "./dist/theme/types.d.ts",
+      "import": "./dist/theme/types.js",
+      "default": "./dist/theme/types.js"
+    },
+    "./theme/utils": {
+      "types": "./dist/theme/utils.d.ts",
+      "import": "./dist/theme/utils.js",
+      "default": "./dist/theme/utils.js"
+    },
+    "./natives/types": {
+      "types": "./dist/natives/types.d.ts",
+      "import": "./dist/natives/types.js",
+      "default": "./dist/natives/types.js"
+    },
+    "./natives/string/generic/implementations": {
+      "types": "./dist/natives/string/generic/implementations.d.ts",
+      "import": "./dist/natives/string/generic/implementations.js",
+      "default": "./dist/natives/string/generic/implementations.js"
+    },
+    "./natives/object/proxy/ProxyHandler": {
+      "types": "./dist/natives/object/proxy/ProxyHandler.d.ts",
+      "import": "./dist/natives/object/proxy/ProxyHandler.js",
+      "default": "./dist/natives/object/proxy/ProxyHandler.js"
+    },
+    "./natives/object/proxy/types": {
+      "types": "./dist/natives/object/proxy/types.d.ts",
+      "import": "./dist/natives/object/proxy/types.js",
+      "default": "./dist/natives/object/proxy/types.js"
+    },
+    "./natives/object/generic/implementations": {
+      "types": "./dist/natives/object/generic/implementations.d.ts",
+      "import": "./dist/natives/object/generic/implementations.js",
+      "default": "./dist/natives/object/generic/implementations.js"
+    },
+    "./natives/object/generic/types": {
+      "types": "./dist/natives/object/generic/types.d.ts",
+      "import": "./dist/natives/object/generic/types.js",
+      "default": "./dist/natives/object/generic/types.js"
+    },
+    "./natives/object/generic/utils": {
+      "types": "./dist/natives/object/generic/utils.d.ts",
+      "import": "./dist/natives/object/generic/utils.js",
+      "default": "./dist/natives/object/generic/utils.js"
+    },
+    "./natives/function/generic/implementations": {
+      "types": "./dist/natives/function/generic/implementations.d.ts",
+      "import": "./dist/natives/function/generic/implementations.js",
+      "default": "./dist/natives/function/generic/implementations.js"
+    },
+    "./natives/function/generic/types": {
+      "types": "./dist/natives/function/generic/types.d.ts",
+      "import": "./dist/natives/function/generic/types.js",
+      "default": "./dist/natives/function/generic/types.js"
+    },
+    "./natives/class/generic/types": {
+      "types": "./dist/natives/class/generic/types.d.ts",
+      "import": "./dist/natives/class/generic/types.js",
+      "default": "./dist/natives/class/generic/types.js"
+    },
+    "./natives/array/generic/types": {
+      "types": "./dist/natives/array/generic/types.d.ts",
+      "import": "./dist/natives/array/generic/types.js",
+      "default": "./dist/natives/array/generic/types.js"
+    },
+    "./global/implementation": {
+      "types": "./dist/global/implementation.d.ts",
+      "import": "./dist/global/implementation.js",
+      "default": "./dist/global/implementation.js"
+    },
+    "./global/types": {
+      "types": "./dist/global/types.d.ts",
+      "import": "./dist/global/types.js",
+      "default": "./dist/global/types.js"
+    },
+    "./global/utils": {
+      "types": "./dist/global/utils.d.ts",
+      "import": "./dist/global/utils.js",
+      "default": "./dist/global/utils.js"
+    }
+  },
+  "sideEffects": false,
+  "typings": "./index.d.ts",
+  "module": "./index.js",
+  "main": "./index.js",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
   }
 }

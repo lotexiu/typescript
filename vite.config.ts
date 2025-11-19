@@ -8,8 +8,8 @@ import {
 } from "@lotexiu/vite-utils/utils";
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
 import { preserveKeywordsPlugin } from "@lotexiu/vite-utils/plugins/PreserveKeywords";
-import IndexPlugin from "@lotexiu/vite-utils/plugins/IndexPlugin";
-import { distPackageJson } from "@lotexiu/vite-utils/plugins/DistPackageJson";
+import { indexPlugin } from "@lotexiu/vite-utils/plugins/IndexPlugin";
+import { packageJsonPlugin } from "@lotexiu/vite-utils/plugins/PackageJsonPlugin";
 
 const libSrc = path.resolve(__dirname, "src");
 const entries = getLibraryEntries(libSrc);
@@ -25,24 +25,42 @@ export default defineConfig({
 			insertTypesEntry: false,
 		}),
 		betterOutDirCleanPlugin(),
-		distPackageJson("@lotexiu/typescript"),
-		preserveKeywordsPlugin(),
-		IndexPlugin()
+		// preserveKeywordsPlugin(),
+		packageJsonPlugin(['dist', './']),
+		indexPlugin(['dist', './']),
 	],
 	build: {
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
+		emptyOutDir: false,
 		lib: {
 			entry: entries,
-			formats: ["cjs", "es"],
+			fileName: (format, entryName) => {
+        const ext = format === 'es' ? 'js' : 'cjs';
+        return `${entryName}.${ext}`;
+      },
 		},
-		emptyOutDir: false,
 		rollupOptions: {
 			external: externalDependencies(),
-			output: {
-				dir: "dist",
-				assetFileNames: "[name].[ext]",
-				exports:"named"
-			},
+			output: [
+				{
+					format: 'es',
+          dir: 'dist',
+          entryFileNames: '[name].js',
+          chunkFileNames: 'chunks/[name]-[hash].js',
+          preserveModules: true,
+          preserveModulesRoot: 'src',
+          exports: 'named'
+				},
+				{
+          format: 'cjs',
+          dir: 'dist',
+          entryFileNames: '[name].cjs', // Força extensão .cjs
+          chunkFileNames: 'chunks/[name]-[hash].cjs',
+          preserveModules: true,
+          preserveModulesRoot: 'src',
+          exports: 'named'
+        }
+			]
 		},
 	},
 });

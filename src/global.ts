@@ -1,7 +1,7 @@
 import { _Global } from "./global/implementation";
 import { _String, TUtilsString } from "@tsn-string/generic/implementations";
 import { GlobalDeclaration } from "./global/types";
-import { _Object, TUtilsObject } from "@tsn-object/generic/implementations";
+import { _Object } from "@tsn-object/generic/implementations";
 import {
 	TFunction,
 	TLambdaToFunction,
