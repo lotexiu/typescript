@@ -6,9 +6,10 @@ import {
 	extractTsconfigAliases,
 	getLibraryEntries
 } from "@lotexiu/vite-utils/utils";
-import { updatePackageJsonPlugin } from "@lotexiu/vite-utils/plugins/MainPackage";
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
 import { preserveKeywordsPlugin } from "@lotexiu/vite-utils/plugins/PreserveKeywords";
+import IndexPlugin from "@lotexiu/vite-utils/plugins/IndexPlugin";
+import { distPackageJson } from "@lotexiu/vite-utils/plugins/DistPackageJson";
 
 const libSrc = path.resolve(__dirname, "src");
 const entries = getLibraryEntries(libSrc);
@@ -18,14 +19,15 @@ export default defineConfig({
 		alias: extractTsconfigAliases(),
 	},
 	plugins: [
-		preserveKeywordsPlugin(),
 		dts({
 			include: ["src"],
 			outDir: "dist",
 			insertTypesEntry: false,
 		}),
 		betterOutDirCleanPlugin(),
-		updatePackageJsonPlugin(),
+		distPackageJson("@lotexiu/typescript"),
+		preserveKeywordsPlugin(),
+		IndexPlugin()
 	],
 	build: {
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
