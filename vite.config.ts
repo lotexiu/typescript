@@ -7,12 +7,14 @@ import {
 	getLibraryEntries
 } from "@lotexiu/vite-utils/utils";
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
-import { preserveKeywordsPlugin } from "@lotexiu/vite-utils/plugins/PreserveKeywords";
-import { indexPlugin } from "@lotexiu/vite-utils/plugins/IndexPlugin";
 import { packageJsonPlugin } from "@lotexiu/vite-utils/plugins/PackageJsonPlugin";
+import { createIndexFile } from "@lotexiu/vite-utils/plugins/IndexPlugin";
 
 const libSrc = path.resolve(__dirname, "src");
 const entries = getLibraryEntries(libSrc);
+
+createIndexFile(libSrc);
+entries["index"] = path.resolve(libSrc, "index.ts");
 
 export default defineConfig({
 	resolve: {
@@ -25,9 +27,7 @@ export default defineConfig({
 			insertTypesEntry: false,
 		}),
 		betterOutDirCleanPlugin(),
-		// preserveKeywordsPlugin(),
 		packageJsonPlugin(['dist', './']),
-		indexPlugin(['dist', './']),
 	],
 	build: {
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
