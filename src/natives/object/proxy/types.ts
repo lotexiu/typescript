@@ -1,4 +1,4 @@
-type PropertyState = "new" | "updated" | "deleted";
+type PropertyState = "new" | "updated" | "deleted" | "defined";
 
 interface Property<T, Key extends keyof T = keyof T> {
 	name: Key;

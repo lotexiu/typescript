@@ -23,7 +23,8 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@lotexiu/typescript-config": "workspace:*"
+    "@lotexiu/typescript-config": "workspace:*",
+    "@types/node": "^22.19.1"
   },
   "dependencies": {
     "@lotexiu/vite-utils": "workspace:*",
@@ -70,11 +71,23 @@
       "require": "./dist/types.cjs",
       "default": "./dist/types.js"
     },
+    "./theme/builders": {
+      "types": "./dist/theme/builders.d.ts",
+      "import": "./dist/theme/builders.js",
+      "require": "./dist/theme/builders.cjs",
+      "default": "./dist/theme/builders.js"
+    },
     "./theme/implementations": {
       "types": "./dist/theme/implementations.d.ts",
       "import": "./dist/theme/implementations.js",
       "require": "./dist/theme/implementations.cjs",
       "default": "./dist/theme/implementations.js"
+    },
+    "./theme/themes": {
+      "types": "./dist/theme/themes.d.ts",
+      "import": "./dist/theme/themes.js",
+      "require": "./dist/theme/themes.cjs",
+      "default": "./dist/theme/themes.js"
     },
     "./theme/types": {
       "types": "./dist/theme/types.d.ts",
@@ -142,11 +155,23 @@
       "require": "./dist/natives/function/generic/types.cjs",
       "default": "./dist/natives/function/generic/types.js"
     },
-    "./natives/class/generic/types": {
-      "types": "./dist/natives/class/generic/types.d.ts",
-      "import": "./dist/natives/class/generic/types.js",
-      "require": "./dist/natives/class/generic/types.cjs",
-      "default": "./dist/natives/class/generic/types.js"
+    "./natives/class/declarations": {
+      "types": "./dist/natives/class/declarations.d.ts",
+      "import": "./dist/natives/class/declarations.js",
+      "require": "./dist/natives/class/declarations.cjs",
+      "default": "./dist/natives/class/declarations.js"
+    },
+    "./natives/class/implementations": {
+      "types": "./dist/natives/class/implementations.d.ts",
+      "import": "./dist/natives/class/implementations.js",
+      "require": "./dist/natives/class/implementations.cjs",
+      "default": "./dist/natives/class/implementations.js"
+    },
+    "./natives/class/types": {
+      "types": "./dist/natives/class/types.d.ts",
+      "import": "./dist/natives/class/types.js",
+      "require": "./dist/natives/class/types.cjs",
+      "default": "./dist/natives/class/types.js"
     },
     "./natives/array/generic/types": {
       "types": "./dist/natives/array/generic/types.d.ts",

@@ -12,4 +12,12 @@ type TExtendClass<T, E> = E extends null
 	? TClazz<T>
 	: TClazz<T&E>
 
-export type { TConstructor, TPrototype, TClazz, TExtendClass};
+type TTimeout = TConstructor<NodeJS.Timeout>;
+
+export type {
+	TConstructor,
+	TPrototype,
+	TClazz,
+	TExtendClass,
+	TTimeout
+};

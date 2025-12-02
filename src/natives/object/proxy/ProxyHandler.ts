@@ -71,23 +71,20 @@ function get<T extends object, P extends keyof T, V extends T[P]>(
 	return value;
 }
 
-function isProxyEnabled<T extends object, P extends keyof T>(
+function defineProperty<T extends object, P extends keyof T, V extends T[P]>(
 	options: ProxyOptions<T>,
+	target: T,
 	property: P,
+	attributes: PropertyDescriptor
 ) {
-	if (isProxyKey(property)) return false;
-	return (
-		options.allProxy ||
-		options.properties?.[property]?.proxyVariable ||
-		options.properties?.[property]?.onChanges
-	);
-}
-
-function isProxyKey(property: string | number | symbol): boolean {
-	return (
-		property.toString().startsWith("__") &&
-		property.toString().endsWith("Proxy")
-	);
+	Object.defineProperty(target, property, attributes);
+	options.onChanges?.({
+		name: property,
+		value: attributes.value as V,
+		previousValue: target[property],
+		state: "defined",
+	});
+	return true;
 }
 
 function deleteProperty<T, P extends keyof T, V extends T[P]>(
@@ -109,6 +106,25 @@ function deleteProperty<T, P extends keyof T, V extends T[P]>(
 		});
 	}
 	return true;
+}
+
+function isProxyEnabled<T extends object, P extends keyof T>(
+	options: ProxyOptions<T>,
+	property: P,
+) {
+	if (isProxyKey(property)) return false;
+	return (
+		options.allProxy ||
+		options.properties?.[property]?.proxyVariable ||
+		options.properties?.[property]?.onChanges
+	);
+}
+
+function isProxyKey(property: string | number | symbol): boolean {
+	return (
+		property.toString().startsWith("__") &&
+		property.toString().endsWith("Proxy")
+	);
 }
 
 function createProxyProperty<
@@ -140,6 +156,7 @@ function proxyHandler<T extends object>(
 	const proxy = new Proxy(targetObj, {
 		set: (set as any).bind(null, options),
 		get: (get as any).bind(null, options),
+		defineProperty: (defineProperty as any).bind(null, options),
 		deleteProperty: (deleteProperty as any).bind(null, options),
 	});
 	return proxy;

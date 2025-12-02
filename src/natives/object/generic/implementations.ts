@@ -6,7 +6,7 @@ import type {
 	TRemoveCicularReferences,
 } from "./types";
 import { _String } from "@tsn-string/generic/implementations";
-import type { TClazz } from "@tsn-class/generic/types";
+import type { TClazz } from "@tsn-class/types";
 import { isNull } from "@ts/implementations";
 import { TFunction, TLambdaToFunction } from "@tsn-function/generic/types";
 import { GlobalDeclaration } from "@ts/global/types";
@@ -103,6 +103,10 @@ function differenceBetweenObjects<T extends object>(
 	);
 }
 
+function update<T extends object>(obj: T, updates: Partial<T>): T {
+	return Object.assign(obj, updates);
+}
+
 export const _Object = {
 	isEmptyObj,
 	isAClassDeclaration,
@@ -113,6 +117,7 @@ export const _Object = {
 	removeNullFields,
 	thisAsParameter,
 	differenceBetweenObjects,
+	update,
 };
 
 export type TUtilsObject = typeof _Object;

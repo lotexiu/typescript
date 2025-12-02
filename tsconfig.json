@@ -3,6 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": "./",
+		"types": [
+			"node"
+		],
 		"paths": {
 			"@tsn-array/*": ["src/natives/array/*"],
       "@tsn-class/*": ["src/natives/class/*"],
