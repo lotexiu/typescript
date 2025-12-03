@@ -36,3 +36,7 @@ export function equals<T, R>(
 	}
 	return result;
 }
+
+export function includes<const T extends any[], U>(values: T, value: U): value is T[number] {
+	return values.includes(value)
+}

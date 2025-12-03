@@ -13,13 +13,12 @@ export const DefaultThemeBuilder = ThemeUtils.themeSchema(
     // --- Cores Funcionais
     // Secondary: Mistura primária e accent, mas mantém a cor viva (alto croma)
     secondary: ({ primary, accent }) => new Color(primary).mix(accent, 0.5, { space: "lch" }).set("lch.c", c => c * 1.1),
-    // Destructive: Vermelho puro e brilhante, contrastando com o fundo
-    destructive: ({ background }) => new Color("red").mix(background, 0.15, { space: "lch" }),
+    destructive: ({ accent }) => new Color("red").mix(accent, 0.1, { space: "lch" }),
     // Muted: Apenas uma leve variação do background
-    muted: ({ background, foreground }) => new Color(background).mix(foreground, 0.12),
+    muted: ({ background, accent }) => new Color(background).mix(accent, 0.08),
     // --- Efeito Neon (Cores que parecem brilhar no escuro)
     // Usamos LCH para garantir alta luminosidade (L) e alto croma (C)
-    border: ({ primary }) => new Color(primary).set({ "lch.l": 60, "lch.c": 100 }), // Brilhante
+    border: ({ primary }) => ThemeUtils.oppositeColor(new Color(primary), {s:'maxRange', l:'middleRange'}), // Brilhante
     input: ({ primary }) => new Color(primary).set({ "lch.l": 50, "lch.c": 80 }), // Levemente mais escuro que a borda
     ring: ({ accent }) => new Color(accent).set({ "lch.l": 80, "lch.c": 120 }), // Super Brilhante
 
@@ -32,30 +31,30 @@ export const DefaultThemeBuilder = ThemeUtils.themeSchema(
 		"chart-6": ({ background }) => new Color("#ffa600").mix(background, 0.3, { space: "lch" }),
 
     // --- Sidebar (Praticamente a cor do background para a sensação de profundidade)
-    sidebar: ({ background, foreground }) => new Color(background).mix(foreground, 0.035),
-    sidebarPrimary: ({ primary }) => new Color("black").set("lch.l", l => l + 5).mix(primary, 0.3),
-    sidebarAccent: ({ accent }) => new Color("black").set("lch.l", l => l + 5).mix(accent, 0.3),
-    sidebarBorder: ({ background }) => new Color(background).set("lch.l", l => l + 10),
-    sidebarRing: ({ accent }) => new Color(accent).set({ "lch.l": 85 }),
+    sidebar: ({ background, foreground }) => new Color(background).mix(foreground, 0.035, { space: "lch" }),
+    sidebarPrimary: ({ primary, background }) => new Color(background).mix(primary, 0.16, { space: "lch" }),
+    sidebarAccent: ({ accent, background }) => new Color(background).mix(accent, 0.16, { space: "lch" }),
+    sidebarBorder: ({ background, foreground }) => new Color(background).mix(foreground, 0.07, { space: "lch" }),
+    sidebarRing: ({ accent, background }) => new Color(accent).mix(background, 0.2, { space: "lch" }),
 
     // --- Base
-    error: ({ background }) => new Color("red").set({ "lch.l": 75 }),
-    warning: ({ background }) => new Color("orange").set({ "lch.l": 75 }),
-    success: ({ background }) => new Color("lime").set({ "lch.l": 75 }),
+    error: ({ accent }) => new Color("red").mix(accent, 0.12, { space: "lch" }), //.set({ "lch.l": 75 }),
+    warning: ({ accent }) => new Color("orange").mix(accent, 0.12, { space: "lch" }), //.set({ "lch.l": 75 }),
+    success: ({ accent }) => new Color("lime").mix(accent, 0.15, { space: "lch" }), //.set({ "lch.l": 75 }),
   },
   /* --- 2. Geração de Cores Foreground (Usa ThemeUtils.oppositeColor para o contraste) --- */
   {
     // A maioria dos foregounds serão gerados para ter contraste máximo
-    cardForeground: ({ card }) => ThemeUtils.oppositeColor(card, { l: "full", s: "decrease" }),
-    popoverForeground: ({ popover }) => ThemeUtils.oppositeColor(popover, { l: "full", s: "decrease" }),
-    primaryForeground: ({ primary }) => ThemeUtils.oppositeColor(primary, { l: "full", s: "decrease" }),
-    secondaryForeground: ({ secondary }) => ThemeUtils.oppositeColor(secondary, { l: "full", s: "decrease" }),
-    mutedForeground: ({ muted }) => ThemeUtils.oppositeColor(muted, { l: "full", s: "decrease" }),
-    accentForeground: ({ accent }) => ThemeUtils.oppositeColor(accent, { l: "full", s: "decrease" }),
+    cardForeground: ({ card }) => ThemeUtils.oppositeColor(card, {l:'fullRange', s:"minRange"}),
+    popoverForeground: ({ popover }) => ThemeUtils.oppositeColor(popover, {l:'fullRange', s:"minRange"}),
+    primaryForeground: ({ primary }) => ThemeUtils.oppositeColor(primary, {l:'fullRange', s:"minRange"}),
+    secondaryForeground: ({ secondary }) => ThemeUtils.oppositeColor(secondary, {l:'fullRange', s:"minRange"}),
+    mutedForeground: ({ muted }) => ThemeUtils.oppositeColor(muted, {l:'medium', s: "minRange" }),
+    accentForeground: ({ accent }) => ThemeUtils.oppositeColor(accent, {l:'fullRange', s:"minRange"}),
     // Sidebar: Foreground será a cor primária brilhante
-    sidebarForeground: ({ primary }) => new Color(primary).set({ "lch.l": 80, "lch.c": 100 }),
-    sidebarPrimaryForeground: ({ sidebarPrimary }) => ThemeUtils.oppositeColor(sidebarPrimary, { l: "full", s: "decrease" }),
-    sidebarAccentForeground: ({ sidebarAccent }) => ThemeUtils.oppositeColor(sidebarAccent, { l: "full", s: "decrease" }),
+    sidebarForeground: ({ primary }) => ThemeUtils.oppositeColor(primary, {l:'fullRange', s:"minRange"}),
+    sidebarPrimaryForeground: ({ sidebarPrimary }) => ThemeUtils.oppositeColor(sidebarPrimary, {l:'fullRange', s:"minRange"}),
+    sidebarAccentForeground: ({ sidebarAccent }) => ThemeUtils.oppositeColor(sidebarAccent, {l:'fullRange', s:"minRange"}),
   },
   /* --- 3. Validação (Mantida para garantir WCAG) --- */
   (theme) => {

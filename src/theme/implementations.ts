@@ -7,6 +7,8 @@ import {
 	TThemeVariationsBuilder,
 } from "./types";
 import { TObject } from "@tsn-object/generic/types";
+import { _Object } from "@tsn-object/generic/implementations";
+import { includes, isNull } from "@ts/implementations";
 
 /**
  * Creates a theme schema with the specified main colors and rules.
@@ -137,39 +139,42 @@ function applyThemeToDocument<T extends TTheme>(theme: TObject<T>) {
 
 function oppositeColor(
 	color: Color,
-	options: TOppositeColorOptions = { h: true },
-): Color {
-	const lch = color.to("oklch");
-	const h = options.h ? (lch.h + 180) % 360 : lch.h;
-
-	let l = lch.l;
-	switch (options.l) {
-		case "full": {
-			l = lch.l < 0.5 ? 1 : 0;
-			break;
-		}
-		case true: {
-			l = 1 - lch.l;
-			break;
-		}
+	options: TOppositeColorOptions = {
+		h: 'full',
+		l: 'full',
+		s: 'full',
+	},
+) {
+	let {h,s,l} = color.to("hsl");
+	const settingValues = {
+		weak: {h: 60, l: 33, s: 33},
+		medium: {h: 120, l: 66, s: 66},
+		full: {h: 180, l: 100, s: 100},
 	}
 
-	let c = lch.c;
-	switch (options.s) {
-		case "decrease": {
-			c = lch.c * 0.2;
-			break;
+	let newColor = {h,s,l};
+	_Object.entries(newColor).forEach(([key, value])=> {
+		if (isNull(options[key])) return;
+
+		if (includes(['maxRange', 'minRange', 'middleRange'], options[key])) {
+			if (key == 'h') return;
+			if (options[key] == 'middleRange') return newColor[key] = 50;
+			return newColor[key] = options[key] == 'maxRange' ? 100 : 0;
 		}
-		case "increase": {
-			c = Math.min(lch.c * 1.5, 0.4);
-			break;
+
+		if (includes(['fullRange'], options[key])) {
+			if (key == 'h') return;
+			return newColor[key] = value < 50 ? 100 : 0;
 		}
-		case true: {
-			c = lch.c * (lch.c < 0.1 ? 4 : 0.25);
-			break;
+
+		let optionValue = settingValues[options[key]!][key];
+		if (key == 'h') {
+			newColor[key] = value + optionValue % 360;
+		} else {
+			newColor[key] = Math.abs(value - optionValue)
 		}
-	}
-	return color.to("oklch").set({ l, c, h });
+	});
+	return color.clone().to("hsl").set(newColor).to(color.space.id);
 }
 
 export const _Theme = {

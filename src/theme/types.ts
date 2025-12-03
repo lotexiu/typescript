@@ -33,12 +33,12 @@ type TThemeBuilder<K, R = any> = (
 	validate?: boolean,
 ) => TTheme<K, R>;
 
-type R = TThemeBuilder<["background"]>;
+type IntensityLevel = "weak" | "medium" | "full" | "fullRange" | "middleRange";
 
 type TOppositeColorOptions = {
-	l?: "full" | boolean;
-	h?: boolean;
-	s?: "decrease" | "increase" | boolean;
+	h?: IntensityLevel;
+	l?: IntensityLevel | "maxRange" | "minRange";
+	s?: IntensityLevel | "maxRange" | "minRange";
 };
 
 export {

@@ -10,6 +10,7 @@ import type { TClazz } from "@tsn-class/types";
 import { isNull } from "@ts/implementations";
 import { TFunction, TLambdaToFunction } from "@tsn-function/generic/types";
 import { GlobalDeclaration } from "@ts/global/types";
+import { As } from "@ts/types";
 
 export function isEmptyObj(obj: TObject): obj is {} {
 	for (let _x in obj) {
@@ -103,8 +104,12 @@ function differenceBetweenObjects<T extends object>(
 	);
 }
 
-function update<T extends object>(obj: T, updates: Partial<T>): T {
-	return Object.assign(obj, updates);
+function update<T extends object, U extends Partial<T>>(obj: T, updates: U): As<T,U> {
+	return Object.assign(obj, updates) as As<T,U>;
+}
+
+function entries<T extends {}>(value: T): TEntriesReturn<T>[] {
+	return Object.entries(value) as TEntriesReturn<T>[];
 }
 
 export const _Object = {
@@ -118,6 +123,7 @@ export const _Object = {
 	thisAsParameter,
 	differenceBetweenObjects,
 	update,
+	entries
 };
 
 export type TUtilsObject = typeof _Object;

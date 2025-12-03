@@ -12,4 +12,5 @@ export class ObjectUtils {
 	static thisAsParameter: TUtilsObject["thisAsParameter"] = _Object.thisAsParameter;
 	static differenceBetweenObjects: TUtilsObject["differenceBetweenObjects"] = _Object.differenceBetweenObjects;
 	static update: TUtilsObject["update"] = _Object.update;
+	static entries: TUtilsObject["entries"] = _Object.entries;
 }
