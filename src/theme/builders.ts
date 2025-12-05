@@ -11,16 +11,15 @@ export const DefaultThemeBuilder = ThemeUtils.themeSchema(
     card: ({ background, foreground }) => new Color(background).mix(foreground, 0.12),
     popover: ({ background, foreground }) => new Color(background).mix(foreground, 0.08),
     // --- Cores Funcionais
-    // Secondary: Mistura primária e accent, mas mantém a cor viva (alto croma)
-    secondary: ({ primary, accent }) => new Color(primary).mix(accent, 0.5, { space: "lch" }).set("lch.c", c => c * 1.1),
+		// Mix of 50% between primary and accent, with increased chroma
+    secondary: ({ primary, accent }) => ThemeUtils.oppositeColor(new Color(primary).mix(accent, 0.5, { space: "lch" }), {s: 0.8}),
     destructive: ({ accent }) => new Color("red").mix(accent, 0.1, { space: "lch" }),
-    // Muted: Apenas uma leve variação do background
-    muted: ({ background, accent }) => new Color(background).mix(accent, 0.08),
-    // --- Efeito Neon (Cores que parecem brilhar no escuro)
-    // Usamos LCH para garantir alta luminosidade (L) e alto croma (C)
-    border: ({ primary }) => ThemeUtils.oppositeColor(new Color(primary), {s:'maxRange', l:'middleRange'}), // Brilhante
-    input: ({ primary }) => new Color(primary).set({ "lch.l": 50, "lch.c": 80 }), // Levemente mais escuro que a borda
-    ring: ({ accent }) => new Color(accent).set({ "lch.l": 80, "lch.c": 120 }), // Super Brilhante
+    // Muted: Little mix between background and accent for subtle highlights
+    muted: ({ background, accent }) => new Color(background).mix(accent, 0.08, { space: "lch" }),
+    // Used oppositeColor to ensure high luminosity (L) and high Saturation (S)
+    border: ({ primary }) => ThemeUtils.oppositeColor(new Color(primary), {s:1, l:0.5}), // Brilhante
+    input: ({ primary }) => ThemeUtils.oppositeColor(new Color(primary), {s:0.9, l:0.4}), // Levemente mais escuro que a borda
+    ring: ({ accent }) => ThemeUtils.oppositeColor(new Color(accent), {s:1, l:0.5}),
 
     // --- Charts (Derivadas de cores neon ou misturas)
 		"chart-1": ({ background }) => new Color("#003f5c").mix(background, 0.3, { space: "lch" }),

@@ -71,6 +71,18 @@
       "require": "./dist/types.cjs",
       "default": "./dist/types.js"
     },
+    "./value-history/implementation": {
+      "types": "./dist/value-history/implementation.d.ts",
+      "import": "./dist/value-history/implementation.js",
+      "require": "./dist/value-history/implementation.cjs",
+      "default": "./dist/value-history/implementation.js"
+    },
+    "./value-history/types": {
+      "types": "./dist/value-history/types.d.ts",
+      "import": "./dist/value-history/types.js",
+      "require": "./dist/value-history/types.cjs",
+      "default": "./dist/value-history/types.js"
+    },
     "./theme/builders": {
       "types": "./dist/theme/builders.d.ts",
       "import": "./dist/theme/builders.js",
@@ -178,6 +190,18 @@
       "import": "./dist/natives/array/generic/types.js",
       "require": "./dist/natives/array/generic/types.cjs",
       "default": "./dist/natives/array/generic/types.js"
+    },
+    "./html/keyboard-capture/implementation": {
+      "types": "./dist/html/keyboard-capture/implementation.d.ts",
+      "import": "./dist/html/keyboard-capture/implementation.js",
+      "require": "./dist/html/keyboard-capture/implementation.cjs",
+      "default": "./dist/html/keyboard-capture/implementation.js"
+    },
+    "./html/keyboard-capture/types": {
+      "types": "./dist/html/keyboard-capture/types.d.ts",
+      "import": "./dist/html/keyboard-capture/types.js",
+      "require": "./dist/html/keyboard-capture/types.cjs",
+      "default": "./dist/html/keyboard-capture/types.js"
     },
     "./global/implementation": {
       "types": "./dist/global/implementation.d.ts",

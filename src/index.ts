@@ -3,6 +3,8 @@
 export * from './global';
 export * from './implementations';
 export * from './types';
+export * from './value-history/implementation';
+export * from './value-history/types';
 export * from './theme/builders';
 export * from './theme/implementations';
 export * from './theme/themes';
@@ -22,6 +24,8 @@ export * from './natives/class/declarations';
 export * from './natives/class/implementations';
 export * from './natives/class/types';
 export * from './natives/array/generic/types';
+export * from './html/keyboard-capture/implementation';
+export * from './html/keyboard-capture/types';
 export * from './global/implementation';
 export * from './global/types';
 export * from './global/utils';

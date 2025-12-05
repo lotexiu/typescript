@@ -33,7 +33,7 @@ type TThemeBuilder<K, R = any> = (
 	validate?: boolean,
 ) => TTheme<K, R>;
 
-type IntensityLevel = "weak" | "medium" | "full" | "fullRange" | "middleRange";
+type IntensityLevel = "weak" | "medium" | "full" | "fullRange" | "middleRange" | number;
 
 type TOppositeColorOptions = {
 	h?: IntensityLevel;

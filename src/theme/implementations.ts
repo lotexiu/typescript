@@ -9,6 +9,7 @@ import {
 import { TObject } from "@tsn-object/generic/types";
 import { _Object } from "@tsn-object/generic/implementations";
 import { includes, isNull } from "@ts/implementations";
+import { TNullable } from "@ts/types";
 
 /**
  * Creates a theme schema with the specified main colors and rules.
@@ -135,8 +136,19 @@ function applyThemeToDocument<T extends TTheme>(theme: TObject<T>) {
 	Object.entries(theme).forEach(([key, value]) => {
 		root.style.setProperty(`--${key.toKebabCase()}`, value.toString());
 	});
+	currentTheme = theme;
 }
 
+function getCurrentTheme() {
+	return currentTheme;
+}
+
+/**
+ * Finds the opposite color based on HSL values.
+ * @param color The original color to find the opposite of.
+ * @param options Options to adjust the opposite color's HSL values.
+ * @returns The opposite color.
+ */
 function oppositeColor(
 	color: Color,
 	options: TOppositeColorOptions = {
@@ -167,6 +179,10 @@ function oppositeColor(
 			return newColor[key] = value < 50 ? 100 : 0;
 		}
 
+		if (typeof options[key] === 'number') {
+			return newColor[key] = options[key] * 100;
+		}
+
 		let optionValue = settingValues[options[key]!][key];
 		if (key == 'h') {
 			newColor[key] = value + optionValue % 360;
@@ -177,9 +193,12 @@ function oppositeColor(
 	return color.clone().to("hsl").set(newColor).to(color.space.id);
 }
 
+let currentTheme: TNullable<TTheme> = null;
+
 export const _Theme = {
 	themeSchema,
 	applyThemeToDocument,
+	getCurrentTheme,
 	oppositeColor,
 };
 

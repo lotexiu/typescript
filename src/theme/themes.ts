@@ -37,9 +37,9 @@ export const DefaultThemes = {
 	synthwaveNeon: {
     dark: DefaultThemeBuilder({
       // Cores retiradas da estética Neon/Vaporwave
-      accent: "rgb(255, 68, 160)",  // Magenta/Rosa Brilhante (Sol)
+      accent: "rgb(0, 255, 255)",  // Magenta/Rosa Brilhante (Sol)
       background: "rgb(8, 0, 26)",   // Roxo/Preto Quase Puro
-      foreground: "rgb(0, 255, 255)", // Ciano Puro (Usado para o texto principal)
+      foreground: "white", // Ciano Puro (Usado para o texto principal)
       primary: "rgb(100, 0, 153)",  // Rosa Neon (Topo da Barra / Grid)
     }),
     light: DefaultThemeBuilder({
