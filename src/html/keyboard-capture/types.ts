@@ -26,9 +26,9 @@ type TKeyboardEvent = KeyboardEvent & { code: TKeyboardEventCode }
 
 interface TKeyboardAction {
   oneCallPerTrigger?: boolean;
-  combo: TKeyboardEventCode[];
-  keyDown?: (event: TKeyboardEvent) => void;
-  keyUp?: (event: TKeyboardEvent) => void;
+  combo: TKeyboardEventCode[] | TKeyboardEventCode[][];
+  keyDown?: (value: TKeyboardValue) => void;
+  keyUp?: (value: TKeyboardValue) => void;
 }
 
 type TKeyboardMapHandlers = Map<TObserveTarget, TKeyboardAction[]>;
@@ -39,6 +39,11 @@ type TObserveTarget = HTMLElement | Document;
 
 type UnListener = () => void;
 
+type TKeyboardValue = {
+	event: TKeyboardEvent,
+	combo: TKeyboardEventCode[]
+}
+
 export type {
   TKeyboardEventCode,
   TKeyboardEvent,
@@ -47,4 +52,5 @@ export type {
 	TKeyboardCombo,
 	TObserveTarget,
 	UnListener,
+	TKeyboardValue,
 }

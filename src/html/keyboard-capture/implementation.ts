@@ -9,7 +9,7 @@ export class KeyboardCapture {
   }
 
 	/* Capture */
-	static _isCapturing: boolean = false;
+	private static _isCapturing: boolean = false;
 	static get isCapturing(): boolean {return this._isCapturing};
 	static set capture(value: boolean) {
 		this._isCapturing = value;
@@ -24,37 +24,47 @@ export class KeyboardCapture {
 
 	private static currentKeys: TKeyboardCombo = {};
 	private static previousKeys: TKeyboardCombo = {};
-	private static handlersMap = new Map<string,TKeyboardMapHandlers>();
+	static readonly handlersMap = new Map<string,TKeyboardMapHandlers>();
 
 	static add(listener: TObserveTarget, ...actions: TKeyboardAction[]): UnListener {
 		this.capture = true;
 		actions.forEach((action)=>{
-			const combo = this.comboString(action.combo);
-			this.initializeHandler(combo, listener);
-			this.handlersMap.get(combo)!.get(listener)!.push(action);
+			if (!Array.isArray(action.combo[0])){
+				action.combo = [action.combo as TKeyboardEventCode[]];
+			}
+			(action.combo as TKeyboardEventCode[][]).forEach((comboArray)=>{
+				const combo = this.comboString(comboArray);
+				this.initializeHandler(combo, listener);
+				this.handlersMap.get(combo)!.get(listener)!.push(action);
+			})
 		})
 
 		return () => {
 			actions.forEach((action)=>{
-				const combo = this.comboString(action.combo);
-				const handlers = this.handlersMap.get(combo);
-				if (!handlers) return;
-
-				const listenerActions = handlers.get(listener);
-				if (!listenerActions) return;
-
-				const index = listenerActions.indexOf(action);
-				if (index > -1) {
-					listenerActions.splice(index, 1);
+				if (!Array.isArray(action.combo[0])){
+					action.combo = [action.combo as TKeyboardEventCode[]];
 				}
+				(action.combo as TKeyboardEventCode[][]).forEach((comboArray)=>{
+					const combo = this.comboString(comboArray);
+					const handlers = this.handlersMap.get(combo);
+					if (!handlers) return;
 
-				if (listenerActions.length === 0) {
-					handlers.delete(listener);
-				}
+					const listenerActions = handlers.get(listener);
+					if (!listenerActions) return;
 
-				if (handlers.size === 0) {
-					this.handlersMap.delete(combo);
-				}
+					const index = listenerActions.indexOf(action);
+					if (index > -1) {
+						listenerActions.splice(index, 1);
+					}
+
+					if (listenerActions.length === 0) {
+						handlers.delete(listener);
+					}
+
+					if (handlers.size === 0) {
+						this.handlersMap.delete(combo);
+					}
+				})
 			});
 		}
 	}
@@ -85,7 +95,8 @@ export class KeyboardCapture {
 	private static onKeyDown(event: TKeyboardEvent) {
 		this.updatePressedKeys(event.code, true);
 
-		const combo = this.handlersMap.get(this.comboString(this.currentKeys));
+		const comboString = this.comboString(this.currentKeys);
+		const combo = this.handlersMap.get(comboString);
 		if (!combo) return;
 
 		let target: TNullable<TObserveTarget> = event.target as TObserveTarget;
@@ -95,11 +106,13 @@ export class KeyboardCapture {
 		}
 		if (!target) return;
 
+		event.preventDefault();
+		event.stopPropagation();
 		return combo.get(target)!.forEach((action)=>{
 			if (this.isDuplicateTrigger(action)) {
 				return;
 			}
-			action.keyDown?.(event);
+			action.keyDown?.({event, combo: this.comboArray(comboString)});
 		});
 	}
 
@@ -108,25 +121,25 @@ export class KeyboardCapture {
 	}
 
 	private static onKeyUp(event: TKeyboardEvent) {
-		const target = event.target as TObserveTarget;
 		this.updatePressedKeys(event.code, false);
 
-		const combo = this.handlersMap.get(this.comboString(this.previousKeys));
+		const comboString = this.comboString(this.previousKeys);
+		const combo = this.handlersMap.get(comboString);
 		if (!combo) return;
 
-		if (combo.has(target)) {
-			return combo.get(target)!.forEach((action)=>{
-				action.keyUp?.(event);
-			});
+		let target: TNullable<TObserveTarget> = event.target as TObserveTarget;
+
+		if (!combo.has(target)) {
+			target = this.closestParentWithCombo(target, combo);
 		}
 
-		const element = this.closestParentWithCombo(target, combo);
+		if (!target) return;
+		event.preventDefault();
+		event.stopPropagation();
 
-		if (element) {
-			return combo.get(element)!.forEach((action)=>{
-				action.keyUp?.(event);
-			});
-		}
+		return combo.get(target)!.forEach((action)=>{
+			action.keyUp?.({event, combo: this.comboArray(comboString)});
+		});
 	}
 
 	private static comboString(combo: string[]): string;
@@ -136,6 +149,10 @@ export class KeyboardCapture {
 			return combo.sort().join('+');
 		}
 		return Object.keys(combo).sort().join('+');
+	}
+
+	private static comboArray(combo: string): TKeyboardEventCode[] {
+		return combo.split('+') as TKeyboardEventCode[];
 	}
 
   private static updatePressedKeys(key: TKeyboardEventCode, isDown: boolean) {
@@ -152,11 +169,11 @@ export class KeyboardCapture {
 
 	static action(
 		listener: TObserveTarget,
-		combo: TKeyboardEventCode[],
-		keyDown?: (event: TKeyboardEvent)=>void,
-		keyUp?: (event: TKeyboardEvent)=>void,
+		combo: TKeyboardAction['combo'],
+		keyDown?: TKeyboardAction['keyDown'],
+		keyUp?: TKeyboardAction['keyUp'],
 		oneCallPerTrigger: boolean = true
 	): UnListener {
-		return KeyboardCapture.add(listener ,{combo,keyDown,keyUp,oneCallPerTrigger});
+		return KeyboardCapture.add(listener ,{combo: combo,keyDown,keyUp,oneCallPerTrigger});
 	}
 }
