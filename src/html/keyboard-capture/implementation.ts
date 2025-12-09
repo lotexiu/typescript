@@ -6,6 +6,7 @@ export class KeyboardCapture {
 	private static binds = {
     onKeyDown: KeyboardCapture.onKeyDown.bind(this),
     onKeyUp: KeyboardCapture.onKeyUp.bind(this),
+		clearPressedKeys: KeyboardCapture.clearPressedKeys.bind(this),
   }
 
 	/* Capture */
@@ -16,9 +17,11 @@ export class KeyboardCapture {
 		if (value) {
 			document.addEventListener('keydown', this.binds.onKeyDown as any);
 			document.addEventListener('keyup', this.binds.onKeyUp as any);
+			window.addEventListener('blur', this.binds.clearPressedKeys as any); // Prevent stuck keys from custom browser shortcuts
 		} else {
 			document.removeEventListener('keydown', this.binds.onKeyDown as any);
 			document.removeEventListener('keyup', this.binds.onKeyUp as any);
+			window.removeEventListener('blur', this.binds.clearPressedKeys as any);
 		}
 	}
 
@@ -166,6 +169,11 @@ export class KeyboardCapture {
 			delete this.currentKeys[key];
 		}
   }
+
+	private static clearPressedKeys() {
+		this.currentKeys = {};
+		this.previousKeys = {};
+	}
 
 	static action(
 		listener: TObserveTarget,
