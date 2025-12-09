@@ -5,13 +5,17 @@ import type { ColorTypes } from "colorjs.io";
 
 type TMainColors<T = any, R = ColorTypes> = { [key in TAsArray<T>[number]]: R };
 
-type TColorBuilder<K> = (
+type TColorBuilder<K, R> = (
 	mainColors: TMainColors<K, Color>,
 	darkTheme: boolean,
-) => Color;
+) => R;
 
 type TThemeVariationsBuilder<K> = {
-	[key: string]: TColorBuilder<K> | ColorTypes;
+	[key: string]: TColorBuilder<K, Color> | ColorTypes;
+};
+
+type TThemeFontBuilder<K> = {
+	[key: string]: TColorBuilder<K, {bg: Color; fg: Color}> | ColorTypes;
 };
 
 type TTheme<K = any, T1 = any, T2 = any> = TRecord<K, Color> &
@@ -30,7 +34,9 @@ type TTheme<K = any, T1 = any, T2 = any> = TRecord<K, Color> &
  */
 type TThemeBuilder<K, R = any> = (
 	mainColors: TMainColors<K>,
+	wcagRequirement?: number,
 	validate?: boolean,
+	logs?: boolean,
 ) => TTheme<K, R>;
 
 type IntensityLevel = "weak" | "medium" | "full" | "fullRange" | "middleRange" | number;
@@ -41,11 +47,20 @@ type TOppositeColorOptions = {
 	s?: IntensityLevel | "maxRange" | "minRange";
 };
 
+type TColorResult = {
+	color: Color;
+	contrast: number;
+	adjusted: boolean;
+	iterations: number;
+}
+
 export {
 	TMainColors,
 	TColorBuilder,
 	TThemeVariationsBuilder,
+	TThemeFontBuilder,
 	TThemeBuilder,
 	TTheme,
 	TOppositeColorOptions,
+	TColorResult,
 };

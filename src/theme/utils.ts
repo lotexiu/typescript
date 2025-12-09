@@ -5,6 +5,7 @@ class ThemeUtils {
 	static applyThemeToDocument = _Theme.applyThemeToDocument;
 	static getCurrentTheme = _Theme.getCurrentTheme;
 	static oppositeColor = _Theme.oppositeColor;
+	static toContrast = _Theme.toContrast;
 }
 
 export { ThemeUtils };

@@ -44,36 +44,35 @@ export const DefaultThemeBuilder = ThemeUtils.themeSchema(
   /* --- 2. Geração de Cores Foreground (Usa ThemeUtils.oppositeColor para o contraste) --- */
   {
     // A maioria dos foregounds serão gerados para ter contraste máximo
-    cardForeground: ({ card }) => ThemeUtils.oppositeColor(card, {l:'fullRange', s:"minRange"}),
-    popoverForeground: ({ popover }) => ThemeUtils.oppositeColor(popover, {l:'fullRange', s:"minRange"}),
-    primaryForeground: ({ primary }) => ThemeUtils.oppositeColor(primary, {l:'fullRange', s:"minRange"}),
-    secondaryForeground: ({ secondary }) => ThemeUtils.oppositeColor(secondary, {l:'fullRange', s:"minRange"}),
-    mutedForeground: ({ muted }) => ThemeUtils.oppositeColor(muted, {l:'medium', s: "minRange" }),
-    accentForeground: ({ accent }) => ThemeUtils.oppositeColor(accent, {l:'fullRange', s:"minRange"}),
-    // Sidebar: Foreground será a cor primária brilhante
-    sidebarForeground: ({ primary }) => ThemeUtils.oppositeColor(primary, {l:'fullRange', s:"minRange"}),
-    sidebarPrimaryForeground: ({ sidebarPrimary }) => ThemeUtils.oppositeColor(sidebarPrimary, {l:'fullRange', s:"minRange"}),
-    sidebarAccentForeground: ({ sidebarAccent }) => ThemeUtils.oppositeColor(sidebarAccent, {l:'fullRange', s:"minRange"}),
-  },
-  /* --- 3. Validação (Mantida para garantir WCAG) --- */
-  (theme) => {
-    theme.getVariations.forEach((key) => {
-      const fontKey = `${key}Foreground`;
-      if (fontKey in theme) {
-        const contrast = theme[key].contrast((theme as any)[fontKey], "WCAG21");
-        if (contrast < 4.5) {
-          console.error(
-            `[WCAG21][VARIATION] Insufficient contrast (${contrast.toFixed(2)}). Minimum is 4.5 between '${key}' and '${fontKey}'. ${theme[key].toString()} vs ${(theme as any)[fontKey].toString()}`,
-          );
-          return;
-        }
-        if (contrast < 7) {
-          console.warn(
-            `[WCAG21][FONT] Low contrast (${contrast.toFixed(2)}). Recommended to be above 7 between '${key}' and '${fontKey}'. ${theme[key].toString()} vs ${(theme as any)[fontKey].toString()}`,
-          );
-          return;
-        }
-      }
-    });
+    cardForeground: ({ card }) => {
+			return {bg: card, fg: ThemeUtils.oppositeColor(card, {l:'fullRange', s:"minRange"})};
+		},
+    popoverForeground: ({ popover }) => {
+			return {bg: popover, fg: ThemeUtils.oppositeColor(popover, {l:'fullRange', s:"minRange"})};
+		},
+    primaryForeground: ({ primary }) => {
+			return {bg: primary, fg: ThemeUtils.oppositeColor(primary, {l:'fullRange', s:"minRange"})};
+		},
+    secondaryForeground: ({ secondary }) => {
+			return {bg: secondary, fg: ThemeUtils.oppositeColor(secondary, {l:'fullRange', s:"minRange"})};
+		},
+    mutedForeground: ({ muted }) => {
+			return {bg: muted, fg: ThemeUtils.oppositeColor(muted, {l:'medium', s: "minRange" })};
+		},
+    accentForeground: ({ accent }) => {
+			return {bg: accent, fg: ThemeUtils.oppositeColor(accent, {l:'fullRange', s:"minRange"})};
+		},
+    sidebarForeground: ({ sidebar, primary }, dark) => {
+			if (dark) {
+				return {bg: sidebar, fg: ThemeUtils.oppositeColor(primary, {l:'full', s:"maxRange"})};
+			}
+			return {bg: sidebar, fg: ThemeUtils.oppositeColor(sidebar, {l:'fullRange', s:"minRange"})};
+		},
+    sidebarPrimaryForeground: ({ sidebarPrimary }) => {
+			return {bg: sidebarPrimary, fg: ThemeUtils.oppositeColor(sidebarPrimary, {l:'fullRange', s:"minRange"})};
+		},
+    sidebarAccentForeground: ({ sidebarAccent }) => {
+			return {bg: sidebarAccent, fg: ThemeUtils.oppositeColor(sidebarAccent, {l:'fullRange', s:"minRange"})};
+		},
   },
 );
