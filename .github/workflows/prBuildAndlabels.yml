@@ -110,14 +110,16 @@ jobs:
             }
 
       # ─── Run build no contexto do monorepo ────────────────────────────────
-      - name: Build package
+      # O sufixo "..." no --filter faz o pnpm buildar as dependências
+      # do pacote na ordem correta antes de buildar o pacote alvo.
+      - name: Build package and its dependencies
         id: build
         working-directory: monorepo
         run: |
           PKG_NAME="${{ steps.pkg.outputs.name }}"
 
           set +e
-          pnpm --filter "${PKG_NAME}" build 2>&1
+          pnpm --filter "${PKG_NAME}..." build 2>&1
           BUILD_EXIT=$?
           set -e
 
@@ -166,12 +168,20 @@ jobs:
           echo "Lines changed: ${TOTAL}"
 
       # ─── Apply version bump label ─────────────────────────────────────────
+      # Regras:
+      # - Se o dev colocou major/minor/patch → respeita e remove apenas as conflitantes
+      # - Se o dev não colocou nenhuma → aplica o padrão por linhas alteradas
+      # - Nunca remove a label que o dev acabou de adicionar
       - name: Apply default version label if none set by developer
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = context.payload.pull_request.number
             const linesChanged = parseInt('${{ steps.lines.outputs.total }}') || 0
+            const eventLabel = context.payload.label?.name ?? null
+            const eventAction = context.eventName === 'pull_request'
+              ? context.payload.action
+              : null
 
             const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -180,39 +190,51 @@ jobs:
             })
             const labelNames = currentLabels.map(l => l.name)
 
+            const VERSION_LABELS = ['major', 'minor', 'patch']
             const devSetMajor = labelNames.includes('major')
             const devSetMinor = labelNames.includes('minor')
             const devSetPatch = labelNames.includes('patch')
             const devHasVersionLabel = devSetMajor || devSetMinor || devSetPatch
 
+            console.log('Event action:', eventAction)
+            console.log('Event label:', eventLabel)
             console.log('Current labels:', labelNames)
             console.log('Lines changed:', linesChanged)
-            console.log('Developer set version label:', devHasVersionLabel)
 
             if (devHasVersionLabel) {
-              const toRemove = []
-              if (devSetMajor) { toRemove.push('minor', 'patch') }
-              if (devSetMinor) { toRemove.push('major', 'patch') }
-              if (devSetPatch) { toRemove.push('major', 'minor') }
-
-              for (const label of toRemove) {
-                if (labelNames.includes(label)) {
-                  try {
-                    await github.rest.issues.removeLabel({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      issue_number: prNumber,
-                      name: label,
-                    })
-                    console.log(`Removed conflicting label: ${label}`)
-                  } catch (e) { /* already removed */ }
-                }
+              // Dev has a version label — figure out which one is the "chosen" one.
+              // Priority: the label that triggered this run (if it's a version label),
+              // otherwise whichever version label is present.
+              let chosen = null
+              if (eventAction === 'labeled' && VERSION_LABELS.includes(eventLabel)) {
+                chosen = eventLabel
+              } else if (devSetMajor) {
+                chosen = 'major'
+              } else if (devSetMinor) {
+                chosen = 'minor'
+              } else {
+                chosen = 'patch'
               }
 
-              console.log('Developer label respected — no default applied.')
+              // Remove all version labels except the chosen one
+              const toRemove = VERSION_LABELS.filter(l => l !== chosen && labelNames.includes(l))
+              for (const label of toRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    name: label,
+                  })
+                  console.log(`Removed conflicting label: ${label}`)
+                } catch (e) { /* already removed */ }
+              }
+
+              console.log(`Developer label '${chosen}' respected.`)
               return
             }
 
+            // No version label — apply default based on lines changed
             const defaultLabel = linesChanged >= 200 ? 'minor' : 'patch'
             const oppositeLabel = defaultLabel === 'minor' ? 'patch' : 'minor'
 
@@ -232,7 +254,7 @@ jobs:
               labels: [defaultLabel],
             })
 
-            console.log(`Applied default version label: ${defaultLabel} (${linesChanged} lines changed)`)
+            console.log(`Applied default label: ${defaultLabel} (${linesChanged} lines changed)`)
 
       # ─── Post summary comment ─────────────────────────────────────────────
       - name: Post build summary as PR comment
