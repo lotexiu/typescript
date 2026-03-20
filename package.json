@@ -24,10 +24,10 @@
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
+    "@lotexiu/vite-utils": "workspace:*",
     "@types/node": "^22.19.1"
   },
   "dependencies": {
-    "@lotexiu/vite-utils": "workspace:*",
     "colorjs.io": "^0.5.2"
   },
   "sideEffects": true,

@@ -16,8 +16,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ─── Detect package name ──────────────────────────────────────────────
-      # Faz checkout do pacote para descobrir o nome dele
+      # ─── Setup ferramentas ────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      # ─── Checkout do pacote (para descobrir o nome e contar linhas) ───────
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
@@ -32,23 +42,28 @@ jobs:
           echo "name=${PKG_NAME}" >> $GITHUB_OUTPUT
           echo "Package: ${PKG_NAME}"
 
-      # ─── Clone monorepo raiz com todos os submodules ──────────────────────
-      # Necessário para resolver dependências workspace:* entre pacotes
+      # ─── Clone monorepo e inicializa submodules ───────────────────────────
+      # Replica exatamente: git clone → pnpm git-init
       - name: Checkout aleph-typescript monorepo
         uses: actions/checkout@v4
         with:
           repository: lotexiu/aleph-typescript
           path: monorepo
-          submodules: recursive
+          submodules: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ─── Substituir o pacote no monorepo pelo código do PR ───────────────
-      - name: Replace package in monorepo with PR code
+      - name: Init submodules (pnpm git-init equivalent)
+        working-directory: monorepo
+        run: git submodule update --init --recursive
+
+      # ─── Substitui o submodule do pacote pelo código do PR ───────────────
+      - name: Replace package with PR code
         run: |
           PKG_NAME="${{ steps.pkg.outputs.name }}"
 
-          # Descobre o caminho do pacote dentro do monorepo pelo package.json
-          MATCH=$(find monorepo/packages -name "package.json" -not -path "*/node_modules/*" | xargs grep -l "\"name\": \"${PKG_NAME}\"" | head -1)
+          MATCH=$(find monorepo/packages -name "package.json" \
+            -not -path "*/node_modules/*" | \
+            xargs grep -l "\"name\": \"${PKG_NAME}\"" | head -1)
 
           if [ -z "$MATCH" ]; then
             echo "❌ Package '${PKG_NAME}' not found in monorepo/packages"
@@ -56,26 +71,21 @@ jobs:
           fi
 
           PKG_DIR=$(dirname "$MATCH")
-          echo "Found package at: ${PKG_DIR}"
+          echo "Found at: ${PKG_DIR}"
 
-          # Substitui o conteúdo pelo código do PR (preserva o .git do submodule)
           rsync -a --exclude='.git' package-under-test/ "${PKG_DIR}/"
-          echo "✅ Package replaced with PR code"
+          echo "✅ Replaced with PR code"
 
-      # ─── Setup e install no monorepo ──────────────────────────────────────
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Install dependencies (monorepo context)
+      # ─── Install com @swc/core aprovado ───────────────────────────────────
+      # @swc/core requer aprovação para rodar build scripts.
+      # Sem ele o Node não consegue processar arquivos .ts diretamente
+      # (causa o ERR_UNKNOWN_FILE_EXTENSION ".ts").
+      - name: Install dependencies
         working-directory: monorepo
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm approve-builds --all 2>/dev/null || true
+          pnpm install --no-frozen-lockfile
 
       # ─── Ensure labels exist ──────────────────────────────────────────────
       - name: Ensure required labels exist in repo
@@ -90,7 +100,6 @@ jobs:
               { name: 'patch',        color: 'CFD3D7', description: 'Small fix — bumps patch version' },
               { name: 'no-release',   color: 'EDEDED', description: 'Merge without creating a release' },
             ]
-
             for (const label of labels) {
               try {
                 await github.rest.issues.createLabel({
@@ -109,17 +118,15 @@ jobs:
               }
             }
 
-      # ─── Run build no contexto do monorepo ────────────────────────────────
-      # O sufixo "..." no --filter faz o pnpm buildar as dependências
-      # do pacote na ordem correta antes de buildar o pacote alvo.
-      - name: Build package and its dependencies
+      # ─── Build do pacote ──────────────────────────────────────────────────
+      - name: Build package
         id: build
         working-directory: monorepo
         run: |
           PKG_NAME="${{ steps.pkg.outputs.name }}"
 
           set +e
-          pnpm --filter "${PKG_NAME}..." build 2>&1
+          pnpm --filter "${PKG_NAME}" build 2>&1
           BUILD_EXIT=$?
           set -e
 
@@ -167,21 +174,18 @@ jobs:
           echo "total=${TOTAL}" >> $GITHUB_OUTPUT
           echo "Lines changed: ${TOTAL}"
 
-      # ─── Apply version bump label ─────────────────────────────────────────
-      # Regras:
-      # - Se o dev colocou major/minor/patch → respeita e remove apenas as conflitantes
-      # - Se o dev não colocou nenhuma → aplica o padrão por linhas alteradas
+      # ─── Apply version label ──────────────────────────────────────────────
+      # - Dev colocou major/minor/patch → respeita, remove conflitantes
+      # - Nenhuma label de versão → aplica padrão por linhas alteradas
       # - Nunca remove a label que o dev acabou de adicionar
-      - name: Apply default version label if none set by developer
+      - name: Apply version label
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = context.payload.pull_request.number
             const linesChanged = parseInt('${{ steps.lines.outputs.total }}') || 0
             const eventLabel = context.payload.label?.name ?? null
-            const eventAction = context.eventName === 'pull_request'
-              ? context.payload.action
-              : null
+            const eventAction = context.payload.action ?? null
 
             const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -191,61 +195,48 @@ jobs:
             const labelNames = currentLabels.map(l => l.name)
 
             const VERSION_LABELS = ['major', 'minor', 'patch']
-            const devSetMajor = labelNames.includes('major')
-            const devSetMinor = labelNames.includes('minor')
-            const devSetPatch = labelNames.includes('patch')
-            const devHasVersionLabel = devSetMajor || devSetMinor || devSetPatch
+            const hasVersion = VERSION_LABELS.some(l => labelNames.includes(l))
 
-            console.log('Event action:', eventAction)
-            console.log('Event label:', eventLabel)
-            console.log('Current labels:', labelNames)
+            console.log('Event:', eventAction, eventLabel)
+            console.log('Labels:', labelNames)
             console.log('Lines changed:', linesChanged)
 
-            if (devHasVersionLabel) {
-              // Dev has a version label — figure out which one is the "chosen" one.
-              // Priority: the label that triggered this run (if it's a version label),
-              // otherwise whichever version label is present.
-              let chosen = null
-              if (eventAction === 'labeled' && VERSION_LABELS.includes(eventLabel)) {
-                chosen = eventLabel
-              } else if (devSetMajor) {
-                chosen = 'major'
-              } else if (devSetMinor) {
-                chosen = 'minor'
-              } else {
-                chosen = 'patch'
-              }
+            if (hasVersion) {
+              // Determina qual é a label escolhida pelo dev
+              const chosen = (eventAction === 'labeled' && VERSION_LABELS.includes(eventLabel))
+                ? eventLabel
+                : VERSION_LABELS.find(l => labelNames.includes(l))
 
-              // Remove all version labels except the chosen one
-              const toRemove = VERSION_LABELS.filter(l => l !== chosen && labelNames.includes(l))
-              for (const label of toRemove) {
-                try {
-                  await github.rest.issues.removeLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: prNumber,
-                    name: label,
-                  })
-                  console.log(`Removed conflicting label: ${label}`)
-                } catch (e) { /* already removed */ }
+              // Remove apenas as conflitantes, nunca a escolhida
+              for (const label of VERSION_LABELS.filter(l => l !== chosen)) {
+                if (labelNames.includes(label)) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: prNumber,
+                      name: label,
+                    })
+                    console.log(`Removed conflicting: ${label}`)
+                  } catch (e) {}
+                }
               }
-
-              console.log(`Developer label '${chosen}' respected.`)
+              console.log(`Kept: ${chosen}`)
               return
             }
 
-            // No version label — apply default based on lines changed
+            // Nenhuma label de versão — aplica padrão por linhas alteradas
             const defaultLabel = linesChanged >= 200 ? 'minor' : 'patch'
-            const oppositeLabel = defaultLabel === 'minor' ? 'patch' : 'minor'
+            const opposite = defaultLabel === 'minor' ? 'patch' : 'minor'
 
             try {
               await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                name: oppositeLabel,
+                name: opposite,
               })
-            } catch (e) { /* fine */ }
+            } catch (e) {}
 
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
@@ -253,8 +244,7 @@ jobs:
               issue_number: prNumber,
               labels: [defaultLabel],
             })
-
-            console.log(`Applied default label: ${defaultLabel} (${linesChanged} lines changed)`)
+            console.log(`Default applied: ${defaultLabel} (${linesChanged} lines)`)
 
       # ─── Post summary comment ─────────────────────────────────────────────
       - name: Post build summary as PR comment
