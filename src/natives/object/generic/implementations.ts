@@ -3,7 +3,7 @@ import type {
 	TEntriesReturn,
 	TKeyOf,
 	TObject,
-	TRemoveCicularReferences,
+	TRemoveCircularReferences,
 } from "./types";
 import { _String } from "@tsn-string/generic/implementations";
 import type { TClazz } from "@tsn-class/types";
@@ -19,7 +19,7 @@ export function isEmptyObj(obj: TObject): obj is {} {
 	return true;
 }
 
-export function circularReferenceHandler(): TRemoveCicularReferences {
+export function circularReferenceHandler(): TRemoveCircularReferences {
 	const seen = new Set();
 	return function (key: string, value: any): any {
 		if (value !== null && typeof value === "object") {
@@ -95,8 +95,14 @@ function differenceBetweenObjects<T extends object>(
 ): Partial<T> {
 	return (Object.keys(objA) as (keyof T)[]).reduce(
 		(acc: Partial<T>, key: keyof T): Partial<T> => {
-			if (objA[key] !== objB[key]) {
-				acc[key] = objA[key];
+			const a = objA[key];
+			const b = objB[key];
+			const different = a !== b &&
+				(typeof a !== "object" || typeof b !== "object"
+					? true
+					: JSON.stringify(a) !== JSON.stringify(b));
+			if (different) {
+				acc[key] = a;
 			}
 			return acc;
 		},

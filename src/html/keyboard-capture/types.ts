@@ -1,5 +1,3 @@
-import { TNullable } from "dist";
-
 type TKeyboardEventCode =
   "AltLeft"|"AltRight"|
   "ArrowDown"|"ArrowLeft"|"ArrowRight"|"ArrowUp"|

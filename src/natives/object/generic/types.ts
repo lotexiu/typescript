@@ -172,7 +172,7 @@ type TEntriesReturn<T> = [TKeyOf<T>, TTypeFromKey<T, TKeyOf<T>>];
  * @example
  * const cleaned = removeCircularReferences(obj);
  */
-type TRemoveCicularReferences = TFunction<[string, any], any>;
+type TRemoveCircularReferences = TFunction<[string, any], any>;
 
 /**
  * Makes all properties of an object or array deeply optional.
@@ -240,7 +240,7 @@ type TKeyOf<
 
 export type {
 	TCommonFields,
-	TRemoveCicularReferences,
+	TRemoveCircularReferences,
 	TPrimitiveObject,
 	TObject,
 	TEntriesReturn,

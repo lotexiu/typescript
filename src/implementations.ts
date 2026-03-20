@@ -9,13 +9,10 @@ export function isNull<T>(
 	value: TNullable<T>,
 	...customNullValues: any[]
 ): value is TNullable<null> {
-	const negatedValues = [0, "", false] as (typeof value)[];
-	const jsonNullValues: string[] = customNullValues.map((v: any): string =>
-		json(v),
-	);
-	return jsonNullValues.includes(json(value))
-		? true
-		: !negatedValues.includes(value) && !value;
+	if (value === null || value === undefined) return true;
+	if (customNullValues.length === 0) return false;
+	const jsonV = json(value);
+	return customNullValues.some((v: any): boolean => json(v) === jsonV);
 }
 
 export function isNullOrUndefined<T>(

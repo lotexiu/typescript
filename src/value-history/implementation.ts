@@ -2,7 +2,7 @@ import { IndexedItem, ValueHistoryState, ValueHistoryCallBack, ValueHistoryClear
 
 export class ValueHistory<T> {
   private history: T[] = []
-  private index: number = 0;
+  private index: number = -1;
 
   get canUndo(): boolean {return this.index > 0;}
   get canRedo(): boolean {return this.index < this.history.length - 1;}

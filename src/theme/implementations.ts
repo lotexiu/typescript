@@ -5,13 +5,13 @@ import {
 	TOppositeColorOptions,
 	TTheme,
 	TThemeBuilder,
+	TThemeFontBuilder,
 	TThemeVariationsBuilder,
 } from "./types";
 import { TObject } from "@tsn-object/generic/types";
 import { _Object } from "@tsn-object/generic/implementations";
 import { includes, isNull } from "@ts/implementations";
 import { TNullable } from "@ts/types";
-import { TThemeFontBuilder } from "dist";
 
 /**
  * Finds the opposite color based on LCH values (perceptually uniform).
