@@ -1,0 +1,121 @@
+name: PR — Review labels
+
+on:
+  pull_request:
+    types: [review_requested, review_request_removed, synchronize]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  manage-review-labels:
+    name: Manage review labels
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ensure review labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              { name: 'review-requested', color: 'BFD4F2', description: 'Review has been requested' },
+              { name: 'review-passed',    color: '0E8A16', description: 'PR has been approved' },
+              { name: 'review-failed',    color: 'E11D48', description: 'PR has been rejected (changes requested)' },
+            ]
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                })
+              } catch (e) {
+                if (e.status === 422) {
+                  await github.rest.issues.updateLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ...label
+                  })
+                }
+              }
+            }
+
+      - name: Manage review labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number
+              ?? context.payload.review?.pull_request?.number
+
+            const eventName = context.eventName
+            const action = context.payload.action
+
+            console.log('Event:', eventName, action)
+
+            const add = async (label) => {
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: [label],
+                })
+                console.log('Added:', label)
+              } catch (e) {}
+            }
+
+            const remove = async (label) => {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: label,
+                })
+                console.log('Removed:', label)
+              } catch (e) {}
+            }
+
+            // ── Review requisitado ────────────────────────────────────────
+            if (eventName === 'pull_request' && action === 'review_requested') {
+              await add('review-requested')
+              return
+            }
+
+            // ── Review removido sem submissão ─────────────────────────────
+            if (eventName === 'pull_request' && action === 'review_request_removed') {
+              await remove('review-requested')
+              return
+            }
+
+            // ── Push após qualquer estado → reseta tudo (volta ao início) ─
+            if (eventName === 'pull_request' && action === 'synchronize') {
+              await remove('review-passed')
+              await remove('review-failed')
+              await remove('review-requested')
+              return
+            }
+
+            // ── Review submetido ──────────────────────────────────────────
+            if (eventName === 'pull_request_review' && action === 'submitted') {
+              const state = context.payload.review.state
+
+              if (state === 'approved') {
+                await add('review-passed')
+                await remove('review-failed')
+                await remove('review-requested')
+                return
+              }
+
+              if (state === 'changes_requested') {
+                await add('review-failed')
+                await remove('review-passed')
+                await remove('review-requested')
+                return
+              }
+
+              // 'commented' — não altera labels de review
+              console.log('Review comment only — no label change')
+            }
