@@ -1,0 +1,102 @@
+{
+  "package": "typescript",
+  "timestamp": "2026-03-23T19:34:54.855Z",
+  "baseBranch": "master",
+  "tags": {
+    "impact": "minor",
+    "type": "feature",
+    "build": "build-passed"
+  },
+  "comparison": {
+    "changedFiles": [],
+    "codeChanges": [],
+    "distChanges": [
+      {
+        "file": "implementations.cjs",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.d.ts",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.d.ts.map",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.js",
+        "status": "modified"
+      },
+      {
+        "file": "index.cjs",
+        "status": "modified"
+      },
+      {
+        "file": "index.js",
+        "status": "modified"
+      }
+    ],
+    "packageJson": {
+      "file": "package.json",
+      "changed": false,
+      "patch": ""
+    },
+    "readme": {
+      "file": "README.md",
+      "changed": false,
+      "patch": ""
+    },
+    "api": {
+      "levitate": {
+        "breaking": false,
+        "added": [
+          "HelloWord"
+        ],
+        "removed": [],
+        "modified": []
+      },
+      "apiExtractor": {
+        "current": {
+          "succeeded": true,
+          "errorCount": 0,
+          "warningCount": 412,
+          "reportPath": "/home/sg/repositories/aleph-typescript/packages/typescript/.changes/.api/current.api.md"
+        },
+        "reference": {
+          "succeeded": true,
+          "errorCount": 0,
+          "warningCount": 410,
+          "reportPath": "/tmp/aleph-typescript-ref/packages/typescript/.changes/.api/reference.api.md"
+        },
+        "reportDiff": {
+          "changed": true,
+          "patch": ""
+        }
+      }
+    }
+  },
+  "commits": [],
+  "release": {
+    "currentVersion": "1.2.1",
+    "nextVersion": "1.3.0",
+    "build": "build-passed",
+    "impact": "minor",
+    "changelog": {
+      "major": [],
+      "minor": [
+        {
+          "pr": {
+            "number": null,
+            "url": "https://github.com/lotexiu/typescript/compare/master...HEAD",
+            "title": "Changes from current branch (master)"
+          },
+          "commits": []
+        }
+      ],
+      "patch": []
+    }
+  },
+  "issues": [
+    "New API exports detected without @public/@internal annotation evidence in changed code."
+  ]
+}
