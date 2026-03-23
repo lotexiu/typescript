@@ -9,6 +9,7 @@ import {
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
 import { packageJsonPlugin } from "@lotexiu/vite-utils/plugins/PackageJsonPlugin";
 import { createIndexFile } from "@lotexiu/vite-utils/plugins/IndexPlugin";
+import { excludeEmptyChunksPlugin } from "@lotexiu/vite-utils/plugins/ExcludeEmptyChunks";
 
 const libSrc = path.resolve(__dirname, "src");
 const entries = getLibraryEntries(libSrc);
@@ -26,6 +27,7 @@ export default defineConfig({
 			outDir: "dist",
 			insertTypesEntry: false,
 		}),
+		excludeEmptyChunksPlugin(),
 		betterOutDirCleanPlugin(),
 		packageJsonPlugin(['dist', './']),
 	],

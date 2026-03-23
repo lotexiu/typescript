@@ -49,10 +49,7 @@
       "default": "./package.json"
     },
     "./global": {
-      "types": "./dist/global.d.ts",
-      "import": "./dist/global.js",
-      "require": "./dist/global.cjs",
-      "default": "./dist/global.js"
+      "types": "./dist/global.d.ts"
     },
     "./implementations": {
       "types": "./dist/implementations.d.ts",
@@ -60,11 +57,13 @@
       "require": "./dist/implementations.cjs",
       "default": "./dist/implementations.js"
     },
+    "./package": {
+      "import": "./dist/package.json",
+      "require": "./dist/package.json",
+      "default": "./dist/package.json"
+    },
     "./types": {
-      "types": "./dist/types.d.ts",
-      "import": "./dist/types.js",
-      "require": "./dist/types.cjs",
-      "default": "./dist/types.js"
+      "types": "./dist/types.d.ts"
     },
     "./value-history/implementation": {
       "types": "./dist/value-history/implementation.d.ts",
@@ -73,10 +72,7 @@
       "default": "./dist/value-history/implementation.js"
     },
     "./value-history/types": {
-      "types": "./dist/value-history/types.d.ts",
-      "import": "./dist/value-history/types.js",
-      "require": "./dist/value-history/types.cjs",
-      "default": "./dist/value-history/types.js"
+      "types": "./dist/value-history/types.d.ts"
     },
     "./theme/builders": {
       "types": "./dist/theme/builders.d.ts",
@@ -97,10 +93,7 @@
       "default": "./dist/theme/themes.js"
     },
     "./theme/types": {
-      "types": "./dist/theme/types.d.ts",
-      "import": "./dist/theme/types.js",
-      "require": "./dist/theme/types.cjs",
-      "default": "./dist/theme/types.js"
+      "types": "./dist/theme/types.d.ts"
     },
     "./theme/utils": {
       "types": "./dist/theme/utils.d.ts",
@@ -109,10 +102,7 @@
       "default": "./dist/theme/utils.js"
     },
     "./natives/types": {
-      "types": "./dist/natives/types.d.ts",
-      "import": "./dist/natives/types.js",
-      "require": "./dist/natives/types.cjs",
-      "default": "./dist/natives/types.js"
+      "types": "./dist/natives/types.d.ts"
     },
     "./natives/string/generic/implementations": {
       "types": "./dist/natives/string/generic/implementations.d.ts",
@@ -127,10 +117,7 @@
       "default": "./dist/natives/object/proxy/ProxyHandler.js"
     },
     "./natives/object/proxy/types": {
-      "types": "./dist/natives/object/proxy/types.d.ts",
-      "import": "./dist/natives/object/proxy/types.js",
-      "require": "./dist/natives/object/proxy/types.cjs",
-      "default": "./dist/natives/object/proxy/types.js"
+      "types": "./dist/natives/object/proxy/types.d.ts"
     },
     "./natives/object/generic/implementations": {
       "types": "./dist/natives/object/generic/implementations.d.ts",
@@ -139,10 +126,7 @@
       "default": "./dist/natives/object/generic/implementations.js"
     },
     "./natives/object/generic/types": {
-      "types": "./dist/natives/object/generic/types.d.ts",
-      "import": "./dist/natives/object/generic/types.js",
-      "require": "./dist/natives/object/generic/types.cjs",
-      "default": "./dist/natives/object/generic/types.js"
+      "types": "./dist/natives/object/generic/types.d.ts"
     },
     "./natives/object/generic/utils": {
       "types": "./dist/natives/object/generic/utils.d.ts",
@@ -157,10 +141,7 @@
       "default": "./dist/natives/function/generic/implementations.js"
     },
     "./natives/function/generic/types": {
-      "types": "./dist/natives/function/generic/types.d.ts",
-      "import": "./dist/natives/function/generic/types.js",
-      "require": "./dist/natives/function/generic/types.cjs",
-      "default": "./dist/natives/function/generic/types.js"
+      "types": "./dist/natives/function/generic/types.d.ts"
     },
     "./natives/class/declarations": {
       "types": "./dist/natives/class/declarations.d.ts",
@@ -175,16 +156,10 @@
       "default": "./dist/natives/class/implementations.js"
     },
     "./natives/class/types": {
-      "types": "./dist/natives/class/types.d.ts",
-      "import": "./dist/natives/class/types.js",
-      "require": "./dist/natives/class/types.cjs",
-      "default": "./dist/natives/class/types.js"
+      "types": "./dist/natives/class/types.d.ts"
     },
     "./natives/array/generic/types": {
-      "types": "./dist/natives/array/generic/types.d.ts",
-      "import": "./dist/natives/array/generic/types.js",
-      "require": "./dist/natives/array/generic/types.cjs",
-      "default": "./dist/natives/array/generic/types.js"
+      "types": "./dist/natives/array/generic/types.d.ts"
     },
     "./html/keyboard-capture/implementation": {
       "types": "./dist/html/keyboard-capture/implementation.d.ts",
@@ -193,10 +168,7 @@
       "default": "./dist/html/keyboard-capture/implementation.js"
     },
     "./html/keyboard-capture/types": {
-      "types": "./dist/html/keyboard-capture/types.d.ts",
-      "import": "./dist/html/keyboard-capture/types.js",
-      "require": "./dist/html/keyboard-capture/types.cjs",
-      "default": "./dist/html/keyboard-capture/types.js"
+      "types": "./dist/html/keyboard-capture/types.d.ts"
     },
     "./global/implementation": {
       "types": "./dist/global/implementation.d.ts",
@@ -205,10 +177,7 @@
       "default": "./dist/global/implementation.js"
     },
     "./global/types": {
-      "types": "./dist/global/types.d.ts",
-      "import": "./dist/global/types.js",
-      "require": "./dist/global/types.cjs",
-      "default": "./dist/global/types.js"
+      "types": "./dist/global/types.d.ts"
     },
     "./global/utils": {
       "types": "./dist/global/utils.d.ts",
