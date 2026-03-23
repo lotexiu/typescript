@@ -1,0 +1,128 @@
+name: PR - Merge Actions
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, unlabeled, closed]
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  merge-gate:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate merge requirements
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map((l) => l.name);
+            const hasBuildPassed = labels.includes('build-passed');
+            const hasBuildFailed = labels.includes('build-failed');
+
+            if (!hasBuildPassed || hasBuildFailed) {
+              core.setFailed('Merge blocked: requires label build-passed and must not contain build-failed.');
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const changed = files.map((f) => f.filename);
+            if (!changed.includes('.changes/pr-analysis.json')) {
+              core.setFailed('Merge blocked: .changes/pr-analysis.json is missing in this PR.');
+              return;
+            }
+            if (!changed.includes('.changes/CHANGELOG.md')) {
+              core.setFailed('Merge blocked: .changes/CHANGELOG.md is missing in this PR.');
+              return;
+            }
+
+  bump-version-and-tag:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Resolve release metadata from PR labels
+        id: meta
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map((l) => l.name);
+            const impact = labels.includes('major') ? 'major' : labels.includes('minor') ? 'minor' : 'patch';
+            const build = labels.includes('build-passed') ? 'build-passed' : 'build-failed';
+            const test = labels.includes('test') ? 'true' : 'false';
+
+            core.setOutput('impact', impact);
+            core.setOutput('build', build);
+            core.setOutput('test', test);
+            core.setOutput('pr_number', String(context.payload.pull_request.number));
+
+      - name: Bump package.json version
+        id: bump
+        env:
+          IMPACT: ${{ steps.meta.outputs.impact }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const [major, minor, patch] = String(pkg.version || '0.0.0').split('.').map((x) => parseInt(x, 10));
+          const impact = process.env.IMPACT;
+
+          const next = impact === 'major'
+            ? `${major + 1}.0.0`
+            : impact === 'minor'
+              ? `${major}.${minor + 1}.0`
+              : `${major}.${minor}.${patch + 1}`;
+
+          pkg.version = next;
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          console.log(next);
+          NODE
+
+          NEXT_VERSION=$(node -p "require('./package.json').version")
+          echo "next=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(release): bump version to v${{ steps.bump.outputs.next }}" || true
+          git push origin master
+
+      - name: Create and push release tag
+        env:
+          NEXT_VERSION: ${{ steps.bump.outputs.next }}
+          IMPACT: ${{ steps.meta.outputs.impact }}
+          BUILD: ${{ steps.meta.outputs.build }}
+          TEST: ${{ steps.meta.outputs.test }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+        run: |
+          TAG="v${NEXT_VERSION}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+            exit 0
+          fi
+
+          cat > /tmp/tag-message.txt <<MSG
+          PR_NUMBER=${PR_NUMBER}
+          IMPACT=${IMPACT}
+          BUILD=${BUILD}
+          TEST=${TEST}
+          MSG
+
+          git tag -a "$TAG" -F /tmp/tag-message.txt
+          git push origin "$TAG"
