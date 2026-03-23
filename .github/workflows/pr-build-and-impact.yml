@@ -1,4 +1,4 @@
-name: PR — Build & Impact
+name: PR -- Build & Impact
 
 on:
   pull_request:
@@ -26,14 +26,14 @@ jobs:
         with:
           version: 9
 
-      # ─── Checkout do pacote do PR ─────────────────────────────────────────
+      # Checkout do pacote do PR para descobrir o nome
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: package-under-test
 
-      - name: Get package info
+      - name: Get package name
         id: pkg
         working-directory: package-under-test
         run: |
@@ -41,38 +41,30 @@ jobs:
           echo "name=${PKG_NAME}" >> $GITHUB_OUTPUT
           echo "Package: ${PKG_NAME}"
 
-      # ─── Clone monorepo ───────────────────────────────────────────────────
+      # Clone monorepo
       - name: Clone aleph-typescript
-        run: |
-          git clone https://github.com/lotexiu/aleph-typescript.git monorepo
+        run: git clone https://github.com/lotexiu/aleph-typescript.git monorepo
 
-      # ─── pnpm start (git-sync + install + approve-builds) ────────────────
-      # Replica exatamente o que você faz localmente
-      - name: Run pnpm start (git-sync + install + approve-builds)
+      # Replica: git-init + git-sub-branch + git-sub-update + pnpm i + approve-builds
+      - name: Run pnpm start equivalent
         working-directory: monorepo
         run: |
-          # git-init
           git submodule update --init --recursive
 
-          # git-sub-branch: cada submodule vai para sua branch principal
           git submodule foreach '
             branch=$(git symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null || echo "refs/remotes/origin/master")
             branch=${branch#refs/remotes/origin/}
             git checkout $branch 2>/dev/null || git checkout master 2>/dev/null || git checkout main 2>/dev/null
           '
 
-          # git-sub-update
           git submodule update --remote --recursive
-
-          # git pull no monorepo
           git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true
 
-          # pnpm i + approve-builds
           pnpm install --no-frozen-lockfile
           pnpm approve-builds --all 2>/dev/null || true
           pnpm install --no-frozen-lockfile
 
-      # ─── Substitui o submodule pelo código do PR ──────────────────────────
+      # Substitui o submodule pelo codigo do PR
       - name: Replace package with PR code
         run: |
           PKG_NAME="${{ steps.pkg.outputs.name }}"
@@ -82,45 +74,53 @@ jobs:
             xargs grep -l "\"name\": \"${PKG_NAME}\"" | head -1)
 
           if [ -z "$MATCH" ]; then
-            echo "❌ Package '${PKG_NAME}' not found in monorepo/packages"
+            echo "Package '${PKG_NAME}' not found in monorepo/packages"
             exit 1
           fi
 
           PKG_DIR=$(dirname "$MATCH")
-          echo "pkg_dir=${PKG_DIR}" >> $GITHUB_ENV
           echo "Found at: ${PKG_DIR}"
-
           rsync -a --exclude='.git' package-under-test/ "${PKG_DIR}/"
-          echo "✅ Replaced with PR code"
+          echo "Replaced with PR code"
 
-      # ─── Descobre quais projetos dependem do pacote ───────────────────────
+      # Descobre dependentes usando Node com readFileSync (confiavel)
       - name: Detect dependent projects
         id: dependents
         run: |
           PKG_NAME="${{ steps.pkg.outputs.name }}"
 
-          # Busca todos os package.json no monorepo (packages + apps)
-          # e verifica quais têm o pacote como workspace:*
+          # Usa Node para ler cada package.json e verificar dependencias
+          # readFileSync com caminho absoluto evita problemas do require() em subshells
           DEPENDENTS=$(find monorepo -name "package.json" \
             -not -path "*/node_modules/*" \
             -not -path "monorepo/package.json" | \
-            xargs grep -l "\"${PKG_NAME}\"" 2>/dev/null | \
-            while read f; do
-              # Pega o name do projeto dependente
+            while read -r f; do
               node -e "
-                const pkg = require('$f');
-                const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-                if (deps['${PKG_NAME}'] && deps['${PKG_NAME}'].includes('workspace')) {
-                  console.log(pkg.name);
-                }
+                const fs = require('fs');
+                const path = require('path');
+                try {
+                  const pkg = JSON.parse(fs.readFileSync(path.resolve('$f'), 'utf8'));
+                  const allDeps = {
+                    ...pkg.dependencies,
+                    ...pkg.devDependencies,
+                    ...pkg.peerDependencies,
+                  };
+                  const dep = allDeps['${PKG_NAME}'];
+                  if (dep && dep.includes('workspace')) {
+                    process.stdout.write(pkg.name + '\n');
+                  }
+                } catch(e) {}
               " 2>/dev/null
-            done | tr '\n' ',' | sed 's/,$//')
+            done | sort -u | tr '\n' ',' | sed 's/,$//')
 
           echo "list=${DEPENDENTS}" >> $GITHUB_OUTPUT
-          echo "Dependent projects: ${DEPENDENTS:-none}"
+          if [ -z "$DEPENDENTS" ]; then
+            echo "Dependent projects: none"
+          else
+            echo "Dependent projects: ${DEPENDENTS}"
+          fi
 
-      # ─── Build de tudo ────────────────────────────────────────────────────
-      # Roda pnpm build em todos os projetos e salva o resultado de cada um
+      # Build de tudo e analise de resultados
       - name: Build all projects
         id: build_all
         working-directory: monorepo
@@ -128,39 +128,28 @@ jobs:
           PKG_NAME="${{ steps.pkg.outputs.name }}"
           DEPENDENTS="${{ steps.dependents.outputs.list }}"
 
-          # Resultado do build do pacote correspondente
-          PKG_BUILD_STATUS="passed"
-          # Lista de dependentes que falharam
-          FAILED_DEPENDENTS=""
-
           set +e
           BUILD_OUTPUT=$(pnpm build 2>&1)
+          BUILD_GLOBAL_EXIT=$?
           set -e
 
           echo "$BUILD_OUTPUT"
 
-          # Analisa o output linha por linha para detectar falhas por projeto
-          # pnpm build outputa: "packages/xxx build: Failed" ou "ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL @scope/name"
-          while IFS= read -r line; do
-            # Detecta falha do pacote correspondente
-            if echo "$line" | grep -q "${PKG_NAME}.*Failed\|ERR.*${PKG_NAME}"; then
-              PKG_BUILD_STATUS="failed"
-            fi
+          # Verifica se o pacote correspondente falhou
+          PKG_BUILD_STATUS="passed"
+          if echo "$BUILD_OUTPUT" | grep -qE "${PKG_NAME}.*Failed|ERR.*${PKG_NAME}"; then
+            PKG_BUILD_STATUS="failed"
+          fi
 
-            # Detecta falha em dependentes
-            if [ -n "$DEPENDENTS" ]; then
-              echo "$DEPENDENTS" | tr ',' '\n' | while read -r DEP; do
-                if [ -n "$DEP" ] && echo "$line" | grep -q "${DEP}.*Failed\|ERR.*${DEP}"; then
-                  echo "${DEP}" >> /tmp/failed_deps.txt
-                fi
-              done
-            fi
-          done <<< "$BUILD_OUTPUT"
-
-          # Remove duplicatas
+          # Verifica quais dependentes falharam
           FAILED_DEPENDENTS=""
-          if [ -f /tmp/failed_deps.txt ]; then
-            FAILED_DEPENDENTS=$(sort -u /tmp/failed_deps.txt | tr '\n' ',' | sed 's/,$//')
+          if [ -n "$DEPENDENTS" ]; then
+            echo "$DEPENDENTS" | tr ',' '\n' | while read -r DEP; do
+              if [ -n "$DEP" ] && echo "$BUILD_OUTPUT" | grep -qE "${DEP}.*Failed|ERR.*${DEP}"; then
+                echo "$DEP"
+              fi
+            done | sort -u | tr '\n' ',' | sed 's/,$//' > /tmp/failed_deps.txt
+            FAILED_DEPENDENTS=$(cat /tmp/failed_deps.txt 2>/dev/null || echo "")
           fi
 
           echo "pkg_status=${PKG_BUILD_STATUS}" >> $GITHUB_OUTPUT
@@ -168,7 +157,7 @@ jobs:
           echo "Package build: ${PKG_BUILD_STATUS}"
           echo "Failed dependents: ${FAILED_DEPENDENTS:-none}"
 
-      # ─── Conta linhas alteradas via API do PR ─────────────────────────────
+      # Conta linhas alteradas via API do PR
       - name: Count changed lines
         id: lines
         uses: actions/github-script@v7
@@ -181,9 +170,9 @@ jobs:
             })
             const total = pr.additions + pr.deletions
             core.setOutput('total', String(total))
-            console.log(`Lines changed: +${pr.additions} -${pr.deletions} = ${total}`)
+            console.log(`Lines: +${pr.additions} -${pr.deletions} = ${total}`)
 
-      # ─── Ensure labels exist ──────────────────────────────────────────────
+      # Garante que as labels existem
       - name: Ensure labels exist
         uses: actions/github-script@v7
         with:
@@ -191,7 +180,7 @@ jobs:
             const labels = [
               { name: 'build-passed', color: '2EA043', description: 'Package build succeeded' },
               { name: 'build-failed', color: 'D73A4A', description: 'Package build failed' },
-              { name: 'major',        color: 'B60205', description: 'Breaking change — dependent app build failed' },
+              { name: 'major',        color: 'B60205', description: 'Breaking change -- dependent app build failed' },
               { name: 'minor',        color: '0075CA', description: '30+ lines changed' },
               { name: 'patch',        color: 'CFD3D7', description: 'Less than 30 lines changed' },
             ]
@@ -213,7 +202,7 @@ jobs:
               }
             }
 
-      # ─── Aplica labels de build e impacto ────────────────────────────────
+      # Aplica labels de build e impacto
       - name: Apply build and impact labels
         uses: actions/github-script@v7
         with:
@@ -223,7 +212,14 @@ jobs:
             const failedDependents = '${{ steps.build_all.outputs.failed_dependents }}'
             const linesChanged = parseInt('${{ steps.lines.outputs.total }}') || 0
 
-            // ── Determina labels a adicionar e remover ──────────────────
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            })
+            const labelNames = currentLabels.map(l => l.name)
+            const devSetVersion = ['major','minor','patch'].some(l => labelNames.includes(l))
+
             const toAdd = []
             const toRemove = []
 
@@ -236,22 +232,11 @@ jobs:
               toRemove.push('build-passed')
             }
 
-            // Impact label — só aplica se o build do pacote passou
-            // e o dev não colocou uma label manualmente
-            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            })
-            const labelNames = currentLabels.map(l => l.name)
-            const devSetVersion = ['major','minor','patch'].some(l => labelNames.includes(l))
-
+            // Impact label -- respeita escolha manual do dev
             if (!devSetVersion) {
               if (pkgStatus === 'failed') {
-                // build do pacote falhou — não coloca impacto ainda
                 toRemove.push('major', 'minor', 'patch')
               } else if (failedDependents) {
-                // dependente falhou = major
                 toAdd.push('major')
                 toRemove.push('minor', 'patch')
               } else if (linesChanged >= 30) {
@@ -263,7 +248,6 @@ jobs:
               }
             }
 
-            // Remove labels
             for (const label of [...new Set(toRemove)]) {
               try {
                 await github.rest.issues.removeLabel({
@@ -275,7 +259,6 @@ jobs:
               } catch (e) {}
             }
 
-            // Adiciona labels (filtra as que já estão)
             const toAddFiltered = toAdd.filter(l => !labelNames.includes(l))
             if (toAddFiltered.length > 0) {
               await github.rest.issues.addLabels({
@@ -289,7 +272,7 @@ jobs:
             console.log('Added:', toAddFiltered)
             console.log('Removed:', toRemove)
 
-      # ─── Comentário de resultado ──────────────────────────────────────────
+      # Comentario de resultado no PR
       - name: Post result comment
         uses: actions/github-script@v7
         with:
@@ -300,30 +283,35 @@ jobs:
             const linesChanged = '${{ steps.lines.outputs.total }}'
             const pkgName = '${{ steps.pkg.outputs.name }}'
             const dependents = '${{ steps.dependents.outputs.list }}'
-            const buildIcon = pkgStatus === 'passed' ? '✅' : '❌'
-
-            const failedList = failedDeps
-              ? failedDeps.split(',').map(d => `  - \`${d}\``).join('\n')
-              : null
+            const buildIcon = pkgStatus === 'passed' ? 'passed' : 'failed'
+            const icon = pkgStatus === 'passed' ? 'checkmark' : 'x'
 
             const depList = dependents
               ? dependents.split(',').map(d => `\`${d}\``).join(', ')
               : '_none_'
 
+            const failedList = failedDeps
+              ? failedDeps.split(',').map(d => `  - \`${d}\``).join('\n')
+              : null
+
+            const statusIcon = pkgStatus === 'passed' ? '✅' : '❌'
+
             const body = [
-              `### ${buildIcon} Build ${pkgStatus} — \`${pkgName}\``,
+              `### ${statusIcon} Build ${pkgStatus} -- \`${pkgName}\``,
               '',
               `| | |`,
               `|---|---|`,
-              `| **Package build** | ${buildIcon} ${pkgStatus} |`,
+              `| **Package build** | ${statusIcon} ${pkgStatus} |`,
               `| **Lines changed** | ${linesChanged} |`,
               `| **Dependent projects** | ${depList} |`,
-              failedList ? `| **Failed dependents** | ❌ see below |` : `| **Failed dependents** | ✅ none |`,
+              failedList
+                ? `| **Failed dependents** | ❌ see below |`
+                : `| **Failed dependents** | ✅ none |`,
               '',
               failedList ? `**Failed dependent builds:**\n${failedList}` : '',
               '',
               '_Re-runs automatically on every push to this PR._',
-            ].filter(l => l !== '').join('\n')
+            ].filter(l => l !== undefined).join('\n')
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
