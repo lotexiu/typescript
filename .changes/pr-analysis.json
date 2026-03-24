@@ -1,0 +1,197 @@
+{
+  "package": "typescript",
+  "timestamp": "2026-03-24T20:02:31.944Z",
+  "baseBranch": "master",
+  "tags": {
+    "impact": "major",
+    "type": "feature",
+    "build": "build-passed"
+  },
+  "comparison": {
+    "changedFiles": [
+      ".github/workflows/pr-merge-actions.yml",
+      ".github/workflows/pr-tags-actions.yml",
+      ".github/workflows/release-actions.yml",
+      ".github/workflows/tag-aliases-actions.yml"
+    ],
+    "codeChanges": [
+      {
+        "file": ".github/workflows/pr-merge-actions.yml",
+        "added": 77,
+        "removed": 6,
+        "patch": "@@ -43,6 +43,10 @@ jobs:\n               core.setFailed('Merge blocked: .changes/CHANGELOG.md is missing in this PR.');\n               return;\n             }\n+            if (!changed.includes('.changes/TAG_NOTES.md')) {\n+              core.setFailed('Merge blocked: .changes/TAG_NOTES.md is missing in this PR.');\n+              return;\n+            }\n \n   bump-version-and-tag:\n     if: github.event.action == 'closed' && github.event.pull_request.merged == true\n@@ -64,6 +68,33 @@ jobs:\n             const build = labels.includes('build-passed') ? 'build-passed' : 'build-failed';\n             const test = labels.includes('test') ? 'true' : 'false';\n \n+            const pr = context.payload.pull_request;\n+            const reviews = await github.paginate(github.rest.pulls.listReviews, {\n+              owner: context.repo.owner,\n+              repo: context.repo.repo,\n+              pull_number: pr.number,\n+              per_page: 100,\n+            });\n+            const commits = await github.paginate(github.rest.pulls.listCommits, {\n+              owner: context.repo.owner,\n+              repo: context.repo.repo,\n+              pull_number: pr.number,\n+              per_page: 100,\n+            });\n+\n+            const reviewers = [...new Set(reviews.map((r) => r.user?.login).filter(Boolean))];\n+            const approvers = [...new Set(reviews.filter((r) => r.state === 'APPROVED').map((r) => r.user?.login).filter(Boolean))];\n+            const commitOwners = [...new Set(commits.map((c) => c.author?.login || c.commit?.author?.name).filter(Boolean))];\n+\n+            core.setOutput('pr_title', pr.title || 'n/a');\n+            core.setOutput('pr_url', pr.html_url || 'n/a');\n+            core.setOutput('pr_owner', pr.user?.login || 'unknown');\n+            core.setOutput('pr_created_at', pr.created_at || 'n/a');\n+            core.setOutput('pr_merged_at', pr.merged_at || 'n/a');\n+            core.setOutput('reviewers', reviewers.length ? reviewers.join(', ') : 'none');\n+            core.setOutput('approvers', approvers.length ? approvers.join(', ') : 'none');\n+            core.setOutput('commit_owners', commitOwners.length ? commitOwners.join(', ') : 'none');\n+\n             core.setOutput('impact', impact);\n             core.setOutput('build', build);\n             core.setOutput('test', test);\n@@ -110,6 +141,14 @@ jobs:\n           BUILD: ${{ steps.meta.outputs.build }}\n           TEST: ${{ steps.meta.outputs.test }}\n           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}\n+          PR_TITLE: ${{ steps.meta.outputs.pr_title }}\n+          PR_URL: ${{ steps.meta.outputs.pr_url }}\n+          PR_OWNER: ${{ steps.meta.outputs.pr_owner }}\n+          PR_CREATED_AT: ${{ steps.meta.outputs.pr_created_at }}\n+          PR_MERGED_AT: ${{ steps.meta.outputs.pr_merged_at }}\n+          PR_REVIEWERS: ${{ steps.meta.outputs.reviewers }}\n+          PR_APPROVERS: ${{ steps.meta.outputs.approvers }}\n+          COMMIT_OWNERS: ${{ steps.meta.outputs.commit_owners }}\n         run: |\n           TAG=\"v${NEXT_VERSION}\"\n           if git rev-parse \"$TAG\" >/dev/null 2>&1; then\n@@ -117,12 +156,44 @@ jobs:\n             exit 0\n           fi\n \n-          cat > /tmp/tag-message.txt <<MSG\n-          PR_NUMBER=${PR_NUMBER}\n-          IMPACT=${IMPACT}\n-          BUILD=${BUILD}\n-          TEST=${TEST}\n-          MSG\n+          TAG_NOTES_PATH=\".changes/TAG_NOTES.md\"\n+          CHANGELOG_PATH=\".changes/CHANGELOG.md\"\n+\n+          {\n+            echo \"# ${TAG}\"\n+            echo\n+            echo \"## Release Snapshot\"\n+            echo \"- Impact: ${IMPACT}\"\n+            echo \"- Build: ${BUILD}\"\n+            echo \"- Test: ${TEST}\"\n+            echo\n+            echo \"## PR Context\"\n+            echo \"- PR: #${PR_NUMBER}\"\n+            echo \"- Title: ${PR_TITLE}\"\n+            echo \"- URL: ${PR_URL}\"\n+            echo \"- PR date: ${PR_CREATED_AT}\"\n+            echo \"- PR merged at: ${PR_MERGED_AT}\"\n+            echo \"- PR owner: ${PR_OWNER}\"\n+            echo \"- Reviewers: ${PR_REVIEWERS}\"\n+            echo \"- Approvers: ${PR_APPROVERS}\"\n+            echo \"- Commit owners: ${COMMIT_OWNERS}\"\n+            echo\n+            if [ -f \"$TAG_NOTES_PATH\" ]; then\n+              echo \"## Tag Digest\"\n+              sed -n '1,160p' \"$TAG_NOTES_PATH\"\n+              echo\n+            fi\n+            if [ -f \"$CHANGELOG_PATH\" ]; then\n+              echo \"## Changelog Preview\"\n+              sed -n '1,120p' \"$CHANGELOG_PATH\"\n+              echo\n+            fi\n+            echo \"## Machine Metadata\"\n+            echo \"META_PR_NUMBER=${PR_NUMBER}\"\n+            echo \"META_IMPACT=${IMPACT}\"\n+            echo \"META_BUILD=${BUILD}\"\n+            echo \"META_TEST=${TEST}\"\n+          } > /tmp/tag-message.txt\n \n           git tag -a \"$TAG\" -F /tmp/tag-message.txt\n           git push origin \"$TAG\""
+      },
+      {
+        "file": ".github/workflows/pr-tags-actions.yml",
+        "added": 6,
+        "removed": 0,
+        "patch": "@@ -29,6 +29,7 @@ jobs:\n \n             const analysisPath = '.changes/pr-analysis.json';\n             const changelogPath = '.changes/CHANGELOG.md';\n+            const tagNotesPath = '.changes/TAG_NOTES.md';\n \n             if (!fs.existsSync(analysisPath)) {\n               core.setFailed('Missing .changes/pr-analysis.json. Run `pnpm get-changes` and commit .changes files.');\n@@ -40,6 +41,11 @@ jobs:\n               return '';\n             }\n \n+            if (!fs.existsSync(tagNotesPath)) {\n+              core.setFailed('Missing .changes/TAG_NOTES.md. Run `pnpm get-changes` and commit .changes files.');\n+              return '';\n+            }\n+\n             const data = JSON.parse(fs.readFileSync(analysisPath, 'utf-8'));\n             core.setOutput('impact', data.tags?.impact || 'patch');\n             core.setOutput('type', data.tags?.type || 'fix');"
+      },
+      {
+        "file": ".github/workflows/release-actions.yml",
+        "added": 10,
+        "removed": 2,
+        "patch": "@@ -25,8 +25,16 @@ jobs:\n           TAG=\"${GITHUB_REF_NAME}\"\n           TAG_MESSAGE=$(git for-each-ref \"refs/tags/${TAG}\" --format='%(contents)')\n \n-          TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^TEST=' | cut -d= -f2 || true)\n-          BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^BUILD=' | cut -d= -f2 || true)\n+          TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^META_TEST=' | cut -d= -f2 || true)\n+          BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^META_BUILD=' | cut -d= -f2 || true)\n+\n+          # Backward compatibility with old tags\n+          if [ -z \"$TEST_FLAG\" ]; then\n+            TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^TEST=' | cut -d= -f2 || true)\n+          fi\n+          if [ -z \"$BUILD_FLAG\" ]; then\n+            BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^BUILD=' | cut -d= -f2 || true)\n+          fi\n \n           if [ -z \"$TEST_FLAG\" ]; then TEST_FLAG=\"false\"; fi\n           if [ -z \"$BUILD_FLAG\" ]; then BUILD_FLAG=\"build-passed\"; fi"
+      },
+      {
+        "file": ".github/workflows/tag-aliases-actions.yml",
+        "added": 46,
+        "removed": 0,
+        "patch": "@@ -0,0 +1,46 @@\n+name: Tag Aliases Actions\n+\n+on:\n+  push:\n+    tags:\n+      - 'v*'\n+\n+permissions:\n+  contents: write\n+\n+jobs:\n+  create-alias-tags:\n+    runs-on: ubuntu-latest\n+\n+    steps:\n+      - name: Checkout tagged commit\n+        uses: actions/checkout@v4\n+        with:\n+          fetch-depth: 0\n+\n+      - name: Create and push alias tags\n+        shell: bash\n+        run: |\n+          SOURCE_TAG=\"${GITHUB_REF_NAME}\"\n+\n+          # Only run for canonical semver tags (vX.Y.Z)\n+          if ! printf '%s' \"$SOURCE_TAG\" | grep -Eq '^v[0-9]+\\.[0-9]+\\.[0-9]+$'; then\n+            echo \"Tag $SOURCE_TAG is not canonical semver (vX.Y.Z). Skipping aliases.\"\n+            exit 0\n+          fi\n+\n+          VERSION=\"${SOURCE_TAG#v}\"\n+          MAJOR=\"${VERSION%%.*}\"\n+          REST=\"${VERSION#*.}\"\n+          MINOR=\"${REST%%.*}\"\n+\n+          ALIAS_TAGS=(\"latest\" \"v${MAJOR}\" \"v${MAJOR}.${MINOR}\")\n+\n+          git config user.name \"github-actions[bot]\"\n+          git config user.email \"github-actions[bot]@users.noreply.github.com\"\n+\n+          for alias in \"${ALIAS_TAGS[@]}\"; do\n+            echo \"Updating alias tag: ${alias} -> ${SOURCE_TAG}\"\n+            git tag -fa \"$alias\" -m \"Alias tag for ${SOURCE_TAG}\"\n+            git push origin \"refs/tags/${alias}\" --force\n+          done"
+      }
+    ],
+    "distChanges": [
+      {
+        "file": "implementations.cjs",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.d.ts",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.d.ts.map",
+        "status": "modified"
+      },
+      {
+        "file": "implementations.js",
+        "status": "modified"
+      },
+      {
+        "file": "index.cjs",
+        "status": "modified"
+      },
+      {
+        "file": "index.js",
+        "status": "modified"
+      },
+      {
+        "file": "package.json",
+        "status": "modified"
+      }
+    ],
+    "packageJson": {
+      "file": "package.json",
+      "changed": true,
+      "patch": "@@ -1,6 +1,6 @@\n {\n   \"name\": \"@lotexiu/typescript\",\n-  \"version\": \"1.2.1\",\n+  \"version\": \"0.0.0\",\n   \"private\": false,\n   \"license\": \"MIT\",\n   \"repository\": {"
+    },
+    "readme": {
+      "file": "README.md",
+      "changed": true,
+      "patch": "@@ -1 +1,16 @@\n # `typescript`\n+\n+![license](https://img.shields.io/github/license/lotexiu/typescript)<br>\n+![contributors](https://img.shields.io/github/contributors/lotexiu/typescript)<br>\n+![version](https://img.shields.io/github/package-json/v/lotexiu/typescript)<br>\n+![release](https://img.shields.io/github/v/release/lotexiu/typescript)<br>\n+![watchers](https://img.shields.io/github/watchers/lotexiu/typescript)<br>\n+![stars](https://img.shields.io/github/stars/lotexiu/typescript)<br>\n+![commit](https://img.shields.io/github/last-commit/lotexiu/typescript)<br>\n+![code size](https://img.shields.io/github/languages/code-size/lotexiu/typescript)<br>\n+![repo size](https://img.shields.io/github/repo-size/lotexiu/typescript)<br>\n+![issues](https://img.shields.io/github/issues/lotexiu/typescript)<br>\n+![pull requests](https://img.shields.io/github/issues-pr/lotexiu/typescript)<br>\n+![closed issues](https://img.shields.io/github/issues-closed/lotexiu/typescript)<br>\n+![closed pull requests](https://img.shields.io/github/issues-pr-closed/lotexiu/typescript)<br>\n+![npmjs-version](https://img.shields.io/npm/v/@lotexiu/typescript)<br>"
+    },
+    "api": {
+      "levitate": {
+        "breaking": true,
+        "added": [],
+        "removed": [
+          "HelloWord"
+        ],
+        "modified": []
+      },
+      "apiExtractor": {
+        "current": {
+          "succeeded": true,
+          "errorCount": 0,
+          "warningCount": 409,
+          "reportPath": "/home/sg/repositories/aleph-typescript/packages/typescript/.changes/.api/current.api.md"
+        },
+        "reference": {
+          "succeeded": true,
+          "errorCount": 0,
+          "warningCount": 411,
+          "reportPath": "/tmp/aleph-typescript-ref/packages/typescript/.changes/.api/reference.api.md"
+        },
+        "reportDiff": {
+          "changed": true,
+          "patch": "@@ -430,9 +430,6 @@ export class GlobalUtils {\n     static register: <Target extends TFunction, Declare extends TypeExtension<Target>>(target: Target, extension: Declare) => void;\r\n }\r\n \r\n-// @public (undocumented)\r\n-export function HelloWord(): string;\r\n-\r\n // @public (undocumented)\r\n export function includes<const T extends any[], U>(values: T, value: U): value is T[number];"
+        }
+      }
+    }
+  },
+  "commits": [
+    {
+      "sha": "7f4f9b20a29fb05d22eb0015c74dacc7ce0f9d5d",
+      "shortSha": "7f4f9b2",
+      "url": "https://github.com/lotexiu/typescript/commit/7f4f9b20a29fb05d22eb0015c74dacc7ce0f9d5d",
+      "message": "atualização ymls ---------------------- ----------------------",
+      "author": "AlephMelo",
+      "date": "2026-03-24",
+      "changedFiles": [
+        ".github/workflows/pr-merge-actions.yml",
+        ".github/workflows/pr-tags-actions.yml",
+        ".github/workflows/release-actions.yml",
+        ".github/workflows/tag-aliases-actions.yml"
+      ]
+    }
+  ],
+  "release": {
+    "currentVersion": "0.0.0",
+    "nextVersion": "1.0.0",
+    "build": "build-passed",
+    "impact": "major",
+    "changelog": {
+      "major": [
+        {
+          "pr": {
+            "number": null,
+            "url": "https://github.com/lotexiu/typescript/commits/master",
+            "title": "Direct commits on master (no PR)",
+            "owner": "local",
+            "createdAt": null,
+            "mergedAt": null,
+            "reviewers": [],
+            "approvers": [],
+            "isDirect": true
+          },
+          "commits": [
+            {
+              "sha": "7f4f9b20a29fb05d22eb0015c74dacc7ce0f9d5d",
+              "shortSha": "7f4f9b2",
+              "url": "https://github.com/lotexiu/typescript/commit/7f4f9b20a29fb05d22eb0015c74dacc7ce0f9d5d",
+              "message": "atualização ymls ---------------------- ----------------------",
+              "author": "AlephMelo",
+              "date": "2026-03-24",
+              "changedFiles": [
+                ".github/workflows/pr-merge-actions.yml",
+                ".github/workflows/pr-tags-actions.yml",
+                ".github/workflows/release-actions.yml",
+                ".github/workflows/tag-aliases-actions.yml"
+              ]
+            }
+          ],
+          "codeChanges": [
+            {
+              "file": ".github/workflows/pr-merge-actions.yml",
+              "added": 77,
+              "removed": 6,
+              "patch": "@@ -43,6 +43,10 @@ jobs:\n               core.setFailed('Merge blocked: .changes/CHANGELOG.md is missing in this PR.');\n               return;\n             }\n+            if (!changed.includes('.changes/TAG_NOTES.md')) {\n+              core.setFailed('Merge blocked: .changes/TAG_NOTES.md is missing in this PR.');\n+              return;\n+            }\n \n   bump-version-and-tag:\n     if: github.event.action == 'closed' && github.event.pull_request.merged == true\n@@ -64,6 +68,33 @@ jobs:\n             const build = labels.includes('build-passed') ? 'build-passed' : 'build-failed';\n             const test = labels.includes('test') ? 'true' : 'false';\n \n+            const pr = context.payload.pull_request;\n+            const reviews = await github.paginate(github.rest.pulls.listReviews, {\n+              owner: context.repo.owner,\n+              repo: context.repo.repo,\n+              pull_number: pr.number,\n+              per_page: 100,\n+            });\n+            const commits = await github.paginate(github.rest.pulls.listCommits, {\n+              owner: context.repo.owner,\n+              repo: context.repo.repo,\n+              pull_number: pr.number,\n+              per_page: 100,\n+            });\n+\n+            const reviewers = [...new Set(reviews.map((r) => r.user?.login).filter(Boolean))];\n+            const approvers = [...new Set(reviews.filter((r) => r.state === 'APPROVED').map((r) => r.user?.login).filter(Boolean))];\n+            const commitOwners = [...new Set(commits.map((c) => c.author?.login || c.commit?.author?.name).filter(Boolean))];\n+\n+            core.setOutput('pr_title', pr.title || 'n/a');\n+            core.setOutput('pr_url', pr.html_url || 'n/a');\n+            core.setOutput('pr_owner', pr.user?.login || 'unknown');\n+            core.setOutput('pr_created_at', pr.created_at || 'n/a');\n+            core.setOutput('pr_merged_at', pr.merged_at || 'n/a');\n+            core.setOutput('reviewers', reviewers.length ? reviewers.join(', ') : 'none');\n+            core.setOutput('approvers', approvers.length ? approvers.join(', ') : 'none');\n+            core.setOutput('commit_owners', commitOwners.length ? commitOwners.join(', ') : 'none');\n+\n             core.setOutput('impact', impact);\n             core.setOutput('build', build);\n             core.setOutput('test', test);\n@@ -110,6 +141,14 @@ jobs:\n           BUILD: ${{ steps.meta.outputs.build }}\n           TEST: ${{ steps.meta.outputs.test }}\n           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}\n+          PR_TITLE: ${{ steps.meta.outputs.pr_title }}\n+          PR_URL: ${{ steps.meta.outputs.pr_url }}\n+          PR_OWNER: ${{ steps.meta.outputs.pr_owner }}\n+          PR_CREATED_AT: ${{ steps.meta.outputs.pr_created_at }}\n+          PR_MERGED_AT: ${{ steps.meta.outputs.pr_merged_at }}\n+          PR_REVIEWERS: ${{ steps.meta.outputs.reviewers }}\n+          PR_APPROVERS: ${{ steps.meta.outputs.approvers }}\n+          COMMIT_OWNERS: ${{ steps.meta.outputs.commit_owners }}\n         run: |\n           TAG=\"v${NEXT_VERSION}\"\n           if git rev-parse \"$TAG\" >/dev/null 2>&1; then\n@@ -117,12 +156,44 @@ jobs:\n             exit 0\n           fi\n \n-          cat > /tmp/tag-message.txt <<MSG\n-          PR_NUMBER=${PR_NUMBER}\n-          IMPACT=${IMPACT}\n-          BUILD=${BUILD}\n-          TEST=${TEST}\n-          MSG\n+          TAG_NOTES_PATH=\".changes/TAG_NOTES.md\"\n+          CHANGELOG_PATH=\".changes/CHANGELOG.md\"\n+\n+          {\n+            echo \"# ${TAG}\"\n+            echo\n+            echo \"## Release Snapshot\"\n+            echo \"- Impact: ${IMPACT}\"\n+            echo \"- Build: ${BUILD}\"\n+            echo \"- Test: ${TEST}\"\n+            echo\n+            echo \"## PR Context\"\n+            echo \"- PR: #${PR_NUMBER}\"\n+            echo \"- Title: ${PR_TITLE}\"\n+            echo \"- URL: ${PR_URL}\"\n+            echo \"- PR date: ${PR_CREATED_AT}\"\n+            echo \"- PR merged at: ${PR_MERGED_AT}\"\n+            echo \"- PR owner: ${PR_OWNER}\"\n+            echo \"- Reviewers: ${PR_REVIEWERS}\"\n+            echo \"- Approvers: ${PR_APPROVERS}\"\n+            echo \"- Commit owners: ${COMMIT_OWNERS}\"\n+            echo\n+            if [ -f \"$TAG_NOTES_PATH\" ]; then\n+              echo \"## Tag Digest\"\n+              sed -n '1,160p' \"$TAG_NOTES_PATH\"\n+              echo\n+            fi\n+            if [ -f \"$CHANGELOG_PATH\" ]; then\n+              echo \"## Changelog Preview\"\n+              sed -n '1,120p' \"$CHANGELOG_PATH\"\n+              echo\n+            fi\n+            echo \"## Machine Metadata\"\n+            echo \"META_PR_NUMBER=${PR_NUMBER}\"\n+            echo \"META_IMPACT=${IMPACT}\"\n+            echo \"META_BUILD=${BUILD}\"\n+            echo \"META_TEST=${TEST}\"\n+          } > /tmp/tag-message.txt\n \n           git tag -a \"$TAG\" -F /tmp/tag-message.txt\n           git push origin \"$TAG\""
+            },
+            {
+              "file": ".github/workflows/pr-tags-actions.yml",
+              "added": 6,
+              "removed": 0,
+              "patch": "@@ -29,6 +29,7 @@ jobs:\n \n             const analysisPath = '.changes/pr-analysis.json';\n             const changelogPath = '.changes/CHANGELOG.md';\n+            const tagNotesPath = '.changes/TAG_NOTES.md';\n \n             if (!fs.existsSync(analysisPath)) {\n               core.setFailed('Missing .changes/pr-analysis.json. Run `pnpm get-changes` and commit .changes files.');\n@@ -40,6 +41,11 @@ jobs:\n               return '';\n             }\n \n+            if (!fs.existsSync(tagNotesPath)) {\n+              core.setFailed('Missing .changes/TAG_NOTES.md. Run `pnpm get-changes` and commit .changes files.');\n+              return '';\n+            }\n+\n             const data = JSON.parse(fs.readFileSync(analysisPath, 'utf-8'));\n             core.setOutput('impact', data.tags?.impact || 'patch');\n             core.setOutput('type', data.tags?.type || 'fix');"
+            },
+            {
+              "file": ".github/workflows/release-actions.yml",
+              "added": 10,
+              "removed": 2,
+              "patch": "@@ -25,8 +25,16 @@ jobs:\n           TAG=\"${GITHUB_REF_NAME}\"\n           TAG_MESSAGE=$(git for-each-ref \"refs/tags/${TAG}\" --format='%(contents)')\n \n-          TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^TEST=' | cut -d= -f2 || true)\n-          BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^BUILD=' | cut -d= -f2 || true)\n+          TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^META_TEST=' | cut -d= -f2 || true)\n+          BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^META_BUILD=' | cut -d= -f2 || true)\n+\n+          # Backward compatibility with old tags\n+          if [ -z \"$TEST_FLAG\" ]; then\n+            TEST_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^TEST=' | cut -d= -f2 || true)\n+          fi\n+          if [ -z \"$BUILD_FLAG\" ]; then\n+            BUILD_FLAG=$(printf '%s\\n' \"$TAG_MESSAGE\" | grep '^BUILD=' | cut -d= -f2 || true)\n+          fi\n \n           if [ -z \"$TEST_FLAG\" ]; then TEST_FLAG=\"false\"; fi\n           if [ -z \"$BUILD_FLAG\" ]; then BUILD_FLAG=\"build-passed\"; fi"
+            },
+            {
+              "file": ".github/workflows/tag-aliases-actions.yml",
+              "added": 46,
+              "removed": 0,
+              "patch": "@@ -0,0 +1,46 @@\n+name: Tag Aliases Actions\n+\n+on:\n+  push:\n+    tags:\n+      - 'v*'\n+\n+permissions:\n+  contents: write\n+\n+jobs:\n+  create-alias-tags:\n+    runs-on: ubuntu-latest\n+\n+    steps:\n+      - name: Checkout tagged commit\n+        uses: actions/checkout@v4\n+        with:\n+          fetch-depth: 0\n+\n+      - name: Create and push alias tags\n+        shell: bash\n+        run: |\n+          SOURCE_TAG=\"${GITHUB_REF_NAME}\"\n+\n+          # Only run for canonical semver tags (vX.Y.Z)\n+          if ! printf '%s' \"$SOURCE_TAG\" | grep -Eq '^v[0-9]+\\.[0-9]+\\.[0-9]+$'; then\n+            echo \"Tag $SOURCE_TAG is not canonical semver (vX.Y.Z). Skipping aliases.\"\n+            exit 0\n+          fi\n+\n+          VERSION=\"${SOURCE_TAG#v}\"\n+          MAJOR=\"${VERSION%%.*}\"\n+          REST=\"${VERSION#*.}\"\n+          MINOR=\"${REST%%.*}\"\n+\n+          ALIAS_TAGS=(\"latest\" \"v${MAJOR}\" \"v${MAJOR}.${MINOR}\")\n+\n+          git config user.name \"github-actions[bot]\"\n+          git config user.email \"github-actions[bot]@users.noreply.github.com\"\n+\n+          for alias in \"${ALIAS_TAGS[@]}\"; do\n+            echo \"Updating alias tag: ${alias} -> ${SOURCE_TAG}\"\n+            git tag -fa \"$alias\" -m \"Alias tag for ${SOURCE_TAG}\"\n+            git push origin \"refs/tags/${alias}\" --force\n+          done"
+            }
+          ]
+        }
+      ],
+      "minor": [],
+      "patch": []
+    }
+  },
+  "openIssues": [],
+  "issues": []
+}
