@@ -37,7 +37,3 @@ export function equals<T, R>(
 export function includes<const T extends any[], U>(values: T, value: U): value is T[number] {
 	return values.includes(value)
 }
-
-export function HelloWord(): string {
-	return "Hello World!";
-}
