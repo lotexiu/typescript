@@ -1,6 +1,6 @@
 {
   "package": "typescript",
-  "timestamp": "2026-03-24T17:02:08.158Z",
+  "timestamp": "2026-03-24T17:04:50.261Z",
   "baseBranch": "master",
   "tags": {
     "impact": "major",
@@ -111,8 +111,8 @@
         {
           "pr": {
             "number": 12,
-            "url": "https://github.com/lotexiu/typescript/pull/12",
-            "title": "Changes from current branch (master)"
+            "title": "Revertendo alteração de teste",
+            "url": "https://github.com/lotexiu/typescript/pull/12"
           },
           "commits": [
             {
