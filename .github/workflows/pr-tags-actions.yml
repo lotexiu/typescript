@@ -29,6 +29,7 @@ jobs:
 
             const analysisPath = '.changes/pr-analysis.json';
             const changelogPath = '.changes/CHANGELOG.md';
+            const tagNotesPath = '.changes/TAG_NOTES.md';
 
             if (!fs.existsSync(analysisPath)) {
               core.setFailed('Missing .changes/pr-analysis.json. Run `pnpm get-changes` and commit .changes files.');
@@ -37,6 +38,11 @@ jobs:
 
             if (!fs.existsSync(changelogPath)) {
               core.setFailed('Missing .changes/CHANGELOG.md. Run `pnpm get-changes` and commit .changes files.');
+              return '';
+            }
+
+            if (!fs.existsSync(tagNotesPath)) {
+              core.setFailed('Missing .changes/TAG_NOTES.md. Run `pnpm get-changes` and commit .changes files.');
               return '';
             }
 

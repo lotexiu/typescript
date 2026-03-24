@@ -43,6 +43,10 @@ jobs:
               core.setFailed('Merge blocked: .changes/CHANGELOG.md is missing in this PR.');
               return;
             }
+            if (!changed.includes('.changes/TAG_NOTES.md')) {
+              core.setFailed('Merge blocked: .changes/TAG_NOTES.md is missing in this PR.');
+              return;
+            }
 
   bump-version-and-tag:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
@@ -63,6 +67,33 @@ jobs:
             const impact = labels.includes('major') ? 'major' : labels.includes('minor') ? 'minor' : 'patch';
             const build = labels.includes('build-passed') ? 'build-passed' : 'build-failed';
             const test = labels.includes('test') ? 'true' : 'false';
+
+            const pr = context.payload.pull_request;
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const reviewers = [...new Set(reviews.map((r) => r.user?.login).filter(Boolean))];
+            const approvers = [...new Set(reviews.filter((r) => r.state === 'APPROVED').map((r) => r.user?.login).filter(Boolean))];
+            const commitOwners = [...new Set(commits.map((c) => c.author?.login || c.commit?.author?.name).filter(Boolean))];
+
+            core.setOutput('pr_title', pr.title || 'n/a');
+            core.setOutput('pr_url', pr.html_url || 'n/a');
+            core.setOutput('pr_owner', pr.user?.login || 'unknown');
+            core.setOutput('pr_created_at', pr.created_at || 'n/a');
+            core.setOutput('pr_merged_at', pr.merged_at || 'n/a');
+            core.setOutput('reviewers', reviewers.length ? reviewers.join(', ') : 'none');
+            core.setOutput('approvers', approvers.length ? approvers.join(', ') : 'none');
+            core.setOutput('commit_owners', commitOwners.length ? commitOwners.join(', ') : 'none');
 
             core.setOutput('impact', impact);
             core.setOutput('build', build);
@@ -110,6 +141,14 @@ jobs:
           BUILD: ${{ steps.meta.outputs.build }}
           TEST: ${{ steps.meta.outputs.test }}
           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          PR_TITLE: ${{ steps.meta.outputs.pr_title }}
+          PR_URL: ${{ steps.meta.outputs.pr_url }}
+          PR_OWNER: ${{ steps.meta.outputs.pr_owner }}
+          PR_CREATED_AT: ${{ steps.meta.outputs.pr_created_at }}
+          PR_MERGED_AT: ${{ steps.meta.outputs.pr_merged_at }}
+          PR_REVIEWERS: ${{ steps.meta.outputs.reviewers }}
+          PR_APPROVERS: ${{ steps.meta.outputs.approvers }}
+          COMMIT_OWNERS: ${{ steps.meta.outputs.commit_owners }}
         run: |
           TAG="v${NEXT_VERSION}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -117,12 +156,44 @@ jobs:
             exit 0
           fi
 
-          cat > /tmp/tag-message.txt <<MSG
-          PR_NUMBER=${PR_NUMBER}
-          IMPACT=${IMPACT}
-          BUILD=${BUILD}
-          TEST=${TEST}
-          MSG
+          TAG_NOTES_PATH=".changes/TAG_NOTES.md"
+          CHANGELOG_PATH=".changes/CHANGELOG.md"
+
+          {
+            echo "# ${TAG}"
+            echo
+            echo "## Release Snapshot"
+            echo "- Impact: ${IMPACT}"
+            echo "- Build: ${BUILD}"
+            echo "- Test: ${TEST}"
+            echo
+            echo "## PR Context"
+            echo "- PR: #${PR_NUMBER}"
+            echo "- Title: ${PR_TITLE}"
+            echo "- URL: ${PR_URL}"
+            echo "- PR date: ${PR_CREATED_AT}"
+            echo "- PR merged at: ${PR_MERGED_AT}"
+            echo "- PR owner: ${PR_OWNER}"
+            echo "- Reviewers: ${PR_REVIEWERS}"
+            echo "- Approvers: ${PR_APPROVERS}"
+            echo "- Commit owners: ${COMMIT_OWNERS}"
+            echo
+            if [ -f "$TAG_NOTES_PATH" ]; then
+              echo "## Tag Digest"
+              sed -n '1,160p' "$TAG_NOTES_PATH"
+              echo
+            fi
+            if [ -f "$CHANGELOG_PATH" ]; then
+              echo "## Changelog Preview"
+              sed -n '1,120p' "$CHANGELOG_PATH"
+              echo
+            fi
+            echo "## Machine Metadata"
+            echo "META_PR_NUMBER=${PR_NUMBER}"
+            echo "META_IMPACT=${IMPACT}"
+            echo "META_BUILD=${BUILD}"
+            echo "META_TEST=${TEST}"
+          } > /tmp/tag-message.txt
 
           git tag -a "$TAG" -F /tmp/tag-message.txt
           git push origin "$TAG"
