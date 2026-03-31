@@ -64,6 +64,137 @@ function stringToCharCodeArray(str: string): string[] {
 	});
 }
 
+function isIdentifier(char: string): boolean {
+	return (
+		isLetter(char) ||
+		isDigit(char) ||
+		char === '_' ||
+		char === '$'
+	);
+}
+
+function isLetter(char: string): boolean {
+	return char.toLowerCase() !== char.toUpperCase();
+}
+
+function isLowerCase(char: string): boolean {
+	return char === char.toLowerCase() && isLetter(char);
+}
+
+function isUpperCase(char: string): boolean {
+	return char === char.toUpperCase() && isLetter(char);
+}
+
+function isDigit(char: string): boolean {
+	return char >= "0" && char <= "9";
+}
+
+function isHexadecimal(char: string): boolean {
+	return (
+		isDigit(char) ||
+		(char.toLowerCase() >= "a" && char.toLowerCase() <= "f")
+	);
+}
+
+function isFormatting(char: string): boolean {
+	return (
+		isWhitespace(char) ||
+		isLineBreak(char) ||
+		isTab(char) ||
+		isCarriageReturn(char) ||
+		isFormFeed(char) ||
+		isVerticalTab(char)
+	);
+}
+
+function isWhitespace(char: string): boolean {
+	return char == ' '
+}
+
+function isLineBreak(char: string): boolean {
+	return char == '\n' || isCarriageReturn(char);
+}
+
+function isTab(char: string): boolean {
+	return char == '\t';
+}
+
+function isCarriageReturn(char: string): boolean {
+	return char == '\r';
+}
+
+function isFormFeed(char: string): boolean {
+	return char == '\f';
+}
+
+function isVerticalTab(char: string): boolean {
+	return char == '\v';
+}
+
+function isMathOperator(char: string): boolean {
+	switch (char) {
+		case '+':case '-':
+		case '*':case '/':
+		case '%':case '^':
+			return true;
+		default:
+			return false;
+	}
+}
+
+function isRelationalOperator(char: string): boolean {
+	switch (char) {
+		case '>':case '<':
+		case '=':case '!':
+			return true;
+		default:
+			return false;
+	}
+}
+
+function isBitwireOperator(char: string): boolean {
+	switch (char) {
+		case '&':case '|':
+		case '^':case '~':
+			return true;
+		default:
+			return false;
+	}
+}
+
+function isPunctuation(char: string): boolean {
+  switch (char) {
+    case '.': case ',':
+    case ';': case ':':
+    case '?': case '!':
+    case '(': case ')':
+    case '[': case ']':
+    case '{': case '}':
+    case '"': case "'":
+    case '`':
+    case '-': case '_':
+    case '/': case '\\':
+    case '@': case '#':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function isSymbol(char: string): boolean {
+	return (
+		!isLetter(char) &&
+		!isDigit(char) &&
+		!isWhitespace(char) &&
+		!isLineBreak(char) &&
+		!isTab(char)
+	)
+}
+
+function isEscape(char: string): boolean {
+	return char === '\\';
+}
+
 export const _String = {
 	capitalize,
 	capitalizeAll,
@@ -75,6 +206,25 @@ export const _String = {
 	noAccent,
 	stringToCharCodeArray,
 	toKebabCase,
+	isIdentifier,
+	isLetter,
+	isLowerCase,
+	isUpperCase,
+	isDigit,
+	isHexadecimal,
+	isFormatting,
+	isWhitespace,
+	isLineBreak,
+	isTab,
+	isCarriageReturn,
+	isFormFeed,
+	isVerticalTab,
+	isMathOperator,
+	isRelationalOperator,
+	isBitwireOperator,
+	isPunctuation,
+	isSymbol,
+	isEscape,
 };
 
 export type TUtilsString = typeof _String;

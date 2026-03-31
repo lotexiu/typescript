@@ -45,14 +45,9 @@ declare global {
 	interface Function {
 		fn: TFunction | undefined;
 		args: any[] | undefined;
-		thisAsParameter<T extends TFunction>(
-			this: T,
-		): TLambdaToFunction<GlobalDeclaration<T>>;
-		rebind<T extends TFunction>(
-			this: T,
-			context: any,
-			...args: any[]
-		): TRebindedFunction<T>;
+		thisAsParameter<T extends TFunction>(this: T): TLambdaToFunction<GlobalDeclaration<T>>;
+		rebind<T extends TFunction>(this: T, context: any, ...args: any[]): TRebindedFunction<T>;
+		negate<T extends TFunction<any, boolean>>(this: T): TRebindedFunction<T>;
 	}
 }
 
@@ -60,13 +55,12 @@ _Global.register(Function, {
 	thisAsParameter: function (this) {
 		return _Object.thisAsParameter(this);
 	},
-	rebind: function (
-		this: TFunction,
-		context: any,
-		...args: any[]
-	): TRebindedFunction<TFunction> {
+	rebind: function (this: TFunction, context: any, ...args: any[]): TRebindedFunction<TFunction> {
 		return _Function.rebind(this, context, ...args);
-	} as any,
+	},
+	negate: function (this: TFunction<any, boolean>): TRebindedFunction<TFunction<any, boolean>> {
+		return _Function.negate(this);
+	},
 });
 
 _Global.register(String, {
