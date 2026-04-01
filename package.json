@@ -20,12 +20,16 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
     "@lotexiu/vite-utils": "workspace:*",
-    "@types/node": "^22.19.1"
+    "@types/node": "^22.19.1",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "colorjs.io": "^0.5.2"
@@ -49,7 +53,10 @@
       "default": "./package.json"
     },
     "./global": {
-      "types": "./dist/global.d.ts"
+      "types": "./dist/global.d.ts",
+      "import": "./dist/global.js",
+      "require": "./dist/global.cjs",
+      "default": "./dist/global.js"
     },
     "./implementations": {
       "types": "./dist/implementations.d.ts",
@@ -184,6 +191,15 @@
       "import": "./dist/global/utils.js",
       "require": "./dist/global/utils.cjs",
       "default": "./dist/global/utils.js"
+    },
+    "./a-search/ASearch": {
+      "types": "./dist/a-search/ASearch.d.ts"
+    },
+    "./a-search/implementations": {
+      "types": "./dist/a-search/implementations.d.ts",
+      "import": "./dist/a-search/implementations.js",
+      "require": "./dist/a-search/implementations.cjs",
+      "default": "./dist/a-search/implementations.js"
     }
   }
 }

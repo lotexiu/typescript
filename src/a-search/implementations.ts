@@ -1,10 +1,29 @@
 import { _String } from "@tsn-string/generic/implementations";
 
-const exrLeft = {
+/* TODO
+- criar codigo dos modificadores
+- criar codigo da quantidade
+*/
 
+export const MODIFIERS = { // Modificadores. mudam o comportamento do conteudo central
+	s: 1, // Set
+	i: 1, // Case-insensitive
+	l: 1, // Literal
+	$: 1, // End of string
+	'^': 1, // Start of string
+	'!': 1, // Negate
+	'@': 1,// Referência a um pattern
+
+	'<': 1, // LookBehind
+	'<:': 1, // LookBehind com captura
+	'<!': 1, // LookBehind negativo
+
+	'>': 1, // LookAhead
+	'>:': 1, // LookAhead com captura
+	'>!': 1, // LookAhead negativo
 }
 
-const exr = {
+export const EXR = { // Todos os tipos abaixo são validações de um único caractere.
 	/* Letras e Números */
 	w: _String.isIdentifier,
 	W: _String.isIdentifier.negate(),
@@ -51,44 +70,19 @@ const exr = {
 	e: _String.isEscape,
 	E: _String.isEscape.negate(),
 	'*': ()=>true, // anything
-	m: (char: string) => char in exr,
-	M: (char: string) => !(char in exr),
+	m: (char: string) => char in EXR,
+	M: (char: string) => !(char in EXR),
 };
 
-const exrRight = {
-
+export const QUANTITY = {
+	R: 1, // Recursivo (pode conter o próprio padrão dentro do centro)
+	'*': { min: 0, max: Infinity },
+	'+': { min: 1, max: Infinity },
+	'?': { min: 0, max: 1 },
 }
 
-/**
- * PROPOSTAS DE SINTAXE PARA MOTOR DE BUSCA TRÍADE (Left | Center | Right)
- * * Estrutura:
- * [Left]   -> Modificadores (Case-insensitive, Literal, Negate, etc.)
- * [Center] -> O alvo da busca (Baseado no dicionário 'exr' ou string pura)
- * [Right]  -> Quantificadores e Lógica de Fluxo (Repetição, Boundary, EOF)
- * * -------------------------------------------------------------------------
- * OPÇÃO 0: O Modelo "|" (Alternância Simples)
- * Uso: (mod|centro|quant)
- * Característica: Usa o pipe '|' para separar as três partes, mas pode gerar
- * ambiguidade se o centro contiver alternâncias.
- * -------------------------------------------------------------------------
- * Exemplo 1: (i|a|3)     -> Busca 3 letras ignorando case.
- * Exemplo 2: (L|abc|def|+) -> Busca a string literal "abc" ou "def" uma ou mais vezes.
- * Exemplo 3: (!|d|1)     -> Busca algo que NÃO seja um dígito, exatamente uma vez.
- * * -------------------------------------------------------------------------
- * OPÇÃO 1: O Modelo "Encapsulado" (Delimitadores Distintos)
- * Uso: [mod]centro{quant}
- * Característica: Usa colchetes e chaves para isolar as extremidades.
- * -------------------------------------------------------------------------
- * Exemplo 1: [i]a{3}     -> Busca 3 letras ignorando case.
- * Exemplo 2: [L](ref){+} -> Busca a string literal "(ref)" uma ou mais vezes.
- * Exemplo 3: [!]d{1}     -> Busca algo que NÃO seja um dígito, exatamente uma vez.
- * * -------------------------------------------------------------------------
- * OPÇÃO 2: O Modelo "Scoped Pipe" (Substituição ao | de Alternância)
- * Uso: (mod / centro / quant)
- * Característica: Usa a barra (slash) como separador, já que o pipe '|'
- * será usado para o operador lógico "OU" dentro do centro.
- * -------------------------------------------------------------------------
- * Exemplo 1: (i/a/3)     -> Insensitive, Letra, 3 vezes.
- * Exemplo 2: (L/abc|def/+) -> Literal, "abc" OU "def", uma ou mais vezes.
- * * -------------------------------------------------------------------------
- */
+/* Modelo de Sintaxe mais apoiado. Que as pessoas mais gostaram
+	(Modificador/Centro/Quantidade)
+	(i/a/3) 			-> Insensitive, Letra, 3 vezes.
+	(L/abc|def/+)	-> Literal, "abc" OU "def", uma ou mais vezes.
+*/

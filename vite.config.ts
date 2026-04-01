@@ -4,7 +4,7 @@ import path from "path";
 import {
 	externalDependencies,
 	extractTsconfigAliases,
-	getLibraryEntries
+	getLibraryEntries,
 } from "@lotexiu/vite-utils/utils";
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
 import { packageJsonPlugin } from "@lotexiu/vite-utils/plugins/PackageJsonPlugin";
@@ -29,7 +29,7 @@ export default defineConfig({
 		}),
 		excludeEmptyChunksPlugin(),
 		betterOutDirCleanPlugin(),
-		packageJsonPlugin(['dist', './']),
+		packageJsonPlugin(["dist", "./"]),
 	],
 	build: {
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
@@ -37,32 +37,32 @@ export default defineConfig({
 		lib: {
 			entry: entries,
 			fileName: (format, entryName) => {
-        const ext = format === 'es' ? 'js' : 'cjs';
-        return `${entryName}.${ext}`;
-      },
+				const ext = format === "es" ? "js" : "cjs";
+				return `${entryName}.${ext}`;
+			},
 		},
 		rollupOptions: {
 			external: externalDependencies(),
 			output: [
 				{
-					format: 'es',
-          dir: 'dist',
-          entryFileNames: '[name].js',
-          chunkFileNames: 'chunks/[name]-[hash].js',
-          preserveModules: true,
-          preserveModulesRoot: 'src',
-          exports: 'named'
+					format: "es",
+					dir: "dist",
+					entryFileNames: "[name].js",
+					chunkFileNames: "chunks/[name]-[hash].js",
+					preserveModules: true,
+					preserveModulesRoot: "src",
+					exports: "named",
 				},
 				{
-          format: 'cjs',
-          dir: 'dist',
-          entryFileNames: '[name].cjs', // Força extensão .cjs
-          chunkFileNames: 'chunks/[name]-[hash].cjs',
-          preserveModules: true,
-          preserveModulesRoot: 'src',
-          exports: 'named'
-        }
-			]
+					format: "cjs",
+					dir: "dist",
+					entryFileNames: "[name].cjs", // Força extensão .cjs
+					chunkFileNames: "chunks/[name]-[hash].cjs",
+					preserveModules: true,
+					preserveModulesRoot: "src",
+					exports: "named",
+				},
+			],
 		},
 	},
 });

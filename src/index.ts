@@ -29,3 +29,5 @@ export * from './html/keyboard-capture/types';
 export * from './global/implementation';
 export * from './global/types';
 export * from './global/utils';
+export * from './a-search/ASearch';
+export * from './a-search/implementations';
