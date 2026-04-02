@@ -30,4 +30,6 @@ export * from './global/implementation';
 export * from './global/types';
 export * from './global/utils';
 export * from './a-search/ASearch';
+export * from './a-search/RawPatternResolver';
 export * from './a-search/implementations';
+export * from './a-search/types';

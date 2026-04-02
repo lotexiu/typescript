@@ -23,7 +23,9 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "debug": "vitest run --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
+    "debug:watch": "vitest --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0"
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
@@ -193,13 +195,25 @@
       "default": "./dist/global/utils.js"
     },
     "./a-search/ASearch": {
-      "types": "./dist/a-search/ASearch.d.ts"
+      "types": "./dist/a-search/ASearch.d.ts",
+      "import": "./dist/a-search/ASearch.js",
+      "require": "./dist/a-search/ASearch.cjs",
+      "default": "./dist/a-search/ASearch.js"
+    },
+    "./a-search/RawPatternResolver": {
+      "types": "./dist/a-search/RawPatternResolver.d.ts",
+      "import": "./dist/a-search/RawPatternResolver.js",
+      "require": "./dist/a-search/RawPatternResolver.cjs",
+      "default": "./dist/a-search/RawPatternResolver.js"
     },
     "./a-search/implementations": {
       "types": "./dist/a-search/implementations.d.ts",
       "import": "./dist/a-search/implementations.js",
       "require": "./dist/a-search/implementations.cjs",
       "default": "./dist/a-search/implementations.js"
+    },
+    "./a-search/types": {
+      "types": "./dist/a-search/types.d.ts"
     }
   }
 }
