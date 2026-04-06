@@ -1,10 +1,12 @@
-type OnPatternFound = (pattern: string, index: number) => void;
-type PatternCallbacks = Record<string, OnPatternFound>;
+import { TNullable } from "@ts/types";
+import { BPSearch } from "./BPSearch";
+import { OnMismatch, OnPatternFound } from "./types";
 
 // Um CharNode representa caractere
 class CharNode {
 	nextChar: Record<string, CharNode> = {}; // Próximo caractere
 	patterns: string[] = []; // Padrões que terminam neste nó
+	longestPattern = 0; // Tamanho do maior padrão neste nó (calculado em resolveNodes)
 	nextCharOnFail: CharNode | null = null; // Próximo nó na cadeia de caracteres
 
 	linkChar(char: string) {
@@ -18,33 +20,9 @@ class CharNode {
 	}
 }
 
-export class SSearch {
+export class SPSearch extends BPSearch<TNullable<OnPatternFound>> {
 	private root = new CharNode();
-	private callbacks: PatternCallbacks = {};
-	private dirty = false;
-
-	content: string = "";
-
-	addPatterns(patterns: PatternCallbacks) {
-		for (const pattern in patterns) {
-			if (!(pattern in this.callbacks)) {
-				this.dirty = true;
-			}
-			this.callbacks[pattern] = patterns[pattern];
-		}
-	}
-
-	removePatterns(patterns: string[]) {
-		for (const pattern of patterns) {
-			delete this.callbacks[pattern];
-		}
-		this.dirty = true;
-	}
-
-	cleanPatterns() {
-		this.callbacks = {};
-		this.dirty = true;
-	}
+	onMismatch?: OnMismatch;
 
 	private patternToNode(pattern: string) {
 		let node = this.root;
@@ -52,6 +30,7 @@ export class SSearch {
 			node = node.linkChar(char); // Vincula e entra no próximo nó/caractere
 		}
 		node.patterns.push(pattern); // Ultimo nó/caractere recebe o padrão
+		node.longestPattern = Math.max(node.longestPattern, pattern.length);
 	}
 
 	private resolveNodes() {
@@ -88,6 +67,7 @@ export class SSearch {
 					: this.root;
 
 				nextNode.patterns.push(...nextNode.nextCharOnFail.patterns);
+				nextNode.longestPattern = Math.max(nextNode.longestPattern, nextNode.nextCharOnFail.longestPattern);
 				queue.push(nextNode);
 			}
 		}
@@ -96,7 +76,9 @@ export class SSearch {
 	resolve() {
 		this.resolveNodes();
 
+		let mismatchStart = 0;
 		let node = this.root;
+
 		for (let charIdx = 0; charIdx < this.content.length; charIdx++) {
 			const char = this.content[charIdx];
 
@@ -108,11 +90,28 @@ export class SSearch {
 			/* Se achou, o link de falha é o próximo caractere do failNode, senão é a raiz */
 			node = node.next(char) ?? this.root;
 
+			if (!node.patterns.length) continue;
+
+			const matchStart = charIdx - node.longestPattern + 1;
+			if (matchStart > mismatchStart) {
+				this.onMismatch?.(
+					this.content.slice(mismatchStart, matchStart),
+					mismatchStart,
+					node.patterns
+				);
+			}
+
 			/* Dispara os callbacks para os padrões encontrados */
 			for (const pattern of node.patterns) {
 				const idx = charIdx - pattern.length + 1;
-				this.callbacks[pattern](pattern, idx);
+				this.callbacks[pattern]?.(pattern, idx);
 			}
+
+			mismatchStart = charIdx + 1;
+		}
+
+		if (mismatchStart < this.content.length) {
+			this.onMismatch?.(this.content.slice(mismatchStart), mismatchStart, []);
 		}
 	}
 }

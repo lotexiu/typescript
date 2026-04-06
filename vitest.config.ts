@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { extractTsconfigAliases } from '@lotexiu/vite-utils/utils';
 
-console.clear();
 export default defineConfig({
 	resolve: {
 		alias: extractTsconfigAliases(),

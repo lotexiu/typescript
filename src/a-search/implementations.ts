@@ -5,11 +5,13 @@ import { _String } from "@tsn-string/generic/implementations";
 - criar codigo da quantidade
 */
 
+/* Apenas um exemplo ficticio pois ainda não sei como devo imeplemtar exatamente os modicadores ainda.
 export const MODIFIERS = { // Modificadores. mudam o comportamento do conteudo central
 	s: 1, // Set
 	i: 1, // Case-insensitive
 	l: 1, // Literal
 	$: 1, // End of string
+	r: 1, // Recursive
 	'^': 1, // Start of string
 	'!': 1, // Negate
 	'@': 1,// Referência a um pattern
@@ -22,7 +24,7 @@ export const MODIFIERS = { // Modificadores. mudam o comportamento do conteudo c
 	'>:': 1, // LookAhead com captura
 	'>!': 1, // LookAhead negativo
 }
-
+ */
 export const EXR = { // Todos os tipos abaixo são validações de um único caractere.
 	/* Letras e Números */
 	w: _String.isIdentifier,
@@ -74,12 +76,13 @@ export const EXR = { // Todos os tipos abaixo são validações de um único car
 	M: (char: string) => !(char in EXR),
 };
 
-export const QUANTITY = {
-	R: 1, // Recursivo (pode conter o próprio padrão dentro do centro)
-	'*': { min: 0, max: Infinity },
-	'+': { min: 1, max: Infinity },
-	'?': { min: 0, max: 1 },
+/* Exemplo ficticio. Ainda não sei como deveria estar criando QUANTITY, mas seria algo do tipo:
+EXPORT CONST QUANTITY = {
+	'*': { MIN: 0, MAX: INFINITY },
+	'+': { MIN: 1, MAX: INFINITY },
+	'?': { MIN: 0, MAX: 1 },
 }
+ */
 
 /* Modelo de Sintaxe mais apoiado. Que as pessoas mais gostaram
 	(Modificador/Centro/Quantidade)

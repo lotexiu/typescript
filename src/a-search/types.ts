@@ -1,10 +1,25 @@
+import { TNullable } from "@ts/types";
+
+export type OnMismatch = (chars: string, index: number, patternsToBeTriggered: string[]) => void;
+export type OnPatternFound = (pattern: string, index: number) => void;
+
+export type PatternHandlers<T = OnPatternFound> = Record<string, T>;
+
 export type Pattern = {
-	[names: string]: string;
+	id: string;
+	call: OnPatternFound;
 }
 
 export type FragmentedPattern = {
 	id: string;
-	modifiers: string[];
 	content: (string|FragmentedPattern)[];
-	quantity: [number, number] | 1;
+	modifiers?: string[];
+	quantity?: [number, number] | 1;
+}
+
+export type RawFragmentedPattern = {
+	content: (string|RawFragmentedPattern)[];
+	divisor?: number;
+	modifier?: string;
+	quantity?: string;
 }
