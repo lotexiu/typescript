@@ -20,6 +20,9 @@ function register<
 	}
 }
 
+/**
+ * @internal
+ */
 export const _Global = {
 	register,
 };

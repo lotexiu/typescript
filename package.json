@@ -7,10 +7,13 @@
     "type": "git",
     "url": "https://github.com/lotexiu/typescript"
   },
+  "homepage": "https://github.com/lotexiu/typescript#readme",
   "bugs": {
     "url": "https://github.com/lotexiu/typescript/issues"
   },
-  "homepage": "https://github.com/lotexiu/typescript#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "library",
     "typescript",
@@ -30,190 +33,16 @@
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
     "@lotexiu/vite-utils": "workspace:*",
-    "@types/node": "^22.19.1",
+    "@types/node": "^24.12.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "colorjs.io": "^0.5.2"
+    "colorjs.io": "^0.6.1"
   },
   "sideEffects": true,
-  "typings": "dist/index.d.ts",
-  "module": "dist/index.js",
-  "main": "dist/index.cjs",
+  "typings": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "type": "module",
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
-    },
-    "./package.json": {
-      "default": "./package.json"
-    },
-    "./global": {
-      "types": "./dist/global.d.ts",
-      "import": "./dist/global.js",
-      "require": "./dist/global.cjs",
-      "default": "./dist/global.js"
-    },
-    "./implementations": {
-      "types": "./dist/implementations.d.ts",
-      "import": "./dist/implementations.js",
-      "require": "./dist/implementations.cjs",
-      "default": "./dist/implementations.js"
-    },
-    "./package": {
-      "import": "./dist/package.json",
-      "require": "./dist/package.json",
-      "default": "./dist/package.json"
-    },
-    "./types": {
-      "types": "./dist/types.d.ts"
-    },
-    "./value-history/implementation": {
-      "types": "./dist/value-history/implementation.d.ts",
-      "import": "./dist/value-history/implementation.js",
-      "require": "./dist/value-history/implementation.cjs",
-      "default": "./dist/value-history/implementation.js"
-    },
-    "./value-history/types": {
-      "types": "./dist/value-history/types.d.ts"
-    },
-    "./theme/builders": {
-      "types": "./dist/theme/builders.d.ts",
-      "import": "./dist/theme/builders.js",
-      "require": "./dist/theme/builders.cjs",
-      "default": "./dist/theme/builders.js"
-    },
-    "./theme/implementations": {
-      "types": "./dist/theme/implementations.d.ts",
-      "import": "./dist/theme/implementations.js",
-      "require": "./dist/theme/implementations.cjs",
-      "default": "./dist/theme/implementations.js"
-    },
-    "./theme/themes": {
-      "types": "./dist/theme/themes.d.ts",
-      "import": "./dist/theme/themes.js",
-      "require": "./dist/theme/themes.cjs",
-      "default": "./dist/theme/themes.js"
-    },
-    "./theme/types": {
-      "types": "./dist/theme/types.d.ts"
-    },
-    "./theme/utils": {
-      "types": "./dist/theme/utils.d.ts",
-      "import": "./dist/theme/utils.js",
-      "require": "./dist/theme/utils.cjs",
-      "default": "./dist/theme/utils.js"
-    },
-    "./natives/types": {
-      "types": "./dist/natives/types.d.ts"
-    },
-    "./natives/string/generic/implementations": {
-      "types": "./dist/natives/string/generic/implementations.d.ts",
-      "import": "./dist/natives/string/generic/implementations.js",
-      "require": "./dist/natives/string/generic/implementations.cjs",
-      "default": "./dist/natives/string/generic/implementations.js"
-    },
-    "./natives/object/proxy/ProxyHandler": {
-      "types": "./dist/natives/object/proxy/ProxyHandler.d.ts",
-      "import": "./dist/natives/object/proxy/ProxyHandler.js",
-      "require": "./dist/natives/object/proxy/ProxyHandler.cjs",
-      "default": "./dist/natives/object/proxy/ProxyHandler.js"
-    },
-    "./natives/object/proxy/types": {
-      "types": "./dist/natives/object/proxy/types.d.ts"
-    },
-    "./natives/object/generic/implementations": {
-      "types": "./dist/natives/object/generic/implementations.d.ts",
-      "import": "./dist/natives/object/generic/implementations.js",
-      "require": "./dist/natives/object/generic/implementations.cjs",
-      "default": "./dist/natives/object/generic/implementations.js"
-    },
-    "./natives/object/generic/types": {
-      "types": "./dist/natives/object/generic/types.d.ts"
-    },
-    "./natives/object/generic/utils": {
-      "types": "./dist/natives/object/generic/utils.d.ts",
-      "import": "./dist/natives/object/generic/utils.js",
-      "require": "./dist/natives/object/generic/utils.cjs",
-      "default": "./dist/natives/object/generic/utils.js"
-    },
-    "./natives/function/generic/implementations": {
-      "types": "./dist/natives/function/generic/implementations.d.ts",
-      "import": "./dist/natives/function/generic/implementations.js",
-      "require": "./dist/natives/function/generic/implementations.cjs",
-      "default": "./dist/natives/function/generic/implementations.js"
-    },
-    "./natives/function/generic/types": {
-      "types": "./dist/natives/function/generic/types.d.ts"
-    },
-    "./natives/class/declarations": {
-      "types": "./dist/natives/class/declarations.d.ts",
-      "import": "./dist/natives/class/declarations.js",
-      "require": "./dist/natives/class/declarations.cjs",
-      "default": "./dist/natives/class/declarations.js"
-    },
-    "./natives/class/implementations": {
-      "types": "./dist/natives/class/implementations.d.ts",
-      "import": "./dist/natives/class/implementations.js",
-      "require": "./dist/natives/class/implementations.cjs",
-      "default": "./dist/natives/class/implementations.js"
-    },
-    "./natives/class/types": {
-      "types": "./dist/natives/class/types.d.ts"
-    },
-    "./natives/array/generic/types": {
-      "types": "./dist/natives/array/generic/types.d.ts"
-    },
-    "./html/keyboard-capture/implementation": {
-      "types": "./dist/html/keyboard-capture/implementation.d.ts",
-      "import": "./dist/html/keyboard-capture/implementation.js",
-      "require": "./dist/html/keyboard-capture/implementation.cjs",
-      "default": "./dist/html/keyboard-capture/implementation.js"
-    },
-    "./html/keyboard-capture/types": {
-      "types": "./dist/html/keyboard-capture/types.d.ts"
-    },
-    "./global/implementation": {
-      "types": "./dist/global/implementation.d.ts",
-      "import": "./dist/global/implementation.js",
-      "require": "./dist/global/implementation.cjs",
-      "default": "./dist/global/implementation.js"
-    },
-    "./global/types": {
-      "types": "./dist/global/types.d.ts"
-    },
-    "./global/utils": {
-      "types": "./dist/global/utils.d.ts",
-      "import": "./dist/global/utils.js",
-      "require": "./dist/global/utils.cjs",
-      "default": "./dist/global/utils.js"
-    },
-    "./a-search/ASearch": {
-      "types": "./dist/a-search/ASearch.d.ts",
-      "import": "./dist/a-search/ASearch.js",
-      "require": "./dist/a-search/ASearch.cjs",
-      "default": "./dist/a-search/ASearch.js"
-    },
-    "./a-search/RawPatternResolver": {
-      "types": "./dist/a-search/RawPatternResolver.d.ts",
-      "import": "./dist/a-search/RawPatternResolver.js",
-      "require": "./dist/a-search/RawPatternResolver.cjs",
-      "default": "./dist/a-search/RawPatternResolver.js"
-    },
-    "./a-search/implementations": {
-      "types": "./dist/a-search/implementations.d.ts",
-      "import": "./dist/a-search/implementations.js",
-      "require": "./dist/a-search/implementations.cjs",
-      "default": "./dist/a-search/implementations.js"
-    },
-    "./a-search/types": {
-      "types": "./dist/a-search/types.d.ts"
-    }
-  }
+  "types": "./dist/index.d.ts"
 }

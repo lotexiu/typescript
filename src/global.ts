@@ -9,6 +9,9 @@ import {
 } from "@tsn-function/generic/types";
 import { _Function } from "@tsn-function/generic/implementations";
 
+/**
+ * @required
+ */
 declare global {
 	// TODO: Implement Number extensions
 	// interface Number {

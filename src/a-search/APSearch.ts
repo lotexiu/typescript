@@ -21,3 +21,9 @@ export class APSearch extends BPSearch<Pattern> {
 
 	}
 }
+/**
+ * @internal
+ */
+export class test {
+
+}

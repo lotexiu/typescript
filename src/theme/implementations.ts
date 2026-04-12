@@ -327,6 +327,9 @@ function applyThemeToDocument<T extends TTheme>(theme: TObject<T>) {
 }
 
 
+/**
+ * @internal
+ */
 export const _Theme = {
 	themeSchema,
 	applyThemeToDocument,

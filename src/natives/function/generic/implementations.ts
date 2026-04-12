@@ -35,6 +35,9 @@ function negate<T extends TFunction<any, boolean>>(
 	return newFn as TRebindedFunction<T>;
 }
 
+/**
+ * @internal
+ */
 export const _Function = {
 	rebind,
 	negate,

@@ -100,9 +100,10 @@ class RawPatternResolver {
 	}
 }
 
+/**
+ * @internal
+ */
 export class APSearch extends BPSearch<Pattern> {
-
-
 	private resolvePatterns() {
 		const Scope = new RawPatternResolver();
 		for (const pattern in this.callbacks) {

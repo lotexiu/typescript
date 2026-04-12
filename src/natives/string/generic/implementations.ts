@@ -195,6 +195,9 @@ function isEscape(char: string): boolean {
 	return char === '\\';
 }
 
+/**
+ * @internal
+ */
 export const _String = {
 	capitalize,
 	capitalizeAll,

@@ -1,4 +1,5 @@
-import { TMap } from "@lotexiu/typescript";
+import { TMap } from "@tsn-object/generic/types";
+
 
 type IndexedItem<T> = {
   index: number;

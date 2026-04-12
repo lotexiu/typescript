@@ -9,12 +9,21 @@ import {
 import { betterOutDirCleanPlugin } from "@lotexiu/vite-utils/plugins/BetterOutDirClean";
 import { packageJsonPlugin } from "@lotexiu/vite-utils/plugins/PackageJsonPlugin";
 import { createIndexFile } from "@lotexiu/vite-utils/plugins/IndexPlugin";
-import { excludeEmptyChunksPlugin } from "@lotexiu/vite-utils/plugins/ExcludeEmptyChunks";
 
 const libSrc = path.resolve(__dirname, "src");
-const entries = getLibraryEntries(libSrc);
+const sourceOptions = {
+	ignoredDirs: [".test", "test", "tests", "__tests__"],
+	ignoredPathPatterns: [
+		/\.test\.(ts|tsx|js)$/,
+		/\.spec\.(ts|tsx|js)$/,
+		/\.e2e\.(ts|tsx|js)$/,
+		/\/__mocks__\//,
+		/\/__fixtures__\//,
+	],
+};
+const entries = getLibraryEntries(libSrc, false, sourceOptions);
 
-createIndexFile(libSrc);
+createIndexFile(libSrc, sourceOptions);
 entries["index"] = path.resolve(libSrc, "index.ts");
 
 export default defineConfig({
@@ -24,16 +33,25 @@ export default defineConfig({
 	plugins: [
 		dts({
 			include: ["src"],
+			exclude: [
+				"src/.test/**",
+				"src/**/__tests__/**",
+				"src/**/*.test.ts",
+				"src/**/*.test.tsx",
+				"src/**/*.test.js",
+				"src/**/*.spec.ts",
+				"src/**/*.spec.tsx",
+				"src/**/*.spec.js",
+			],
 			outDir: "dist",
 			insertTypesEntry: false,
 		}),
-		excludeEmptyChunksPlugin(),
 		betterOutDirCleanPlugin(),
-		packageJsonPlugin(["dist", "./"]),
+		packageJsonPlugin(["dist", "./"], { generateExports: false }),
 	],
 	build: {
 		minify: false, // Obrigatório para que o refresh rapido do react funcione.
-		emptyOutDir: false,
+		emptyOutDir: true,
 		lib: {
 			entry: entries,
 			fileName: (format, entryName) => {

@@ -118,6 +118,9 @@ function entries<T extends {}>(value: T): TEntriesReturn<T>[] {
 	return Object.entries(value) as TEntriesReturn<T>[];
 }
 
+/**
+ * @internal
+ */
 export const _Object = {
 	isEmptyObj,
 	isAClassDeclaration,
