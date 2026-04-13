@@ -20,6 +20,7 @@
       "@tsn/*": ["./src/natives/*"],
       "@tsi/*": ["./src/interfaces/*"],
       "@tsu/*": ["./src/unknown/*"],
+			"@tsnode/*": ["./src/nodes/*"],
       "@ts/*": ["./src/*"]
 		}
   },

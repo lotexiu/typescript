@@ -1,12 +1,12 @@
-import { OnPatternFound, PatternHandlers } from "./types";
+import { TOnPatternFound, TPatternHandlers } from "./types";
 
-export abstract class BPSearch<T = OnPatternFound> {
-	protected callbacks: PatternHandlers<T> = {};
+export abstract class BPSearch<T = TOnPatternFound> {
+	protected callbacks: TPatternHandlers<T> = {};
 	protected dirty = false;
 
 	content: string = "";
 
-	addPatterns(patterns: PatternHandlers<T>) {
+	addPatterns(patterns: TPatternHandlers<T>) {
 		for (const pattern in patterns) {
 			if (!(pattern in this.callbacks)) {
 				this.dirty = true;
@@ -23,7 +23,7 @@ export abstract class BPSearch<T = OnPatternFound> {
 	}
 
 	cleanPatterns() {
-		this.callbacks = {} as PatternHandlers<T>;
+		this.callbacks = {} as TPatternHandlers<T>;
 		this.dirty = true;
 	}
 

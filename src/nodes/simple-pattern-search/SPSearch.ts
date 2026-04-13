@@ -1,6 +1,5 @@
 import { TNullable } from "@ts/types";
-import { BPSearch } from "./BPSearch";
-import { OnMismatch, OnPatternFound } from "./types";
+import { BPSearch } from "@tsnode/BPSearch";
 
 // Um CharNode representa caractere
 class CharNode {
@@ -20,9 +19,9 @@ class CharNode {
 	}
 }
 
-export class SPSearch extends BPSearch<TNullable<OnPatternFound>> {
+export class SPSearch extends BPSearch<TNullable<any>> {
 	private root = new CharNode();
-	onMismatch?: OnMismatch;
+	onMismatch?: any;
 
 	private patternToNode(pattern: string) {
 		let node = this.root;
@@ -104,7 +103,7 @@ export class SPSearch extends BPSearch<TNullable<OnPatternFound>> {
 			/* Dispara os callbacks para os padrões encontrados */
 			for (const pattern of node.patterns) {
 				const idx = charIdx - pattern.length + 1;
-				this.callbacks[pattern]?.(pattern, idx);
+				this.callbacks[pattern]?.(pattern, idx, pattern);
 			}
 
 			mismatchStart = charIdx + 1;
