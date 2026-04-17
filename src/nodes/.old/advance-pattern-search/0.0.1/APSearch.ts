@@ -1,5 +1,4 @@
-
-import { BPSearch } from "@tsnode/BPSearch";
+import { BPSearch } from "./BPSearch";
 import {
 	EXR,
 	applyInsensitive,

@@ -2,10 +2,6 @@
 
 import './global';
 
-export { APSearch } from './a-search/APSearch';
-export { BPSearch } from './a-search/BPSearch';
-export { EXR } from './a-search/implementations';
-export { SPSearch } from './a-search/SPSearch';
 export { GlobalUtils } from './global/utils';
 export { KeyboardCapture } from './html/keyboard-capture/implementation';
 export { json, isNull, isNullOrUndefined, equals, includes } from './implementations';
@@ -14,6 +10,7 @@ export { instanceOf } from './natives/class/implementations';
 export { isEmptyObj, circularReferenceHandler } from './natives/object/generic/implementations';
 export { ObjectUtils } from './natives/object/generic/utils';
 export { proxyHandler, deleteProxy } from './natives/object/proxy/ProxyHandler';
+export { search } from './nodes/simple-pattern/simple-pattern';
 export { DefaultThemeBuilder } from './theme/builders';
 export { themeSchema } from './theme/implementations';
 export { DefaultThemes } from './theme/themes';
