@@ -1,10 +1,8 @@
-import { _Array } from "./implementations";
-
-/** Public static wrapper over `_Array` — array helpers (currently a type-narrowing `includes` check). */
 class ArrayUtils {
-	static readonly includes = _Array.includes;
+	/** Type-narrowing `Array.prototype.includes` — narrows `value` to the array's element type when true. */
+	static includes<const T extends any[], U>(values: T, value: U): value is T[number] {
+		return values.includes(value);
+	}
 }
 
-export {
-	ArrayUtils
-}
+export { ArrayUtils };

@@ -1,4 +1,5 @@
-import type { TUnkown } from "@ts/types";
+import type { TSameType, TUnkown } from "@ts/types";
+import { TPath, TPathValue } from "@tsn-object/types";
 
 /** Thin alias over the built-in `Array<T>`. */
 type TArray<T = any> = Array<T>;
@@ -20,29 +21,19 @@ type TValueOf<
 	Index extends -1
 		? List extends [...infer Rest, infer Last] ? Last : never
 		: List[Index];
-
-/** Options bag for `TArrayOf`: an explicit args tuple and/or a type to infer the rest of the array as. */
-type TArrayOptions = {
-	args?: any[]
-	infAs?: any
-}
-
+		
 /** The remaining tuple elements of `A` after removing the leading elements shared with `B`. */
 type TArrayRest<
 	A extends any[],
 	B extends any[]
 > = A extends [...B, ...infer Rest] ? Rest : never;
 
-/** Builds a parameter-list-like tuple type from `TArrayOptions` — used to shape `TFn`'s argument list. */
-type TArrayOf<Option extends TArrayOptions> =
-	TUnkown<Option['args']> extends never
-		? TUnkown<Option['infAs']> extends never
-			? [...Exclude<Option['args'], undefined>, ...Option['infAs'][]]
-			: [...Exclude<Option['args'], undefined>]
-		: TUnkown<Option['infAs']> extends never
-			? Option['infAs'][]
-			: never
-
+type TArrayOf<Args extends any[] = never, InfType = never> =
+	TSameType<Args|InfType,never> extends true 
+		? [] 
+		: Args extends never ? [...InfType[]]
+		: [...(Args), ...(InfType|undefined)[]] 
+	
 /** A 2-tuple `[T, T2]`. */
 type TPair<T = any, T2 = any> = [T, T2];
 
@@ -52,16 +43,21 @@ type TAsArray<T> = T extends any[] ? T : never;
 /** Reverses the element order of a tuple type. */
 type TReverseArray<T> = T extends [infer First, ...infer Rest] ? [...TReverseArray<Rest>, First] : T;
 
+/** Maps a tuple type `List` to a new tuple type where each element is the value of `Path` in the corresponding element of `List`. */
+type TMap<List extends any[], Path extends TPath<List[number]>> = [...{
+	[K in keyof List]: TPathValue<List[K], Path>
+}]
+
 export type {
 	TArray,
 	TArrayLike,
 	TExtractValues,
 	TArrayType,
 	TValueOf,
-	TArrayOptions,
 	TArrayOf,
 	TPair,
 	TAsArray,
 	TReverseArray,
 	TArrayRest,
+	TMap,
 };

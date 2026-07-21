@@ -1,8 +1,9 @@
 import { defineConfig } from 'vitest/config';
+import { tsconfigAliases } from './scripts/doc/tsconfig-alias';
 
 export default defineConfig({
 	resolve: {
-		tsconfigPaths: true,
+		alias: tsconfigAliases(process.cwd()),
 	},
 	test: {
 		environment: 'node',

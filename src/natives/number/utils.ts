@@ -1,10 +1,12 @@
-import { _Number } from "./implementations";
-
-/** Public static wrapper over `_Number` — raw-text-to-number parsing. */
 class NumberUtils {
-	static readonly parse = _Number.parse;
+	/** Converte texto bruto em number, ou undefined se vazio/não numérico. Não julga validade de negócio. */
+	static parse(raw: string): number | undefined {
+		if (raw.trim() === "") return undefined;
+		const parsed = Number(raw);
+		return Number.isNaN(parsed) ? undefined : parsed;
+	}
 }
 
 export {
-	NumberUtils
+	NumberUtils,
 }

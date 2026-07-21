@@ -21,23 +21,17 @@
     "colorjs.io"
   ],
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
+    "build": "pnpm clean && pnpm docs:ast && vite build",
+    "prepare": "pnpm build",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --passWithNoTests",
+    "test:ui": "vitest --ui --passWithNoTests",
     "clean": "rm -rf dist",
-    "docs": "tsx scripts/tools/docs-generator.ts",
-    "changes": "tsx scripts/tools/generate-changes.ts",
-    "changes:check": "tsx scripts/tools/generate-changes.ts --check",
-    "commit": "pnpm run build && pnpm run test && pnpm run docs && git add docs && git commit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "debug": "vitest run --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
-    "debug:watch": "vitest --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
-    "upd": "pnpm up -r",
-    "upd-l": "pnpm up -r --L"
+    "docs:ast": "tsx src/.scripts/doc/generate.ts"
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
+    "@microsoft/api-extractor": "^7.59.0",
     "@types/node": "^26.0.0",
     "@vitest/ui": "4.1.9",
     "chokidar": "^4.0.0",

@@ -1,5 +1,5 @@
 /** A value paired with its position in `ValueHistory`'s stack. */
-type TIndexedItem<T> = {
+type TIndexedValue<T> = {
   index: number;
   value: T;
 };
@@ -9,14 +9,14 @@ type TValueHistoryType = 'register' | false
 
 /** A snapshot of `ValueHistory`'s undo/redo neighborhood around the current position. */
 interface TValueHistoryState<T> {
-  previous?: TIndexedItem<T>
-  current?: TIndexedItem<T>
-  next?: TIndexedItem<T>
+  previous?: TIndexedValue<T>
+  current?: TIndexedValue<T>
+  next?: TIndexedValue<T>
 }
 
 /** `TValueHistoryState` plus the value that was just registered — passed to change listeners. */
 interface TNewValueHistoryState<T> extends TValueHistoryState<T> {
-  new: TIndexedItem<T>
+  new: TIndexedValue<T>
 }
 
 /** Listener signature for `ValueHistory` state changes. */
@@ -27,7 +27,7 @@ type TValueHistoryClearCallback<T> = (history: (T)[]) => void;
 
 
 export type {
-  TIndexedItem,
+  TIndexedValue,
   TValueHistoryType,
   TValueHistoryState,
   TNewValueHistoryState,

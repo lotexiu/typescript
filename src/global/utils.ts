@@ -1,9 +1,25 @@
-import { _Global } from "./implementations";
+import { TAbstractConstructor, TFn } from "@tsn-function/types";
+import { TargetImpl } from "./types";
 
-/** Public static wrapper over `_Global` — registers method overrides directly onto a native prototype (e.g. `String.prototype`). */
+
 class GlobalUtils {
-	static register = _Global.register;
-}
+	/** Defines every key of `extension` as a property directly on `target.prototype`. */
+	static register<Target extends TAbstractConstructor>(target: Target, extension: TargetImpl<Target>) {
+		try {
+			Object.entries(extension).forEach(([key, value]) => {
+				Object.defineProperty(target.prototype, key, {
+					value,
+					writable: true,
+					configurable: true,
+				});
+			});
+		} catch (error) {
+			throw new Error(
+				`Error registering global implementation for ${target.name}: ${error}`,
+			);
+		}
+	}
+};
 
 export {
 	GlobalUtils

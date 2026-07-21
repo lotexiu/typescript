@@ -24,29 +24,9 @@ type TUnkown<T> = keyof T extends never ? T : never;
 type TSameType<A,B> =
 	A extends B
 		? B extends A
-			? A
-			: never
-		: never
-
-type TUnionToIntersection<U> = 
-  (U extends any ? (x: U) => void : never) extends (x: infer I) => void ? I : never
-
-type TLastOf<U> = U extends any ? () => U : never
-  // TUnionToIntersection<U extends any ? () => U : never> //extends () => infer L ? L : never
-
-type TUnionToList<U, Last = TLastOf<U>> =
-  [U] extends [never]
-    ? []
-    : [...TUnionToList<Exclude<U, Last>>, Last]
-
-type Test = TLastOf<{a:1}|{b:2}>
-
-type R = (() => 'a') & (() => 'b') & (() => 'c') extends () => infer L ? L : never
-
-
-// type Test = 
-// 	(() => {a: 1;}) & 
-// 	(() => {b: 2;})
+			? true
+			: false
+		: false
 
 export type {
 	TNullable,

@@ -1,102 +1,51 @@
-import { TIndexedItem, TValueHistoryState, TValueHistoryCallBack, TValueHistoryClearCallback, TNewValueHistoryState } from "./types";
+import { computed } from "../computed/model";
+import { model } from "../model/model";
+import { TIndexedValue } from "./types";
 
-/** An undo/redo stack: registers values in sequence, and lets you step back/forward through them. */
 class ValueHistory<T> {
-  private history: T[] = []
-  private index: number = -1;
+	#history: T[] = []
 
-  get canUndo(): boolean {return this.index > 0;}
-  get canRedo(): boolean {return this.index < this.history.length - 1;}
+	index = model(-1)
 
-  get previous(): TIndexedItem<T> {
-    return {
-      index: this.index - 1,
-      value: this.history[this.index - 1]
-    }
-  }
+	previous = computed(() => this.#toIndexedValue(this.index.value - 1), [this.index])
+	current = computed(() => this.#toIndexedValue(this.index.value), [this.index])
+	next = computed(() => this.#toIndexedValue(this.index.value + 1), [this.index])
 
-  get current(): TIndexedItem<T> {
-    return {
-      index: this.index,
-      value: this.history[this.index]
-    }
-  }
+	length = computed(() => this.#history.length, [this.index])
+	history = computed(() => this.#history.map((value, index) => ({ index, value })), [this.length])
 
-  get next(): TIndexedItem<T> {
-    return {
-      index: this.index + 1,
-      value: this.history[this.index + 1]
-    }
-  }
+	constructor(public cacheSize: number = -1) { }
 
-  get state(): TValueHistoryState<T> {
-    return {
-      previous: this.previous,
-      current: this.current,
-      next: this.next,
-    }
-  }
+	#toIndexedValue(index: number): TIndexedValue<T> | undefined {
+		if (index < 0 || index >= this.#history.length) return undefined;
+		return { index, value: this.#history[index] };
+	}
 
-  constructor(
-    private cacheSize: number,
-    private onBeforeRedo?: TValueHistoryCallBack<T>,
-    private onBeforeUndo?: TValueHistoryCallBack<T>,
-    private onBeforeRegister?: TValueHistoryCallBack<T>,
-    private onBeforeClear?: TValueHistoryClearCallback<T>
-  ) {
-  }
+	undo() {
+		if (this.index.value < 0) return;
+		this.index.update((v) => v - 1);
+	}
 
-  clear(): void {
-    this.onBeforeClear?.(this.history);
-    this.history = [];
-    this.index = -1;
-  }
+	redo() {
+		if (this.index.value >= this.#history.length - 1) return;
+		this.index.update((v) => v + 1);
+	}
 
-  undo(): T | undefined {
-    if (!this.canUndo) return undefined;
-    this.onBeforeUndo?.(this.state);
-    this.index--;
-    return this.history[this.index];
-  }
-
-  redo(): T | undefined {
-    if (!this.canRedo) return undefined;
-    this.onBeforeRedo?.(this.state);
-    this.index++;
-    return this.history[this.index];
-  }
-
-  add(item: T): void {
-    const state= this.registerState(item)
-    this.onBeforeRegister?.(state);
-    item = state.new.value as T;
-    this.removeFuture();
-    this.history.push(item);
-    this.index++;
-    this.maintainHistorySize();
-  }
-
-  private registerState(item: T): TNewValueHistoryState<T> {
-    const state = this.state as TNewValueHistoryState<T>;
-    state.new = {
-      index: this.index + 1,
-      value: item
-    }
-    return state
-  }
-
-  private removeFuture(): void {
-    this.history = this.history.slice(0, this.index + 1);
-  }
-
-  private maintainHistorySize() {
-    if (this.history.length > this.cacheSize) {
-      this.history.shift();
-      this.index--;
-    }
-  }
+	add(value: T) {
+		this.index.silentUpdate(v => v + 1)
+		let index = this.index.value;
+		if (this.cacheSize >= 0 && index >= this.cacheSize) {
+			this.#history = this.#history.slice(index - (this.cacheSize - 1), index);
+			this.index.silentSet(this.cacheSize - 1);
+		} else {
+			this.#history.length = index;
+		}
+		index = this.index.value;
+		this.#history.push(value);
+		this.index.notifies(index);
+	}
 }
 
 export {
-  ValueHistory
+	ValueHistory
 }

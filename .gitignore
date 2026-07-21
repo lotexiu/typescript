@@ -27,6 +27,7 @@ out/
 build
 dist
 
+.kilo
 
 # Debug
 npm-debug.log*

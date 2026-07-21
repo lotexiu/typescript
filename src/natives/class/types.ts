@@ -1,14 +1,14 @@
-import { TConstructor } from "@tsn-function/types";
+import { TAbstractConstructor } from "@tsn-function/types";
 
 /** The shape of an object exposing a `constructor: TConstructor<T>`. */
 type TPrototype<T> = {
-	constructor: TConstructor<T>;
+	constructor: TAbstractConstructor<T>;
 };
 
 /** A constructable, class-like type — `TConstructor<T>` intersected with `Function`/`NewableFunction`. */
 type TClazz<T = null> = T extends null
-	? TConstructor<any> & Function & NewableFunction
-	: TConstructor<T> & Function & NewableFunction;
+	? TAbstractConstructor<any> & Function & NewableFunction
+	: TAbstractConstructor<T> & Function & NewableFunction;
 
 /** `TClazz<T>`, optionally merged with `E`'s shape — for typing subclassing/mixin-style extension. */
 type TExtendClass<T, E> = E extends null
@@ -16,7 +16,7 @@ type TExtendClass<T, E> = E extends null
 	: TClazz<T&E>
 
 /** The constructor type of Node's `NodeJS.Timeout`. */
-type TTimeout = TConstructor<NodeJS.Timeout>;
+type TTimeout = TAbstractConstructor<NodeJS.Timeout>;
 
 export type {
 	TPrototype,
