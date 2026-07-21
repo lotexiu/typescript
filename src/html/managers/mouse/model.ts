@@ -8,6 +8,7 @@ class MouseManager extends CaptureManager<TMouseOnEvent> {
 		onBlur: this.onBlur.bind(this),
 	};
 
+	/** Attaches the `mousemove`/`mousedown`/`mouseup`/`blur` listeners that track buttons and position. */
 	protected start(): void {
 		document.addEventListener('mousemove', this.binds.process);
 		document.addEventListener('mousedown', this.binds.process);
@@ -15,6 +16,7 @@ class MouseManager extends CaptureManager<TMouseOnEvent> {
 		window.addEventListener('blur', this.binds.onBlur);
 	}
 
+	/** Detaches the `mousemove`/`mousedown`/`mouseup`/`blur` listeners. */
 	protected stop(): void {
 		document.removeEventListener('mousemove', this.binds.process);
 		document.removeEventListener('mousedown', this.binds.process);
@@ -22,13 +24,16 @@ class MouseManager extends CaptureManager<TMouseOnEvent> {
 		window.removeEventListener('blur', this.binds.onBlur);
 	}
 
+	/** Next id to hand out for a registered callback. */
 	lastId: number = 0;
-	protected register(value: TMouseOnEvent) { 
+	/** Registers `value` under a fresh numeric id. */
+	protected register(value: TMouseOnEvent) {
 		const id = this.lastId++;
 		this.callbackMap.set(id, value);
 		return id;
 	}
 
+	/** Unregisters the callback with `id`. */
 	protected unRegister(id: number): void {
 		this.callbackMap.delete(id);
 	}

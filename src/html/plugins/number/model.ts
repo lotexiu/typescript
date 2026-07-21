@@ -27,6 +27,7 @@ class NumberPlugin implements TPlugin<number | undefined> {
 
 	get value(): number | undefined { return this.cell.value; }
 
+	/** Subscribes to value changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<number | undefined>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}

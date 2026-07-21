@@ -22,24 +22,6 @@ Base comum pensada pra paleta de cores e tema (ambos "seeds -> slots
 derivados, com correção opcional") — este módulo não sabe nada de cor,
 só resolve slots genéricos.
 
-<a id="keys"></a>
-#### [`keys`](../../src/rule-factory/implementations.ts#L24) _(const)_
-
-<a id="values"></a>
-#### [`values`](../../src/rule-factory/implementations.ts#L27) _(const)_
-
-<a id="resolved"></a>
-#### [`resolved`](../../src/rule-factory/implementations.ts#L28) _(const)_
-
-<a id="get"></a>
-#### [`get`](../../src/rule-factory/implementations.ts#L30) _(function)_
-
-<a id="suggestions"></a>
-#### [`suggestions`](../../src/rule-factory/implementations.ts#L44) _(const)_
-
-<a id="suggested"></a>
-#### [`suggested`](../../src/rule-factory/implementations.ts#L46) _(const)_
-
 <a id="TRuleContext"></a>
 #### [`TRuleContext`](../../src/rule-factory/types.ts#L2) _(type, type-only)_
 

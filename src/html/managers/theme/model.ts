@@ -34,22 +34,27 @@ class ThemeManager extends CaptureManager<TThemeOnEvent> {
 		return this.currentTheme;
 	}
 
+	/** Starts listening for OS light/dark preference changes. */
 	protected start(): void {
 		this.media = matchMedia('(prefers-color-scheme: dark)');
 		this.media.addEventListener('change', this.binds.onSystemChange);
 	}
 
+	/** Stops listening for OS preference changes. */
 	protected stop(): void {
 		this.media?.removeEventListener('change', this.binds.onSystemChange);
 	}
 
+	/** Next id to hand out for a registered callback. */
 	lastId: number = 0;
+	/** Registers `value` under a fresh numeric id. */
 	protected register(value: TThemeOnEvent) {
 		const id = this.lastId++;
 		this.callbackMap.set(id, value);
 		return id;
 	}
 
+	/** Unregisters the callback with `id`. */
 	protected unRegister(id: number): void {
 		this.callbackMap.delete(id);
 	}
@@ -71,6 +76,7 @@ class ThemeManager extends CaptureManager<TThemeOnEvent> {
 		this.applyTheme(theme);
 	}
 
+	/** Switches between `light` and `dark`. */
 	toggle(): void {
 		this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
 	}

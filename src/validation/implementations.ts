@@ -62,19 +62,13 @@ class _Validation {
 	}
 }
 
-/** Verdadeiro pra qualquer valor "presente" — não vazio, não nulo, não undefined. */
-const required = _Validation.required;
-/** Whether `value` matches `regex`. */
-const pattern = _Validation.pattern;
-/** Valida dígitos verificadores de CPF. Aceita com ou sem máscara. */
-const isValidCPF = _Validation.isValidCPF;
-/** Valida dígitos verificadores de CNPJ. Aceita com ou sem máscara. */
-const isValidCNPJ = _Validation.isValidCNPJ;
+const {
+	required,
+	pattern,
+} = _Validation
 
 export {
 	_Validation,
 	required,
 	pattern,
-	isValidCPF,
-	isValidCNPJ,
 }

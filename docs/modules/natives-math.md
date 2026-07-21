@@ -7,13 +7,9 @@
 
 - `@internal`
 
-<a id="result"></a>
-#### [`result`](../../src/natives/math/implementations.ts#L7) _(const)_
-
-<a id="clamp"></a>
-#### [`clamp`](../../src/natives/math/implementations.ts#L15) _(const)_
-
-Restringe value ao intervalo [min, max]. Bounds ausentes ficam sem limite naquele lado.
+<a id="_Math.clamp"></a>
+- [`clamp`](../../src/natives/math/implementations.ts#L6)
+  Restringe value ao intervalo [min, max]. Bounds ausentes ficam sem limite naquele lado.
 
 <a id="IDigitSum"></a>
 #### [`IDigitSum`](../../src/natives/math/types.ts#L3) _(type, type-only)_
@@ -25,3 +21,7 @@ Restringe value ao intervalo [min, max]. Bounds ausentes ficam sem limite naquel
 #### [`MathUtils`](../../src/natives/math/utils.ts#L4) _(class)_
 
 Public static wrapper over `_Math` — basic numeric helpers (currently just clamping to a range).
+
+<a id="MathUtils.clamp"></a>
+- [`clamp`](../../src/natives/math/utils.ts#L5)
+  Restringe value ao intervalo [min, max]. Bounds ausentes ficam sem limite naquele lado.

@@ -21,20 +21,15 @@
     "colorjs.io"
   ],
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
-    "clean": "rm -rf dist",
-    "docs": "tsx scripts/tools/docs-generator.ts",
-    "changes": "tsx scripts/tools/generate-changes.ts",
-    "changes:check": "tsx scripts/tools/generate-changes.ts --check",
-    "commit": "pnpm run build && pnpm run test && pnpm run docs && git add docs && git commit",
+    "build": "pnpm clean && vite build",
+    "prepare": "pnpm build && pnpm test && pnpm run docs && pnpm changes",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "debug": "vitest run --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
-    "debug:watch": "vitest --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
-    "upd": "pnpm up -r",
-    "upd-l": "pnpm up -r --L"
+    "clean": "rm -rf dist",
+    "docs": "tsx scripts/tools/docs-generator.ts",
+    "changes": "tsx scripts/tools/generate-changes.ts",
+    "changes:check": "tsx scripts/tools/generate-changes.ts --check"
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",

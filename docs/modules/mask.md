@@ -27,202 +27,57 @@
 #### [`tokenFromRule`](../../src/mask/implementations.ts#L37) _(function)_
 
 <a id="registerToken"></a>
-#### [`registerToken`](../../src/mask/implementations.ts#L47) _(function)_
+#### [`registerToken`](../../src/mask/implementations.ts#L48) _(function)_
+
+Registers a custom mask token character (must be a single, non-reserved character).
 
 <a id="unregisterToken"></a>
-#### [`unregisterToken`](../../src/mask/implementations.ts#L61) _(function)_
+#### [`unregisterToken`](../../src/mask/implementations.ts#L63) _(function)_
+
+Removes a previously registered custom mask token. Returns whether it existed.
 
 <a id="getTokenKeys"></a>
-#### [`getTokenKeys`](../../src/mask/implementations.ts#L72) _(function)_
+#### [`getTokenKeys`](../../src/mask/implementations.ts#L75) _(function)_
 
-<a id="keys"></a>
-#### [`keys`](../../src/mask/implementations.ts#L73) _(const)_
+Every registered mask token key — built-in and custom.
 
 <a id="splitPatterns"></a>
-#### [`splitPatterns`](../../src/mask/implementations.ts#L80) _(function)_
-
-<a id="patterns"></a>
-#### [`patterns`](../../src/mask/implementations.ts#L81) _(const)_
-
-<a id="current"></a>
-#### [`current`](../../src/mask/implementations.ts#L82) _(const)_
-
-<a id="escaped"></a>
-#### [`escaped`](../../src/mask/implementations.ts#L83) _(const)_
-
-<a id="char"></a>
-#### [`char`](../../src/mask/implementations.ts#L86) _(const)_
+#### [`splitPatterns`](../../src/mask/implementations.ts#L83) _(function)_
 
 <a id="compilePattern"></a>
-#### [`compilePattern`](../../src/mask/implementations.ts#L113) _(function)_
-
-<a id="entries"></a>
-#### [`entries`](../../src/mask/implementations.ts#L114) _(const)_
-
-<a id="escaped"></a>
-#### [`escaped`](../../src/mask/implementations.ts#L115) _(const)_
-
-<a id="char"></a>
-#### [`char`](../../src/mask/implementations.ts#L118) _(const)_
-
-<a id="rule"></a>
-#### [`rule`](../../src/mask/implementations.ts#L131) _(const)_
-
-<a id="min"></a>
-#### [`min`](../../src/mask/implementations.ts#L133) _(const)_
-
-<a id="max"></a>
-#### [`max`](../../src/mask/implementations.ts#L134) _(const)_
-
-<a id="nextChar"></a>
-#### [`nextChar`](../../src/mask/implementations.ts#L136) _(const)_
-
-<a id="closeIndex"></a>
-#### [`closeIndex`](../../src/mask/implementations.ts#L146) _(const)_
-
-<a id="body"></a>
-#### [`body`](../../src/mask/implementations.ts#L148) _(const)_
-
-<a id="parts"></a>
-#### [`parts`](../../src/mask/implementations.ts#L149) _(const)_
-
-<a id="token"></a>
-#### [`token`](../../src/mask/implementations.ts#L166) _(const)_
+#### [`compilePattern`](../../src/mask/implementations.ts#L116) _(function)_
 
 <a id="compile"></a>
-#### [`compile`](../../src/mask/implementations.ts#L183) _(function)_
+#### [`compile`](../../src/mask/implementations.ts#L187) _(function)_
 
-<a id="cacheKey"></a>
-#### [`cacheKey`](../../src/mask/implementations.ts#L184) _(const)_
-
-<a id="cached"></a>
-#### [`cached`](../../src/mask/implementations.ts#L185) _(const)_
-
-<a id="compiled"></a>
-#### [`compiled`](../../src/mask/implementations.ts#L190) _(const)_
+Compiles a mask pattern string (`||`-separated alternatives) into a reusable, cached `TMaskCompiled`.
 
 <a id="matchToken"></a>
-#### [`matchToken`](../../src/mask/implementations.ts#L198) _(function)_
-
-<a id="rule"></a>
-#### [`rule`](../../src/mask/implementations.ts#L199) _(const)_
+#### [`matchToken`](../../src/mask/implementations.ts#L202) _(function)_
 
 <a id="unapplyFromPattern"></a>
-#### [`unapplyFromPattern`](../../src/mask/implementations.ts#L204) _(function)_
-
-<a id="tokenEntries"></a>
-#### [`tokenEntries`](../../src/mask/implementations.ts#L207) _(const)_
-
-<a id="tokenIndex"></a>
-#### [`tokenIndex`](../../src/mask/implementations.ts#L211) _(const)_
-
-<a id="currentTokenCount"></a>
-#### [`currentTokenCount`](../../src/mask/implementations.ts#L212) _(const)_
-
-<a id="raw"></a>
-#### [`raw`](../../src/mask/implementations.ts#L213) _(const)_
-
-<a id="token"></a>
-#### [`token`](../../src/mask/implementations.ts#L218) _(const)_
+#### [`unapplyFromPattern`](../../src/mask/implementations.ts#L208) _(function)_
 
 <a id="unapply"></a>
-#### [`unapply`](../../src/mask/implementations.ts#L233) _(function)_
+#### [`unapply`](../../src/mask/implementations.ts#L238) _(function)_
 
-<a id="compiled"></a>
-#### [`compiled`](../../src/mask/implementations.ts#L234) _(const)_
-
-<a id="bestRaw"></a>
-#### [`bestRaw`](../../src/mask/implementations.ts#L236) _(const)_
-
-<a id="candidateRaw"></a>
-#### [`candidateRaw`](../../src/mask/implementations.ts#L238) _(const)_
+Strips a masked `value` back down to its raw (token-matching-only) characters.
 
 <a id="applyFromPattern"></a>
-#### [`applyFromPattern`](../../src/mask/implementations.ts#L247) _(function)_
-
-<a id="output"></a>
-#### [`output`](../../src/mask/implementations.ts#L255) _(const)_
-
-<a id="lastTokenOutputEnd"></a>
-#### [`lastTokenOutputEnd`](../../src/mask/implementations.ts#L256) _(const)_
-
-<a id="rawIndex"></a>
-#### [`rawIndex`](../../src/mask/implementations.ts#L257) _(const)_
-
-<a id="consumedTokens"></a>
-#### [`consumedTokens`](../../src/mask/implementations.ts#L258) _(const)_
-
-<a id="requiredConsumedTokens"></a>
-#### [`requiredConsumedTokens`](../../src/mask/implementations.ts#L259) _(const)_
-
-<a id="patternFullySatisfied"></a>
-#### [`patternFullySatisfied`](../../src/mask/implementations.ts#L260) _(const)_
-
-<a id="matchedForEntry"></a>
-#### [`matchedForEntry`](../../src/mask/implementations.ts#L268) _(const)_
-
-<a id="foundIndex"></a>
-#### [`foundIndex`](../../src/mask/implementations.ts#L270) _(const)_
-
-<a id="valid"></a>
-#### [`valid`](../../src/mask/implementations.ts#L299) _(const)_
+#### [`applyFromPattern`](../../src/mask/implementations.ts#L252) _(function)_
 
 <a id="apply"></a>
-#### [`apply`](../../src/mask/implementations.ts#L308) _(function)_
+#### [`apply`](../../src/mask/implementations.ts#L314) _(function)_
 
-<a id="compiled"></a>
-#### [`compiled`](../../src/mask/implementations.ts#L313) _(const)_
-
-<a id="rawValue"></a>
-#### [`rawValue`](../../src/mask/implementations.ts#L314) _(const)_
-
-<a id="applyWhenValid"></a>
-#### [`applyWhenValid`](../../src/mask/implementations.ts#L315) _(const)_
-
-<a id="bestValue"></a>
-#### [`bestValue`](../../src/mask/implementations.ts#L317) _(const)_
-
-<a id="bestScore"></a>
-#### [`bestScore`](../../src/mask/implementations.ts#L318) _(const)_
-
-<a id="result"></a>
-#### [`result`](../../src/mask/implementations.ts#L321) _(const)_
-
-<a id="score"></a>
-#### [`score`](../../src/mask/implementations.ts#L327) _(const)_
+Formats `value` (raw or already-masked) against `mask`, picking whichever pattern alternative scores best.
 
 <a id="isValid"></a>
-#### [`isValid`](../../src/mask/implementations.ts#L344) _(function)_
+#### [`isValid`](../../src/mask/implementations.ts#L351) _(function)_
 
-<a id="compiled"></a>
-#### [`compiled`](../../src/mask/implementations.ts#L345) _(const)_
-
-<a id="rawValue"></a>
-#### [`rawValue`](../../src/mask/implementations.ts#L346) _(const)_
-
-<a id="isPatternValidForMaskedValue"></a>
-#### [`isPatternValidForMaskedValue`](../../src/mask/implementations.ts#L348) _(const)_
-
-<a id="valueIndex"></a>
-#### [`valueIndex`](../../src/mask/implementations.ts#L349) _(const)_
-
-<a id="matchedForEntry"></a>
-#### [`matchedForEntry`](../../src/mask/implementations.ts#L360) _(const)_
-
-<a id="isPatternValidForRawValue"></a>
-#### [`isPatternValidForRawValue`](../../src/mask/implementations.ts#L378) _(const)_
-
-<a id="tokenEntries"></a>
-#### [`tokenEntries`](../../src/mask/implementations.ts#L379) _(const)_
-
-<a id="rawIndex"></a>
-#### [`rawIndex`](../../src/mask/implementations.ts#L383) _(const)_
-
-<a id="matchedForEntry"></a>
-#### [`matchedForEntry`](../../src/mask/implementations.ts#L385) _(const)_
+Whether `value` (masked or raw) fully satisfies at least one alternative of `mask`.
 
 <a id="caretPositionAfterFormat"></a>
-#### [`caretPositionAfterFormat`](../../src/mask/implementations.ts#L426) _(function)_
+#### [`caretPositionAfterFormat`](../../src/mask/implementations.ts#L433) _(function)_
 
 Depois de reformatar um valor mascarado (ex.: usuário digitou no meio de
 "111.444.777-35"), o caret pode ficar em qualquer posição do texto novo —
@@ -233,22 +88,13 @@ a posição cai numa sequência de literais (ex.: logo depois de um "."), o
 caret avança até o próximo caractere preenchível — não fica preso entre
 literais.
 
-<a id="compiled"></a>
-#### [`compiled`](../../src/mask/implementations.ts#L432) _(const)_
-
-<a id="target"></a>
-#### [`target`](../../src/mask/implementations.ts#L433) _(const)_
-
-<a id="index"></a>
-#### [`index`](../../src/mask/implementations.ts#L435) _(const)_
-
 <a id="_Mask"></a>
-#### [`_Mask`](../../src/mask/implementations.ts#L445) _(const)_
+#### [`_Mask`](../../src/mask/implementations.ts#L452) _(const)_
 
 - `@internal`
 
 <a id="TUtilsMask"></a>
-#### [`TUtilsMask`](../../src/mask/implementations.ts#L457) _(type, type-only)_
+#### [`TUtilsMask`](../../src/mask/implementations.ts#L464) _(type, type-only)_
 
 The static shape of the internal `_Mask` implementation — used to type `MaskUtils`.
 
@@ -291,3 +137,35 @@ Options for `MaskUtils.apply` — `applyWhenValid` restricts formatting to only 
 #### [`MaskUtils`](../../src/mask/utils.ts#L4) _(class)_
 
 Public static wrapper over `_Mask` — compile/apply/unapply/validate input masks, plus registering custom token characters.
+
+<a id="MaskUtils.compile"></a>
+- [`compile`](../../src/mask/utils.ts#L5)
+  Compiles a mask pattern string (`||`-separated alternatives) into a reusable, cached `TMaskCompiled`.
+<a id="MaskUtils.apply"></a>
+- [`apply`](../../src/mask/utils.ts#L6)
+  Formats `value` (raw or already-masked) against `mask`, picking whichever pattern alternative scores best.
+<a id="MaskUtils.unapply"></a>
+- [`unapply`](../../src/mask/utils.ts#L7)
+  Strips a masked `value` back down to its raw (token-matching-only) characters.
+<a id="MaskUtils.isValid"></a>
+- [`isValid`](../../src/mask/utils.ts#L8)
+  Whether `value` (masked or raw) fully satisfies at least one alternative of `mask`.
+<a id="MaskUtils.registerToken"></a>
+- [`registerToken`](../../src/mask/utils.ts#L9)
+  Registers a custom mask token character (must be a single, non-reserved character).
+<a id="MaskUtils.unregisterToken"></a>
+- [`unregisterToken`](../../src/mask/utils.ts#L10)
+  Removes a previously registered custom mask token. Returns whether it existed.
+<a id="MaskUtils.getTokenKeys"></a>
+- [`getTokenKeys`](../../src/mask/utils.ts#L11)
+  Every registered mask token key — built-in and custom.
+<a id="MaskUtils.caretPositionAfterFormat"></a>
+- [`caretPositionAfterFormat`](../../src/mask/utils.ts#L12)
+  Depois de reformatar um valor mascarado (ex.: usuário digitou no meio de
+"111.444.777-35"), o caret pode ficar em qualquer posição do texto novo —
+não reimplementa o parsing do pattern: conta quantos caracteres "raw"
+(via `unapply`, já existente) ficam antes do caret no texto anterior, e
+acha a posição no texto novo onde essa mesma contagem é atingida. Quando
+a posição cai numa sequência de literais (ex.: logo depois de um "."), o
+caret avança até o próximo caractere preenchível — não fica preso entre
+literais.

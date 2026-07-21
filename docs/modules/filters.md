@@ -22,47 +22,20 @@ Default `step()` call count, when none is given.
 
 Delays calling `fn` until `delay` ms have passed with no further calls — each call reschedules with the latest arguments.
 
-<a id="timeoutId"></a>
-#### [`timeoutId`](../../src/filters/implementations.ts#L8) _(const)_
-
-<a id="handler"></a>
-#### [`handler`](../../src/filters/implementations.ts#L9) _(function)_
-
 <a id="throttle"></a>
 #### [`throttle`](../../src/filters/implementations.ts#L24) _(function)_
 
 Calls `fn` immediately, then ignores further calls until `interval` ms have passed.
-
-<a id="lastTime"></a>
-#### [`lastTime`](../../src/filters/implementations.ts#L25) _(const)_
-
-<a id="handler"></a>
-#### [`handler`](../../src/filters/implementations.ts#L26) _(function)_
-
-<a id="now"></a>
-#### [`now`](../../src/filters/implementations.ts#L27) _(const)_
 
 <a id="step"></a>
 #### [`step`](../../src/filters/implementations.ts#L38) _(function)_
 
 Calls `fn` every `amount` calls (resetting the counter afterwards unless `autoClear` is `false`).
 
-<a id="counter"></a>
-#### [`counter`](../../src/filters/implementations.ts#L39) _(const)_
-
-<a id="handler"></a>
-#### [`handler`](../../src/filters/implementations.ts#L40) _(function)_
-
 <a id="once"></a>
 #### [`once`](../../src/filters/implementations.ts#L52) _(function)_
 
 Calls `fn` at most once — every call after the first is a no-op until `clear()` resets it.
-
-<a id="runned"></a>
-#### [`runned`](../../src/filters/implementations.ts#L53) _(const)_
-
-<a id="handler"></a>
-#### [`handler`](../../src/filters/implementations.ts#L54) _(function)_
 
 <a id="TDebounceFn"></a>
 #### [`TDebounceFn`](../../src/filters/types.ts#L4) _(type, type-only)_

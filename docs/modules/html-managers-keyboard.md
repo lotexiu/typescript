@@ -5,23 +5,24 @@
 <a id="KeyboardManager"></a>
 #### [`KeyboardManager`](../../src/html/managers/keyboard/model.ts#L4) _(class)_
 
-<a id="id"></a>
-#### [`id`](../../src/html/managers/keyboard/model.ts#L24) _(const)_
-
-<a id="value"></a>
-#### [`value`](../../src/html/managers/keyboard/model.ts#L40) _(const)_
-
-<a id="key"></a>
-#### [`key`](../../src/html/managers/keyboard/model.ts#L70) _(const)_
-
-<a id="pressed"></a>
-#### [`pressed`](../../src/html/managers/keyboard/model.ts#L71) _(const)_
-
-<a id="nextPressed"></a>
-#### [`nextPressed`](../../src/html/managers/keyboard/model.ts#L80) _(const)_
+<a id="KeyboardManager.start"></a>
+- [`start`](../../src/html/managers/keyboard/model.ts#L11)
+  Attaches the `keydown`/`keyup`/`blur` listeners that track pressed keys.
+<a id="KeyboardManager.stop"></a>
+- [`stop`](../../src/html/managers/keyboard/model.ts#L18)
+  Detaches the `keydown`/`keyup`/`blur` listeners.
+<a id="KeyboardManager.lastId"></a>
+- [`lastId`](../../src/html/managers/keyboard/model.ts#L25)
+  Next id to hand out for a registered callback.
+<a id="KeyboardManager.register"></a>
+- [`register`](../../src/html/managers/keyboard/model.ts#L27)
+  Registers `value` under a fresh numeric id.
+<a id="KeyboardManager.unRegister"></a>
+- [`unRegister`](../../src/html/managers/keyboard/model.ts#L34)
+  Unregisters the callback with `id`.
 
 <a id="keyboardManager"></a>
-#### [`keyboardManager`](../../src/html/managers/keyboard/model.ts#L88) _(const)_
+#### [`keyboardManager`](../../src/html/managers/keyboard/model.ts#L93) _(const)_
 
 Singleton `CaptureManager` tracking which keys are currently held down, active only while someone subscribes via `add()`.
 

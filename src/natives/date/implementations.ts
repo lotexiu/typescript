@@ -28,7 +28,6 @@ class _Date {
 	}
 }
 
-/** Strict "yyyy-mm-dd" (ISO 8601 date) parse — `undefined` if empty, malformed, or not a real calendar date (e.g. 2024-02-30 is rejected, not rolled into March). */
 const parseISO = _Date.parseISO;
 
 export {

@@ -3,10 +3,10 @@
 # (root)
 
 <a id="String"></a>
-#### [`String`](../../src/declarations.ts#L28) _(interface)_
+#### [`String`](../../src/declarations.ts#L29) _(interface)_
 
 <a id="Function"></a>
-#### [`Function`](../../src/declarations.ts#L41) _(interface)_
+#### [`Function`](../../src/declarations.ts#L42) _(interface)_
 
 <a id="_typeof"></a>
 #### [`_typeof`](../../src/types.ts#L1) _(const)_
@@ -40,18 +40,3 @@ The literal union of every possible result of the `typeof` operator (`"string"`,
 #### [`TSameType`](../../src/types.ts#L24) _(type, type-only)_
 
 `A` if `A` and `B` are structurally identical (mutually assignable), otherwise `never`.
-
-<a id="TUnionToIntersection"></a>
-#### [`TUnionToIntersection`](../../src/types.ts#L31) _(type, type-only)_
-
-<a id="TLastOf"></a>
-#### [`TLastOf`](../../src/types.ts#L34) _(type, type-only)_
-
-<a id="TUnionToList"></a>
-#### [`TUnionToList`](../../src/types.ts#L37) _(type, type-only)_
-
-<a id="Test"></a>
-#### [`Test`](../../src/types.ts#L42) _(type, type-only)_
-
-<a id="R"></a>
-#### [`R`](../../src/types.ts#L44) _(type, type-only)_

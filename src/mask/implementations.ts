@@ -44,6 +44,7 @@ function tokenFromRule(key: string, rule: TMaskRule): Extract<TMaskParserEntry, 
 	};
 }
 
+/** Registers a custom mask token character (must be a single, non-reserved character). */
 function registerToken(key: string, matcher: TMaskTokenMatcher, kind: TMaskTokenKind = 'any'): void {
 	if (key.length !== 1) {
 		throw new Error('Mask token key must contain exactly one character.');
@@ -58,6 +59,7 @@ function registerToken(key: string, matcher: TMaskTokenMatcher, kind: TMaskToken
 	clearCompileCache();
 }
 
+/** Removes a previously registered custom mask token. Returns whether it existed. */
 function unregisterToken(key: string): boolean {
 	if (!dynamicMaskRules.has(key)) {
 		return false;
@@ -69,6 +71,7 @@ function unregisterToken(key: string): boolean {
 	return true;
 }
 
+/** Every registered mask token key — built-in and custom. */
 function getTokenKeys(): string[] {
 	const keys = new Set<string>(Object.keys(DEFAULT_MASK_RULES));
 	for (const key of dynamicMaskRules.keys()) {
@@ -180,6 +183,7 @@ function compilePattern(pattern: string): TMaskCompiledPattern {
 	};
 }
 
+/** Compiles a mask pattern string (`||`-separated alternatives) into a reusable, cached `TMaskCompiled`. */
 function compile(mask: string): TMaskCompiled {
 	const cacheKey = `${ruleSetVersion}:${mask}`;
 	const cached = compileCache.get(cacheKey);
@@ -230,6 +234,7 @@ function unapplyFromPattern(value: string, pattern: TMaskCompiledPattern): strin
 	return raw;
 }
 
+/** Strips a masked `value` back down to its raw (token-matching-only) characters. */
 function unapply(value: string, mask: string | TMaskCompiled): string {
 	const compiled = typeof mask === 'string' ? compile(mask) : mask;
 
@@ -305,6 +310,7 @@ function applyFromPattern(
 	};
 }
 
+/** Formats `value` (raw or already-masked) against `mask`, picking whichever pattern alternative scores best. */
 function apply(
 	value: string,
 	mask: string | TMaskCompiled,
@@ -341,6 +347,7 @@ function apply(
 	return bestValue;
 }
 
+/** Whether `value` (masked or raw) fully satisfies at least one alternative of `mask`. */
 function isValid(value: string, mask: string | TMaskCompiled): boolean {
 	const compiled = typeof mask === 'string' ? compile(mask) : mask;
 	const rawValue = unapply(value, compiled);

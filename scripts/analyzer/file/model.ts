@@ -6,8 +6,9 @@ import type {
 	ProjectExport,
 } from "../types";
 import ts from "typescript";
-import { JSDocTag, ProjectBlockCode, ExportStatus } from "../block/types";
+import { ProjectBlockCode, ExportStatus } from "../block/types";
 import { ProjectComment } from "../comment/types";
+import { extractJsDoc } from "../jsdoc";
 
 
 export class ProjectFile {
@@ -103,32 +104,49 @@ export class ProjectFile {
 			return "unknown";
 		};
 
-		const visit = (node: ts.Node, context: ProjectBlockCode["context"] = "local") => {
-			if (ts.isModuleDeclaration(node)) {
-				const name = node.name.getText(sf);
-				if (name === "global") {
-					ts.forEachChild(node, (child) => visit(child, "global"));
-					return;
-				}
-				if (name.startsWith(".") || name === "require" || name === "node") {
-					ts.forEachChild(node, (child) => visit(child, "module"));
-					return;
-				}
-			}
+		// Walks only the statement list of the module itself (and, one level in, the statement
+		// list of a `declare global {}`/`declare module "x" {}` body) — never into a function,
+		// method, or arrow body. This used to be a full `ts.forEachChild` tree walk that kept
+		// recursing after creating a block, which meant every local `const`/helper function
+		// declared *inside* a function body (loop counters, intermediate results, nested
+		// closures — anything using the same node kinds as a real module-level declaration) was
+		// picked up as if it were its own top-level export candidate. Harmless for the index/
+		// validator (they only look at `file.exports`), but it flooded the docs generator (which
+		// walks every block) with entries like `keys`/`seen`/`aVal` that are just local variables
+		// inside `_Object.diffs`/mask-parsing functions, not real declarations.
+		const visitStatements = (statements: readonly ts.Statement[], context: ProjectBlockCode["context"]) => {
+			for (const node of statements) {
+				if (ts.isModuleDeclaration(node)) {
+					const name = node.name.getText(sf);
+					const body = node.body;
+					if (!body || !ts.isModuleBlock(body)) continue;
 
-			if (
-				ts.isClassDeclaration(node) ||
-				ts.isInterfaceDeclaration(node) ||
-				ts.isTypeAliasDeclaration(node) ||
-				ts.isFunctionDeclaration(node) ||
-				ts.isVariableStatement(node) ||
-				ts.isEnumDeclaration(node)
-			) {
+					if (name === "global") {
+						visitStatements(body.statements, "global");
+					} else if (name.startsWith(".") || name === "require" || name === "node") {
+						visitStatements(body.statements, "module");
+					}
+					continue;
+				}
+
 				if (ts.isVariableStatement(node)) {
 					for (const decl of node.declarationList.declarations) {
-						this.createBlockFromNode(decl, "const", node, checker, sf, context);
+						if (ts.isObjectBindingPattern(decl.name)) {
+							this.createBlocksFromBindingPattern(decl, node, checker, sf, context);
+						} else {
+							this.createBlockFromNode(decl, "const", node, checker, sf, context);
+						}
 					}
-				} else {
+					continue;
+				}
+
+				if (
+					ts.isClassDeclaration(node) ||
+					ts.isInterfaceDeclaration(node) ||
+					ts.isTypeAliasDeclaration(node) ||
+					ts.isFunctionDeclaration(node) ||
+					ts.isEnumDeclaration(node)
+				) {
 					let category: ProjectBlockCode["category"] = "unknown";
 					if (ts.isClassDeclaration(node)) category = "class";
 					else if (ts.isInterfaceDeclaration(node)) category = "interface";
@@ -139,10 +157,9 @@ export class ProjectFile {
 					this.createBlockFromNode(node, category, node, checker, sf, context);
 				}
 			}
-			ts.forEachChild(node, (child) => visit(child, context));
 		};
 
-		ts.forEachChild(sf, visit);
+		visitStatements(sf.statements, "local");
 
 		const localReexports = new Set<ProjectBlockCode>();
 
@@ -208,6 +225,100 @@ export class ProjectFile {
 		}
 	}
 
+	/**
+	 * Resolves documentation through a simple alias initializer (`const x = Foo.bar`) by
+	 * following the property access back to the symbol it actually came from — e.g. a static
+	 * method inside a `_Foo` implementation class — so docs written at the real declaration
+	 * are found instead of the re-exporting statement having none of its own.
+	 */
+	private resolveAliasedDocumentation(
+		expr: ts.Expression,
+		checker: ts.TypeChecker,
+		sf: ts.SourceFile,
+	): AnalyzerBlockCode["documentation"] {
+		if (!ts.isPropertyAccessExpression(expr)) return undefined;
+		const symbol = checker.getSymbolAtLocation(expr.name);
+		const decl = symbol?.declarations?.[0];
+		return decl ? extractJsDoc(decl, sf) : undefined;
+	}
+
+	private categoryFromDeclaration(decl: ts.Declaration): ProjectBlockCode["category"] {
+		if (
+			ts.isMethodDeclaration(decl) ||
+			ts.isFunctionDeclaration(decl) ||
+			ts.isFunctionExpression(decl) ||
+			ts.isArrowFunction(decl) ||
+			ts.isPropertyDeclaration(decl)
+		) {
+			return "function";
+		}
+		return "unknown";
+	}
+
+	/**
+	 * A destructuring `const { a, b } = _Foo` used to collapse into one block named after the
+	 * whole binding pattern's source text (never matching `a`/`b`), which made
+	 * `processExportNodes` synthesize undocumented placeholder blocks for every name in the
+	 * matching `export { a, b }` list regardless of whether `_Foo.a`/`_Foo.b` actually had docs.
+	 * This creates one real block per destructured name instead, resolving its documentation
+	 * from the property it was actually destructured from.
+	 */
+	private createBlocksFromBindingPattern(
+		decl: ts.VariableDeclaration,
+		anchorStatement: ts.VariableStatement,
+		checker: ts.TypeChecker,
+		sf: ts.SourceFile,
+		context: ProjectBlockCode["context"],
+	) {
+		const pattern = decl.name as ts.ObjectBindingPattern;
+		if (!decl.initializer) return;
+		const initializerType = checker.getTypeAtLocation(decl.initializer);
+
+		const isExported = ts.canHaveModifiers(anchorStatement)
+			? (ts.getModifiers(anchorStatement)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false)
+			: false;
+
+		for (const element of pattern.elements) {
+			if (!ts.isIdentifier(element.name)) continue;
+			const localName = element.name.getText(sf);
+			const propertyName =
+				element.propertyName && ts.isIdentifier(element.propertyName)
+					? element.propertyName.getText(sf)
+					: localName;
+
+			const propSymbol = initializerType.getProperty(propertyName);
+			const propDecl = propSymbol?.declarations?.[0];
+			const documentation = propDecl ? extractJsDoc(propDecl, sf) : undefined;
+
+			const exportStatus: ExportStatus = isExported ? "declaration-export" : "not-exported";
+
+			const startPos = element.getStart(sf);
+			const endPos = element.getEnd();
+			const startLine = sf.getLineAndCharacterOfPosition(startPos).line + 1;
+			const endLine = sf.getLineAndCharacterOfPosition(endPos).line + 1;
+
+			const category = propDecl ? this.categoryFromDeclaration(propDecl) : "unknown";
+
+			const block = new AnalyzerBlockCode(
+				localName,
+				category,
+				context,
+				false,
+				exportStatus,
+				{ file: this.relativePath, start: startPos, end: endPos, startLine, endLine },
+				this,
+				element,
+				documentation,
+			);
+
+			this._blocks!.push(block);
+
+			if (exportStatus === "declaration-export") {
+				this._exports!.push({ name: localName, isDefault: false, blockCode: block });
+			}
+		}
+	}
+
 	private createBlockFromNode(
 		targetNode: ts.NamedDeclaration | ts.VariableDeclaration,
 		category: ProjectBlockCode["category"],
@@ -249,24 +360,10 @@ export class ProjectFile {
 		const startLine = sf.getLineAndCharacterOfPosition(startPos).line + 1;
 		const endLine = sf.getLineAndCharacterOfPosition(endPos).line + 1;
 
-		let documentation: AnalyzerBlockCode["documentation"] = undefined;
-		const jsDocNodes = (anchorNode as any).jsDoc as ts.JSDoc[] | undefined;
+		let documentation = extractJsDoc(anchorNode, sf);
 
-		if (jsDocNodes && jsDocNodes.length > 0) {
-			const lastJsDoc = jsDocNodes[jsDocNodes.length - 1];
-			const description = typeof lastJsDoc.comment === "string" ? lastJsDoc.comment : "";
-			const tags: JSDocTag[] = [];
-
-			if (lastJsDoc.tags) {
-				for (const tag of lastJsDoc.tags) {
-					const value = typeof tag.comment === "string" ? tag.comment : undefined;
-					tags.push({
-						name: tag.tagName.getText(sf),
-						value,
-					});
-				}
-			}
-			documentation = { description, tags };
+		if (!documentation && ts.isVariableDeclaration(targetNode) && targetNode.initializer) {
+			documentation = this.resolveAliasedDocumentation(targetNode.initializer, checker, sf);
 		}
 
 		const block = new AnalyzerBlockCode(

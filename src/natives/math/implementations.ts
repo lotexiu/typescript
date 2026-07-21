@@ -11,10 +11,6 @@ class _Math {
 	}
 }
 
-/** Restringe value ao intervalo [min, max]. Bounds ausentes ficam sem limite naquele lado. */
-const clamp = _Math.clamp;
-
 export {
 	_Math,
-	clamp,
 }

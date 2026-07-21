@@ -5,38 +5,36 @@
 <a id="HotkeyManager"></a>
 #### [`HotkeyManager`](../../src/html/managers/hotkey/model.ts#L9) _(class)_
 
-<a id="combo"></a>
-#### [`combo`](../../src/html/managers/hotkey/model.ts#L42) _(const)_
-
-<a id="bindings"></a>
-#### [`bindings`](../../src/html/managers/hotkey/model.ts#L56) _(const)_
-
-<a id="index"></a>
-#### [`index`](../../src/html/managers/hotkey/model.ts#L57) _(const)_
-
-<a id="value"></a>
-#### [`value`](../../src/html/managers/hotkey/model.ts#L83) _(const)_
-
-<a id="value"></a>
-#### [`value`](../../src/html/managers/hotkey/model.ts#L88) _(const)_
-
-<a id="datas"></a>
-#### [`datas`](../../src/html/managers/hotkey/model.ts#L109) _(const)_
-
-<a id="lowestDistance"></a>
-#### [`lowestDistance`](../../src/html/managers/hotkey/model.ts#L112) _(const)_
-
-<a id="activeHotkeys"></a>
-#### [`activeHotkeys`](../../src/html/managers/hotkey/model.ts#L113) _(const)_
-
-<a id="distance"></a>
-#### [`distance`](../../src/html/managers/hotkey/model.ts#L115) _(const)_
-
-<a id="distance"></a>
-#### [`distance`](../../src/html/managers/hotkey/model.ts#L131) _(const)_
+<a id="HotkeyManager.start"></a>
+- [`start`](../../src/html/managers/hotkey/model.ts#L30)
+  Subscribes to `keyboardManager`/`mouseManager` to track the currently held combo.
+<a id="HotkeyManager.stop"></a>
+- [`stop`](../../src/html/managers/hotkey/model.ts#L36)
+  Unsubscribes from `keyboardManager`/`mouseManager`.
+<a id="HotkeyManager.register"></a>
+- [`register`](../../src/html/managers/hotkey/model.ts#L42)
+  Registers `data` under every combo string it declares (defaulting `element` to the whole document).
+<a id="HotkeyManager.unRegister"></a>
+- [`unRegister`](../../src/html/managers/hotkey/model.ts#L52)
+  Removes `data` from one or more combo bindings.
+<a id="HotkeyManager.triggerUntriggeringHotkeys"></a>
+- [`triggerUntriggeringHotkeys`](../../src/html/managers/hotkey/model.ts#L98)
+  Calls `untrigger` on every hotkey active from the previous combo, then clears the active list.
+<a id="HotkeyManager.triggerPreviousHotkeys"></a>
+- [`triggerPreviousHotkeys`](../../src/html/managers/hotkey/model.ts#L104)
+  Re-triggers still-active hotkeys when the combo hasn't changed (e.g. repeated mouse move).
+<a id="HotkeyManager.triggerMatchingHotkeys"></a>
+- [`triggerMatchingHotkeys`](../../src/html/managers/hotkey/model.ts#L115)
+  Triggers every hotkey bound to `comboStr` whose target element is closest to the event target.
+<a id="HotkeyManager.getDistanceToTarget"></a>
+- [`getDistanceToTarget`](../../src/html/managers/hotkey/model.ts#L138)
+  Number of DOM-tree hops from `target` up to the nearest ancestor `elementValidator` accepts, or `Infinity` if none matches.
+<a id="HotkeyManager.buildValue"></a>
+- [`buildValue`](../../src/html/managers/hotkey/model.ts#L150)
+  Builds the match-data payload (event, combo, `preventDefault`) passed to a hotkey's `trigger`/`untrigger`.
 
 <a id="hotkey"></a>
-#### [`hotkey`](../../src/html/managers/hotkey/model.ts#L158) _(const)_
+#### [`hotkey`](../../src/html/managers/hotkey/model.ts#L167) _(const)_
 
 Singleton `CaptureManager` combining keyboard + mouse state to trigger callbacks on key/button combos, picking the closest matching bound element when several combos tie.
 

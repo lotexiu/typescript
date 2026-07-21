@@ -14,11 +14,15 @@ trabalho de outros plugins, compostos por quem consome.
 min/max aqui é *correção* (o valor guardado já sai dentro do intervalo),
 diferente de validação (que sinalizaria erro sem alterar o valor).
 
-<a id="parsed"></a>
-#### [`parsed`](../../src/html/plugins/number/model.ts#L36) _(const)_
-
-<a id="current"></a>
-#### [`current`](../../src/html/plugins/number/model.ts#L45) _(const)_
+<a id="NumberPlugin.subscribe"></a>
+- [`subscribe`](../../src/html/plugins/number/model.ts#L31)
+  Subscribes to value changes. Returns an unsubscribe function.
+<a id="NumberPlugin.parse"></a>
+- [`parse`](../../src/html/plugins/number/model.ts#L36)
+  Recebe o texto bruto digitado, parseia via NumberUtils e aplica o clamp atual.
+<a id="NumberPlugin.setLimits"></a>
+- [`setLimits`](../../src/html/plugins/number/model.ts#L42)
+  Troca min/max em runtime e reaplica o clamp sobre o valor já armazenado.
 
 <a id="TNumberPluginOptions"></a>
 #### [`TNumberPluginOptions`](../../src/html/plugins/number/types.ts#L2) _(interface, type-only)_

@@ -16,18 +16,22 @@ class InteractionPlugin implements TPlugin<TInteractionState> {
 
 	get value(): TInteractionState { return this.cell.value; }
 
+	/** Subscribes to interaction-state changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<TInteractionState>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 
+	/** Call when the field gains focus. */
 	onFocus(): void {
 		this.update({ focused: true });
 	}
 
+	/** Call when the field loses focus — marks it `touched`. */
 	onBlur(): void {
 		this.update({ focused: false, touched: true });
 	}
 
+	/** Call when the field's value changes — marks it `dirty`. */
 	onChange(): void {
 		this.update({ dirty: true });
 	}

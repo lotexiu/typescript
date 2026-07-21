@@ -26,16 +26,19 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 	private keyboardUnregister?: TFn;
 	private mouseUnregister?: TFn;
 
+	/** Subscribes to `keyboardManager`/`mouseManager` to track the currently held combo. */
 	protected start(): void {
 		this.keyboardUnregister = keyboardManager.add(this.bindings.onKeyboard);
 		this.mouseUnregister = mouseManager.add(this.bindings.onMouse);
 	}
 
+	/** Unsubscribes from `keyboardManager`/`mouseManager`. */
 	protected stop(): void {
 		this.keyboardUnregister?.();
 		this.mouseUnregister?.();
 	}
 
+	/** Registers `data` under every combo string it declares (defaulting `element` to the whole document). */
 	protected register(data: THotkeyData) {
 		data.element = data.element || this.documentElementMatcher;
 		return data.combos.map(comboArr => {
@@ -45,6 +48,7 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 		});
 	}
 
+	/** Removes `data` from one or more combo bindings. */
 	protected unRegister(combos: string | string[], data: THotkeyData): void {
 		if (Array.isArray(combos)) {
 			return combos.forEach(combo => this.removeFromCombo(combo, data));
@@ -90,11 +94,13 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 		this.bindings.triggerMatchingHotkeys(this.comboStr, value, event);
 	}
 
+	/** Calls `untrigger` on every hotkey active from the previous combo, then clears the active list. */
 	triggerUntriggeringHotkeys(value: THotkeyMatchData, event: THotkeyEvent): void {
 		this.actives.forEach(active => active.untrigger?.(value));
 		this.actives = [];
 	}
 
+	/** Re-triggers still-active hotkeys when the combo hasn't changed (e.g. repeated mouse move). */
 	triggerPreviousHotkeys(value: THotkeyMatchData, event: THotkeyEvent): void {
 		this.actives.forEach(active => {
 			if (
@@ -105,6 +111,7 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 		})
 	}
 
+	/** Triggers every hotkey bound to `comboStr` whose target element is closest to the event target. */
 	triggerMatchingHotkeys(comboStr: string, value: THotkeyMatchData, event: THotkeyEvent): void {
 		const datas = this.callbackMap.get(comboStr);
 		if (!datas) return;
@@ -127,6 +134,7 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 		}
 	}
 
+	/** Number of DOM-tree hops from `target` up to the nearest ancestor `elementValidator` accepts, or `Infinity` if none matches. */
 	getDistanceToTarget(target: EventTarget | null, elementValidator: THotkeyElementValidator): number {
 		let distance = 0;
 		while (target) {
@@ -138,6 +146,7 @@ class HotkeyManager extends CaptureManager<THotkeyData, string, THotkeyData[]> {
 		return Infinity;
 	}
 
+	/** Builds the match-data payload (event, combo, `preventDefault`) passed to a hotkey's `trigger`/`untrigger`. */
 	buildValue(event: THotkeyEvent, combo: THotkeyCombo): THotkeyMatchData {
 		return {
 			event,

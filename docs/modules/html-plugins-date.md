@@ -12,6 +12,16 @@ local (DD/MM vs MM/DD, fuso, ano de 2 dígitos). Pra qualquer outro formato,
 passe sua própria função via `parse`. Não valida nem formata pra exibição
 — isso é trabalho de outros plugins, compostos por quem consome.
 
+<a id="DatePlugin.subscribe"></a>
+- [`subscribe`](../../src/html/plugins/date/model.ts#L26)
+  Subscribes to value changes. Returns an unsubscribe function.
+<a id="DatePlugin.parse"></a>
+- [`parse`](../../src/html/plugins/date/model.ts#L31)
+  Recebe o texto bruto digitado e tenta parsear como Date.
+<a id="DatePlugin.setParse"></a>
+- [`setParse`](../../src/html/plugins/date/model.ts#L36)
+  Troca a função de parse em runtime (ex.: mudar de formato aceito).
+
 <a id="TDateParseFn"></a>
 #### [`TDateParseFn`](../../src/html/plugins/date/types.ts#L2) _(type, type-only)_
 

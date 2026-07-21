@@ -10,29 +10,24 @@ Maps `MouseEvent.button` numeric codes to their named `mouseManager` button valu
 <a id="MouseManager"></a>
 #### [`MouseManager`](../../src/html/managers/mouse/model.ts#L5) _(class)_
 
-<a id="id"></a>
-#### [`id`](../../src/html/managers/mouse/model.ts#L27) _(const)_
-
-<a id="value"></a>
-#### [`value`](../../src/html/managers/mouse/model.ts#L47) _(const)_
-
-<a id="result"></a>
-#### [`result`](../../src/html/managers/mouse/model.ts#L83) _(const)_
-
-<a id="moveEvent"></a>
-#### [`moveEvent`](../../src/html/managers/mouse/model.ts#L91) _(const)_
-
-<a id="button"></a>
-#### [`button`](../../src/html/managers/mouse/model.ts#L103) _(const)_
-
-<a id="isDown"></a>
-#### [`isDown`](../../src/html/managers/mouse/model.ts#L104) _(const)_
-
-<a id="nextButtons"></a>
-#### [`nextButtons`](../../src/html/managers/mouse/model.ts#L113) _(const)_
+<a id="MouseManager.start"></a>
+- [`start`](../../src/html/managers/mouse/model.ts#L12)
+  Attaches the `mousemove`/`mousedown`/`mouseup`/`blur` listeners that track buttons and position.
+<a id="MouseManager.stop"></a>
+- [`stop`](../../src/html/managers/mouse/model.ts#L20)
+  Detaches the `mousemove`/`mousedown`/`mouseup`/`blur` listeners.
+<a id="MouseManager.lastId"></a>
+- [`lastId`](../../src/html/managers/mouse/model.ts#L28)
+  Next id to hand out for a registered callback.
+<a id="MouseManager.register"></a>
+- [`register`](../../src/html/managers/mouse/model.ts#L30)
+  Registers `value` under a fresh numeric id.
+<a id="MouseManager.unRegister"></a>
+- [`unRegister`](../../src/html/managers/mouse/model.ts#L37)
+  Unregisters the callback with `id`.
 
 <a id="mouseManager"></a>
-#### [`mouseManager`](../../src/html/managers/mouse/model.ts#L121) _(const)_
+#### [`mouseManager`](../../src/html/managers/mouse/model.ts#L126) _(const)_
 
 Singleton `CaptureManager` tracking cursor position and held mouse buttons, active only while someone subscribes via `add()`.
 

@@ -24,6 +24,7 @@ class AsyncCheckPlugin<TInput, TResult> implements TPlugin<TAsyncCheckState<TRes
 
 	get value(): TAsyncCheckState<TResult> { return this.cell.value; }
 
+	/** Subscribes to state changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<TAsyncCheckState<TResult>>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}

@@ -34,6 +34,10 @@ class StringUtils {
 	static readonly isEscape = _String.isEscape;
 }
 
+/** The `StringUtils` static-member shape — useful for typing something as "whatever `StringUtils` exposes." */
+type TUString = typeof StringUtils;
+
 export {
-	StringUtils
+	StringUtils,
+	TUString
 }

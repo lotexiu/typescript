@@ -12,11 +12,15 @@ usa o `debounce()` já existente. Descarta respostas desatualizadas via um
 token crescente: se `request()` disparar de novo antes da checagem anterior
 responder, só o resultado da checagem mais recente é aplicado.
 
-<a id="token"></a>
-#### [`token`](../../src/html/plugins/async-check/model.ts#L45) _(const)_
-
-<a id="result"></a>
-#### [`result`](../../src/html/plugins/async-check/model.ts#L47) _(const)_
+<a id="AsyncCheckPlugin.subscribe"></a>
+- [`subscribe`](../../src/html/plugins/async-check/model.ts#L28)
+  Subscribes to state changes. Returns an unsubscribe function.
+<a id="AsyncCheckPlugin.request"></a>
+- [`request`](../../src/html/plugins/async-check/model.ts#L33)
+  Marca "pendente" já e dispara (com debounce) uma nova checagem para `input`.
+<a id="AsyncCheckPlugin.reset"></a>
+- [`reset`](../../src/html/plugins/async-check/model.ts#L39)
+  Cancela qualquer checagem pendente/em voo e volta pro estado inicial.
 
 <a id="TAsyncCheckState"></a>
 #### [`TAsyncCheckState`](../../src/html/plugins/async-check/types.ts#L2) _(type, type-only)_

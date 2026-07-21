@@ -38,6 +38,13 @@ function getNameNode(node: ts.Node, exportedName: string): ts.Node {
 		return node.name ?? node;
 	}
 	if (ts.isExportSpecifier(node)) return node.name;
+	// A destructured export (`const { isNull } = _Object;`) is anchored at the individual
+	// `BindingElement`, not a `VariableDeclaration`/`VariableStatement` — without this, the
+	// checker call below silently fails to resolve a symbol and the caller falls back to raw
+	// source text (just the bare name), which reads as the export's signature having vanished
+	// on every single destructured/aliased export, even when the aliased implementation is
+	// byte-for-byte unchanged.
+	if (ts.isBindingElement(node) && ts.isIdentifier(node.name)) return node.name;
 	return node;
 }
 

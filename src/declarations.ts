@@ -1,8 +1,9 @@
 import { _Global } from "./global/implementations";
-import { _String, TUString } from "@tsn-string/implementations";
+import { _String } from "@tsn-string/implementations";
 import { _Object } from "@tsn-object/implementations";
 import { TBindFn, TFn, TFnDeclaration, TParameters } from "@tsn-function/types";
-import { _Function, TUFunction } from "@tsn-function/implementations";
+import { _Function } from "@tsn-function/implementations";
+import { TUString } from "@tsn-string/utils";
 
 declare global {
 	// TODO: Implement Number extensions

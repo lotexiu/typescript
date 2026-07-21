@@ -7,11 +7,18 @@
 
 An undo/redo stack: registers values in sequence, and lets you step back/forward through them.
 
-<a id="state"></a>
-#### [`state`](../../src/value-history/model.ts#L70) _(const)_
-
-<a id="state"></a>
-#### [`state`](../../src/value-history/model.ts#L80) _(const)_
+<a id="ValueHistory.clear"></a>
+- [`clear`](../../src/value-history/model.ts#L50)
+  Wipes the whole history and resets the cursor.
+<a id="ValueHistory.undo"></a>
+- [`undo`](../../src/value-history/model.ts#L57)
+  Steps back one entry, or returns `undefined` if there's nothing before the current entry.
+<a id="ValueHistory.redo"></a>
+- [`redo`](../../src/value-history/model.ts#L65)
+  Steps forward one entry, or returns `undefined` if there's nothing after the current entry.
+<a id="ValueHistory.add"></a>
+- [`add`](../../src/value-history/model.ts#L73)
+  Registers a new entry, discarding any redo-able future and trimming to `cacheSize` if needed.
 
 <a id="TIndexedItem"></a>
 #### [`TIndexedItem`](../../src/value-history/types.ts#L2) _(type, type-only)_

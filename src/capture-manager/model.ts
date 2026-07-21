@@ -7,6 +7,7 @@
  * turns it back off (`stop()`) once the last subscriber is gone.
  */
 abstract class CaptureManager<T = any, Key = number, Value = T> {
+	/** Every registered callback, keyed by whatever `register()` returns as its id. */
 	protected callbackMap = new Map<Key, Value>();
 
 	private _isCapturing: boolean = false;
@@ -17,12 +18,18 @@ abstract class CaptureManager<T = any, Key = number, Value = T> {
 		value ? this.start() : this.stop();
 	}
 
+	/** Attaches the underlying browser listener(s) — called once, on the first subscriber. */
 	protected abstract start(): void;
+	/** Detaches the underlying browser listener(s) — called once the last subscriber unsubscribes. */
 	protected abstract stop(): void;
+	/** Optional hook to transform a value before it's registered. */
 	protected beforeRegister?: (value: T) => T
+	/** Stores `value` in `callbackMap` and returns whatever key(s) `unRegister` will need to remove it later. */
 	protected abstract register(value: T): Key | Key[];
+	/** Removes a previously `register`ed value by its id(s). */
 	protected abstract unRegister(id: Key | Key[], value: T): void;
 
+	/** Subscribes `value`, turning capture on if it's the first subscriber. Returns an unsubscribe function. */
 	add(value: T) {
 		this.capture = true;
 		const newValue = this.beforeRegister?.(value) ?? value;
@@ -34,10 +41,14 @@ abstract class CaptureManager<T = any, Key = number, Value = T> {
 		}
 	}
 
+	/** All currently registered callback values. */
 	callbacks() { return this.callbackMap.values() }
+	/** Whether a callback is registered under `key`. */
 	has(key: Key) { return this.callbackMap.has(key) }
+	/** Whether any callback is currently registered. */
 	hasCallbacks() { return this.callbackMap.size > 0 }
-	get(key: Key, defaultValue: Value) { 
+	/** Reads the value at `key`, initializing it to `defaultValue` first if absent. */
+	get(key: Key, defaultValue: Value) {
 		let value = this.callbackMap.get(key);
 		if (!value) {
 			this.callbackMap.set(key, defaultValue);

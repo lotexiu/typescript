@@ -25,9 +25,23 @@ export interface ProjectBlockCode {
 	getText(): string;
 	getAstNode(): ts.Node;
 	isInternal(): boolean;
+	getMembers(): TBlockMember[];
 }
 
 export interface JSDocTag {
 	readonly name: string;
 	readonly value?: string;
+}
+
+/** A class block's method/property, with documentation already resolved through any `x = Foo.bar` aliasing. */
+export interface TBlockMember {
+	readonly name: string;
+	readonly startLine: number;
+	readonly isInternal: boolean;
+	/** Source text of what this member aliases (e.g. `_Object.isNull`), if it's a simple alias property. */
+	readonly aliasOf?: string;
+	readonly documentation?: {
+		readonly description: string;
+		readonly tags: JSDocTag[];
+	};
 }

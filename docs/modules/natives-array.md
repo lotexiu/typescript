@@ -7,6 +7,10 @@
 
 - `@internal`
 
+<a id="_Array.includes"></a>
+- [`includes`](../../src/natives/array/implementations.ts#L7)
+  Type-narrowing `Array.prototype.includes` — narrows `value` to the array's element type when true.
+
 <a id="TArray"></a>
 #### [`TArray`](../../src/natives/array/types.ts#L4) _(type, type-only)_
 
@@ -66,3 +70,7 @@ Reverses the element order of a tuple type.
 #### [`ArrayUtils`](../../src/natives/array/utils.ts#L4) _(class)_
 
 Public static wrapper over `_Array` — array helpers (currently a type-narrowing `includes` check).
+
+<a id="ArrayUtils.includes"></a>
+- [`includes`](../../src/natives/array/utils.ts#L5)
+  Type-narrowing `Array.prototype.includes` — narrows `value` to the array's element type when true.

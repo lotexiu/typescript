@@ -103,6 +103,23 @@ function renderModulePage(group: TModuleGroup): string {
 			lines.push(formatTags(block.documentation.tags));
 			lines.push("");
 		}
+
+		const members = block.getMembers();
+		members.forEach((member) => {
+			const memberLink = sourceLink(block.location.file, member.startLine, 2);
+			const anchor = `${block.name}.${member.name}`;
+			const suffix = member.isInternal ? " _(@internal)_" : "";
+			lines.push(`<a id="${anchor}"></a>`);
+			lines.push(`- [\`${member.name}\`](${memberLink})${suffix}`);
+
+			if (member.documentation?.description.trim()) {
+				lines.push(`  ${member.documentation.description.trim()}`);
+			} else if (member.aliasOf) {
+				lines.push(`  Aliases \`${member.aliasOf}\`.`);
+			}
+		});
+
+		if (members.length) lines.push("");
 	});
 
 	return lines.join("\n");

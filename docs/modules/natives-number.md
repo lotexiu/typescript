@@ -7,13 +7,9 @@
 
 - `@internal`
 
-<a id="parsed"></a>
-#### [`parsed`](../../src/natives/number/implementations.ts#L8) _(const)_
-
-<a id="parse"></a>
-#### [`parse`](../../src/natives/number/implementations.ts#L14) _(const)_
-
-Converte texto bruto em number, ou undefined se vazio/não numérico. Não julga validade de negócio.
+<a id="_Number.parse"></a>
+- [`parse`](../../src/natives/number/implementations.ts#L6)
+  Converte texto bruto em number, ou undefined se vazio/não numérico. Não julga validade de negócio.
 
 <a id="TDigit"></a>
 #### [`TDigit`](../../src/natives/number/types.ts#L2) _(type, type-only)_
@@ -57,3 +53,7 @@ Compares two single-digit literal types: `-1` (`A < B`), `0` (equal), or `1` (`A
 #### [`NumberUtils`](../../src/natives/number/utils.ts#L4) _(class)_
 
 Public static wrapper over `_Number` — raw-text-to-number parsing.
+
+<a id="NumberUtils.parse"></a>
+- [`parse`](../../src/natives/number/utils.ts#L5)
+  Converte texto bruto em number, ou undefined se vazio/não numérico. Não julga validade de negócio.

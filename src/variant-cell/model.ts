@@ -30,8 +30,10 @@ class VariantCell<TName extends string, TValue> {
 		return value;
 	}
 
+	/** Switches the active variant to `name`. */
 	set(name: TName): void { this.cell.set(name); }
 
+	/** Subscribes to the active variant *name* changing (not the derived value). Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<TName>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}

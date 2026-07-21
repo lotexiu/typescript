@@ -75,6 +75,13 @@ export function validateProject(project: AnalyzerProject, entry: string) {
 			}
 		});
 
+		(file.blocks ?? []).forEach((block) => {
+			if (block.category !== "class") return;
+			for (const { message } of block.getUndocumentedMembers()) {
+				warningsByFile.push(message);
+			}
+		});
+
 		if (warningsByFile.length > 0) {
 			fileWarnings.set(relativePath, warningsByFile);
 		}

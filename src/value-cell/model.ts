@@ -12,12 +12,14 @@ class ValueCell<T> {
 
 	get value(): T { return this._value; }
 
+	/** Sets the value and notifies subscribers — a no-op (no notification) if `next` is `Object.is`-equal to the current value. */
 	set(next: T): void {
 		if (Object.is(next, this._value)) return;
 		this._value = next;
 		this.listeners.forEach((listener) => listener(next));
 	}
 
+	/** Subscribes to value changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<T>): TValueCellUnsubscribe {
 		this.listeners.add(listener);
 		return () => { this.listeners.delete(listener); };

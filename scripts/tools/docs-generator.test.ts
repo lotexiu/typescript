@@ -19,6 +19,7 @@ function makeBlock(overrides: Partial<ProjectBlockCode> = {}): ProjectBlockCode 
 		isInternal(this: ProjectBlockCode) {
 			return this.documentation?.tags.some((t) => t.name === 'internal') ?? false;
 		},
+		getMembers: () => [],
 		...overrides,
 	};
 }

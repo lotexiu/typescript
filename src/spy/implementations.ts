@@ -5,6 +5,7 @@ import { TFn, TReturnType } from "@tsn-function/types";
  * @internal
 */
 class _Spy {
+	/** Wraps `fn`, logging its average execution time to the console every `averageAmount` calls. */
 	static timeExecution<T extends TFn>(fn: T, name: string, averageAmount = 1000): T {
 		let
 			totalTime = 0,
@@ -27,10 +28,6 @@ class _Spy {
 	}
 }
 
-/** Wraps `fn`, logging its average execution time to the console every `averageAmount` calls. */
-const timeExecution = _Spy.timeExecution;
-
 export {
 	_Spy,
-	timeExecution,
 }

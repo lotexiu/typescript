@@ -13,14 +13,12 @@ vez por tema, não recalculada a cada leitura). `subscribe` notifica com o
 nome ativo, não o valor derivado — quem consome decide se/quando recomputar
 o valor a partir do nome (ex.: `useMemo` num hook React).
 
-<a id="name"></a>
-#### [`name`](../../src/variant-cell/model.ts#L25) _(const)_
-
-<a id="cached"></a>
-#### [`cached`](../../src/variant-cell/model.ts#L26) _(const)_
-
-<a id="value"></a>
-#### [`value`](../../src/variant-cell/model.ts#L28) _(const)_
+<a id="VariantCell.set"></a>
+- [`set`](../../src/variant-cell/model.ts#L34)
+  Switches the active variant to `name`.
+<a id="VariantCell.subscribe"></a>
+- [`subscribe`](../../src/variant-cell/model.ts#L37)
+  Subscribes to the active variant *name* changing (not the derived value). Returns an unsubscribe function.
 
 <a id="TVariantDerive"></a>
 #### [`TVariantDerive`](../../src/variant-cell/types.ts#L2) _(type, type-only)_

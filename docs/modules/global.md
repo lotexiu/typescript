@@ -7,6 +7,10 @@
 
 - `@internal`
 
+<a id="_Global.register"></a>
+- [`register`](../../src/global/implementations.ts#L10)
+  Defines every key of `extension` as a property directly on `target.prototype`.
+
 <a id="TargetImpl"></a>
 #### [`TargetImpl`](../../src/global/types.ts#L5) _(type, type-only)_
 
@@ -16,3 +20,7 @@ The shape `_Global.register` expects: an optional function-valued override for e
 #### [`GlobalUtils`](../../src/global/utils.ts#L4) _(class)_
 
 Public static wrapper over `_Global` — registers method overrides directly onto a native prototype (e.g. `String.prototype`).
+
+<a id="GlobalUtils.register"></a>
+- [`register`](../../src/global/utils.ts#L5)
+  Defines every key of `extension` as a property directly on `target.prototype`.

@@ -1,5 +1,5 @@
+import { ValidationUtils } from '@ts/validation/utils';
 import { describe, expect, it } from 'vitest';
-import { ValidationUtils } from '@tsn-validation/utils';
 
 describe('ValidationUtils.required', () => {
 	it('is false for undefined, null and empty string', () => {

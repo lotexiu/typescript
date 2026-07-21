@@ -46,12 +46,14 @@ class ValueHistory<T> {
   ) {
   }
 
+  /** Wipes the whole history and resets the cursor. */
   clear(): void {
     this.onBeforeClear?.(this.history);
     this.history = [];
     this.index = -1;
   }
 
+  /** Steps back one entry, or returns `undefined` if there's nothing before the current entry. */
   undo(): T | undefined {
     if (!this.canUndo) return undefined;
     this.onBeforeUndo?.(this.state);
@@ -59,6 +61,7 @@ class ValueHistory<T> {
     return this.history[this.index];
   }
 
+  /** Steps forward one entry, or returns `undefined` if there's nothing after the current entry. */
   redo(): T | undefined {
     if (!this.canRedo) return undefined;
     this.onBeforeRedo?.(this.state);
@@ -66,6 +69,7 @@ class ValueHistory<T> {
     return this.history[this.index];
   }
 
+  /** Registers a new entry, discarding any redo-able future and trimming to `cacheSize` if needed. */
   add(item: T): void {
     const state= this.registerState(item)
     this.onBeforeRegister?.(state);

@@ -6,6 +6,7 @@ import { TargetImpl } from "./types";
  * @internal
 */
 class _Global {
+	/** Defines every key of `extension` as a property directly on `target.prototype`. */
 	static register<Target extends TConstructor>(target: Target, extension: TargetImpl<Target>) {
 		try {
 			Object.entries(extension).forEach(([key, value]) => {

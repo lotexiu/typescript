@@ -7,35 +7,18 @@
 
 A tree of nested `Map`s keyed by a tuple path `P`, storing a bucket of `T` values at each leaf path.
 
-<a id="last"></a>
-#### [`last`](../../src/path-map/model.ts#L8) _(const)_
-
-<a id="current"></a>
-#### [`current`](../../src/path-map/model.ts#L9) _(const)_
-
-<a id="stack"></a>
-#### [`stack`](../../src/path-map/model.ts#L25) _(const)_
-
-<a id="current"></a>
-#### [`current`](../../src/path-map/model.ts#L26) _(const)_
-
-<a id="values"></a>
-#### [`values`](../../src/path-map/model.ts#L35) _(const)_
-
-<a id="index"></a>
-#### [`index`](../../src/path-map/model.ts#L36) _(const)_
-
-<a id="{ parent, key }"></a>
-#### [`{ parent, key }`](../../src/path-map/model.ts#L41) _(const)_
-
-<a id="target"></a>
-#### [`target`](../../src/path-map/model.ts#L42) _(const)_
-
-<a id="isEmpty"></a>
-#### [`isEmpty`](../../src/path-map/model.ts#L44) _(const)_
-
-<a id="current"></a>
-#### [`current`](../../src/path-map/model.ts#L57) _(const)_
+<a id="PathMap.root"></a>
+- [`root`](../../src/path-map/model.ts#L6)
+  The underlying nested-`Map` tree, keyed one level per path segment.
+<a id="PathMap.add"></a>
+- [`add`](../../src/path-map/model.ts#L9)
+  Appends `values` to the bucket at `path`, creating intermediate maps as needed.
+<a id="PathMap.remove"></a>
+- [`remove`](../../src/path-map/model.ts#L27)
+  Removes `value` from the bucket at `path`, pruning any intermediate maps left empty.
+<a id="PathMap.get"></a>
+- [`get`](../../src/path-map/model.ts#L60)
+  Returns the bucket of values at `path`, or `[]` if the path doesn't exist.
 
 <a id="TRecursiveMap"></a>
 #### [`TRecursiveMap`](../../src/path-map/types.ts#L2) _(type, type-only)_

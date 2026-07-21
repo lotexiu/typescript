@@ -7,25 +7,30 @@ class KeyboardManager extends CaptureManager<TKeyboardOnEvent> {
 		onBlur: this.onBlur.bind(this),
 	}
 
+	/** Attaches the `keydown`/`keyup`/`blur` listeners that track pressed keys. */
 	protected start(): void {
 		document.addEventListener('keydown', this.binds.process);
 		document.addEventListener('keyup', this.binds.process);
 		window.addEventListener('blur', this.binds.onBlur);
 	}
 
+	/** Detaches the `keydown`/`keyup`/`blur` listeners. */
 	protected stop(): void {
 		document.removeEventListener('keydown', this.binds.process);
 		document.removeEventListener('keyup', this.binds.process);
 		window.removeEventListener('blur', this.binds.onBlur);
 	}
 
+	/** Next id to hand out for a registered callback. */
 	lastId: number = 0;
-	protected register(value: TKeyboardOnEvent) { 
+	/** Registers `value` under a fresh numeric id. */
+	protected register(value: TKeyboardOnEvent) {
 		const id = this.lastId++;
 		this.callbackMap.set(id, value);
 		return id;
 	}
 
+	/** Unregisters the callback with `id`. */
 	protected unRegister(id: number): void {
 		this.callbackMap.delete(id);
 	}

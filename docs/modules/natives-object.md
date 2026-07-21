@@ -7,41 +7,48 @@
 
 - `@internal`
 
-<a id="keys"></a>
-#### [`keys`](../../src/natives/object/implementations.ts#L22) _(const)_
-
-<a id="seen"></a>
-#### [`seen`](../../src/natives/object/implementations.ts#L49) _(const)_
-
-<a id="result"></a>
-#### [`result`](../../src/natives/object/implementations.ts#L72) _(const)_
-
-<a id="keys"></a>
-#### [`keys`](../../src/natives/object/implementations.ts#L73) _(const)_
-
-<a id="aVal"></a>
-#### [`aVal`](../../src/natives/object/implementations.ts#L75) _(const)_
-
-<a id="bVal"></a>
-#### [`bVal`](../../src/natives/object/implementations.ts#L76) _(const)_
-
-<a id="path"></a>
-#### [`path`](../../src/natives/object/implementations.ts#L77) _(const)_
+<a id="_Object.valueFromPath"></a>
+- [`valueFromPath`](../../src/natives/object/implementations.ts#L9)
+  Reads a nested value out of `obj` following a dot-separated `path` (e.g. `"a.b.c"`), typed via `TPath`/`TPathResolver`.
+<a id="_Object.setValueFromPath"></a>
+- [`setValueFromPath`](../../src/natives/object/implementations.ts#L19)
+  Writes `value` into `obj` at a nested dot-separated `path`, creating/traversing intermediate keys along the way.
+<a id="_Object.update"></a>
+- [`update`](../../src/natives/object/implementations.ts#L35)
+  Shallow-merges `updates` onto `obj` via `Object.assign`, typed as the combined shape.
+<a id="_Object.entries"></a>
+- [`entries`](../../src/natives/object/implementations.ts#L40)
+  Typed `Object.entries` — keeps each `[key, value]` pair's value type instead of widening to `any`.
+<a id="_Object.isNullOrUndefined"></a>
+- [`isNullOrUndefined`](../../src/natives/object/implementations.ts#L45)
+  True for `null` or `undefined` (loose equality — catches both in one check).
+<a id="_Object.isObject"></a>
+- [`isObject`](../../src/natives/object/implementations.ts#L50)
+  True for any non-`null` value of type `"object"` (arrays included).
+<a id="_Object.json"></a>
+- [`json`](../../src/natives/object/implementations.ts#L55)
+  `JSON.stringify` that tolerates circular references (dropping them) instead of throwing.
+<a id="_Object.isNull"></a>
+- [`isNull`](../../src/natives/object/implementations.ts#L70)
+  True for `null`/`undefined`, or for any value strictly-equal to one of `nullValues`.
+<a id="_Object.diffs"></a>
+- [`diffs`](../../src/natives/object/implementations.ts#L101)
+  Recursively diffs `a` against `b`, tagging each differing path as `added`/`removed`/`changed`.
 
 <a id="isNull"></a>
-#### [`isNull`](../../src/natives/object/implementations.ts#L98) _(const)_
+#### [`isNull`](../../src/natives/object/implementations.ts#L107) _(function)_
 
-Whether `value` is `null`/`undefined`, or strictly equals one of the given `nullValues`.
+True for `null`/`undefined`, or for any value strictly-equal to one of `nullValues`.
 
 <a id="isNullOrUndefined"></a>
-#### [`isNullOrUndefined`](../../src/natives/object/implementations.ts#L100) _(const)_
+#### [`isNullOrUndefined`](../../src/natives/object/implementations.ts#L108) _(function)_
 
-Whether `value` is `null` or `undefined`.
+True for `null` or `undefined` (loose equality — catches both in one check).
 
 <a id="json"></a>
-#### [`json`](../../src/natives/object/implementations.ts#L102) _(const)_
+#### [`json`](../../src/natives/object/implementations.ts#L109) _(function)_
 
-`JSON.stringify` that safely drops circular references (as `undefined`) instead of throwing.
+`JSON.stringify` that tolerates circular references (dropping them) instead of throwing.
 
 <a id="TRequired"></a>
 #### [`TRequired`](../../src/natives/object/types.native.ts#L9) _(type, type-only)_
@@ -142,3 +149,31 @@ Recursive structural diff between `A` and `B` — per key, `added`/`removed`/`ch
 #### [`ObjectUtils`](../../src/natives/object/utils.ts#L5) _(class)_
 
 Public static wrapper over `_Object` — object/path/diff helpers (path-based get/set, shallow merge, entries, null checks, safe JSON, structural diff).
+
+<a id="ObjectUtils.valueFromPath"></a>
+- [`valueFromPath`](../../src/natives/object/utils.ts#L6)
+  Reads a nested value out of `obj` following a dot-separated `path` (e.g. `"a.b.c"`), typed via `TPath`/`TPathResolver`.
+<a id="ObjectUtils.setValueFromPath"></a>
+- [`setValueFromPath`](../../src/natives/object/utils.ts#L7)
+  Writes `value` into `obj` at a nested dot-separated `path`, creating/traversing intermediate keys along the way.
+<a id="ObjectUtils.update"></a>
+- [`update`](../../src/natives/object/utils.ts#L8)
+  Shallow-merges `updates` onto `obj` via `Object.assign`, typed as the combined shape.
+<a id="ObjectUtils.entries"></a>
+- [`entries`](../../src/natives/object/utils.ts#L9)
+  Typed `Object.entries` — keeps each `[key, value]` pair's value type instead of widening to `any`.
+<a id="ObjectUtils.isNullOrUndefined"></a>
+- [`isNullOrUndefined`](../../src/natives/object/utils.ts#L10)
+  True for `null` or `undefined` (loose equality — catches both in one check).
+<a id="ObjectUtils.isObjectLike"></a>
+- [`isObjectLike`](../../src/natives/object/utils.ts#L11)
+  True for any non-`null` value of type `"object"` (arrays included).
+<a id="ObjectUtils.json"></a>
+- [`json`](../../src/natives/object/utils.ts#L12)
+  `JSON.stringify` that tolerates circular references (dropping them) instead of throwing.
+<a id="ObjectUtils.isNull"></a>
+- [`isNull`](../../src/natives/object/utils.ts#L13)
+  True for `null`/`undefined`, or for any value strictly-equal to one of `nullValues`.
+<a id="ObjectUtils.diffs"></a>
+- [`diffs`](../../src/natives/object/utils.ts#L14)
+  Recursively diffs `a` against `b`, tagging each differing path as `added`/`removed`/`changed`.

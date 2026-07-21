@@ -4,12 +4,14 @@ import { TBindFn, TFn, TFnDeclaration, TParameters } from "./types";
  * @internal
 */
 class _Function {
+	/** Wraps `fn` so its `this` is passed as an explicit leading parameter instead of the calling context. */
 	static thisAsParameter<T extends TFn>(fn: T): TFnDeclaration<T> {
 		return function (this: any, ...args: any[]): any {
 			return fn.call(null, this, ...args);
 		} as any;
 	}
 
+	/** Wraps `fn` so it returns the boolean negation of its result. */
 	static negate<T extends TFn>(fn: T) {
 		function newFn(this: any, ...args: TParameters<T>) {
 			return !fn.apply(this, args);
@@ -38,10 +40,6 @@ class _Function {
 	}
 };
 
-/** The static shape of the internal `_Function` implementation — used to type the `Function.prototype` extensions wired up in `declarations.ts`. */
-type TUFunction = typeof _Function;
-
 export {
 	_Function,
-	TUFunction,
 }

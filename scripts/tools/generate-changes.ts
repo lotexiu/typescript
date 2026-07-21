@@ -56,11 +56,19 @@ function withRefSnapshot<T>(repoDir: string, ref: string, fn: (project: Analyzer
 	}
 }
 
-/** Files under `src/**` that differ textually between `baseRef` and HEAD — the raw
- * signal used to tell "nothing in the library's source changed" (docs) apart from
- * "source changed but no public export was affected" (internal/refact). */
+/** Files under `src/**` that differ textually between `baseRef` and the current working
+ * tree — the raw signal used to tell "nothing in the library's source changed" (docs) apart
+ * from "source changed but no public export was affected" (internal/refact).
+ *
+ * Deliberately diffs against the working tree, not `HEAD`: the API snapshots this feeds into
+ * (`buildApiSnapshot(project)` for head, a `git worktree` checkout of `baseRef` for base) are
+ * themselves built from the live working tree, uncommitted changes included — `git diff
+ * baseRef HEAD` would only ever see *committed* history, so it silently returns nothing (and
+ * every downstream `docs`/`internal`/`refact` classification goes dark) for exactly the normal
+ * case of running `pnpm changes` before committing, which is most of when you'd run it.
+ */
 function touchedSrcFiles(repoDir: string, baseRef: string): string[] {
-	const output = run(`git diff --name-only ${baseRef} HEAD -- src`, repoDir);
+	const output = run(`git diff --name-only ${baseRef} -- src`, repoDir);
 	return output
 		.split("\n")
 		.map((file) => file.trim().replace(/\\/g, "/"))
@@ -83,9 +91,9 @@ function commentFreeText(project: AnalyzerProject, file: string): string | undef
 	return commentFreePrinter.printFile(projectFile.getSourceFile());
 }
 
-/** Total added+removed lines a file has between `baseRef` and HEAD, from `git diff --numstat`. */
+/** Total added+removed lines a file has between `baseRef` and the working tree, from `git diff --numstat`. */
 function changedLineCount(repoDir: string, baseRef: string, file: string): number {
-	const output = run(`git diff --numstat ${baseRef} HEAD -- "${file}"`, repoDir);
+	const output = run(`git diff --numstat ${baseRef} -- "${file}"`, repoDir);
 	const [added, removed] = output.split("\t");
 	return (Number(added) || 0) + (Number(removed) || 0);
 }

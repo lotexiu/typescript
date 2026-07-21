@@ -22,6 +22,7 @@ class MaskPlugin implements TPlugin<string> {
 
 	get value(): string { return this.cell.value; }
 
+	/** Subscribes to the formatted display value's changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<string>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}

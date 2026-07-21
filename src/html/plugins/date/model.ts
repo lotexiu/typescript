@@ -22,6 +22,7 @@ class DatePlugin implements TPlugin<Date | undefined> {
 
 	get value(): Date | undefined { return this.cell.value; }
 
+	/** Subscribes to value changes. Returns an unsubscribe function. */
 	subscribe(listener: TValueCellListener<Date | undefined>): TValueCellUnsubscribe {
 		return this.cell.subscribe(listener);
 	}

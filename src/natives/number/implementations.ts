@@ -10,10 +10,6 @@ class _Number {
 	}
 }
 
-/** Converte texto bruto em number, ou undefined se vazio/não numérico. Não julga validade de negócio. */
-const parse = _Number.parse;
-
 export {
 	_Number,
-	parse,
 }

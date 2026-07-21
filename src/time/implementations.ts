@@ -2,6 +2,7 @@
  * @internal
 */
 class _Time {
+	/** Converts a millisecond duration into the most readable unit (ns/µs/ms/s/min) with a formatted value. */
 	static convert(ms: number) {
 		if (ms < 0.001) return {value: (ms * 1e6).toFixed(3), unit: 'ns'};
 		if (ms < 1) return {value: (ms * 1e3).toFixed(3), unit: 'µs'};
@@ -11,10 +12,6 @@ class _Time {
 	}
 }
 
-/** Converts a millisecond duration into the most readable unit (ns/µs/ms/s/min) with a formatted value. */
-const convert = _Time.convert;
-
 export {
 	_Time,
-	convert,
 }

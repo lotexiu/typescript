@@ -159,6 +159,7 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 - `TClazz` _(type, type-only)_
 - `TExtendClass` _(type, type-only)_
 - `TTimeout` _(type, type-only)_
+- `ClassUtils` _(class)_
 
 ### natives/date
 
@@ -167,7 +168,6 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 
 ### natives/function
 
-- `TUFunction` _(type, type-only)_
 - `TFn` _(type, type-only)_
 - `TFnDeclaration` _(type, type-only)_
 - `TBindFn` _(type, type-only)_
@@ -182,12 +182,10 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 
 ### natives/math
 
-- `clamp` _(const)_
 - `MathUtils` _(class)_
 
 ### natives/number
 
-- `parse` _(const)_
 - `TDigit` _(type, type-only)_
 - `TNumber` _(type, type-only)_
 - `TAbs` _(type, type-only)_
@@ -199,9 +197,9 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 
 ### natives/object
 
-- `isNull` _(const)_
-- `isNullOrUndefined` _(const)_
-- `json` _(const)_
+- `isNull` _(function)_
+- `isNullOrUndefined` _(function)_
+- `json` _(function)_
 - `TRequired` _(type, type-only)_
 - `TReadonly` _(type, type-only)_
 - `TPick` _(type, type-only)_
@@ -229,17 +227,9 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 
 ### natives/string
 
-- `TUString` _(type, type-only)_
 - `TReverseStr` _(type, type-only)_
 - `StringUtils` _(class)_
-
-### natives/validation
-
-- `required` _(const)_
-- `pattern` _(const)_
-- `isValidCPF` _(const)_
-- `isValidCNPJ` _(const)_
-- `ValidationUtils` _(class)_
+- `TUString` _(type, type-only)_
 
 ### palette
 
@@ -263,13 +253,17 @@ Lista das declarações públicas de `@lotexiu/typescript` — só os nomes e o 
 
 ### spy
 
-- `timeExecution` _(const)_
 - `SpyUtils` _(class)_
 
 ### time
 
-- `convert` _(const)_
 - `TimeUtils` _(class)_
+
+### validation
+
+- `required` _(function)_
+- `pattern` _(function)_
+- `ValidationUtils` _(class)_
 
 ### value-cell
 
