@@ -1,0 +1,25 @@
+{
+  "extends": "@lotexiu/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+		"types": [
+			"node"
+		],
+		"paths": {
+			"@tsn-array/*": ["./src/natives/array/*"],
+      "@tsn-class/*": ["./src/natives/class/*"],
+      "@tsn-date/*": ["./src/natives/date/*"],
+      "@tsn-function/*": ["./src/natives/function/*"],
+      "@tsn-math/*": ["./src/natives/math/*"],
+      "@tsn-number/*": ["./src/natives/number/*"],
+      "@tsn-object/*": ["./src/natives/object/*"],
+      "@tsn-string/*": ["./src/natives/string/*"],
+      "@tsn-validation/*": ["./src/natives/validation/*"],
+      "@tsn/*": ["./src/natives/*"],
+      "@ts/*": ["./src/*"]
+		}
+  },
+  "include": ["src/**/*", "src/.test/**/*" ],
+  "exclude": ["node_modules", "dist"]
+}

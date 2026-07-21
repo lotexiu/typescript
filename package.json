@@ -1,0 +1,62 @@
+{
+  "name": "@lotexiu/typescript",
+  "version": "2.0.0",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lotexiu/typescript"
+  },
+  "homepage": "https://github.com/lotexiu/typescript#readme",
+  "bugs": {
+    "url": "https://github.com/lotexiu/typescript/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "library",
+    "typescript",
+    "lotexiu",
+    "colorjs.io"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist",
+    "docs": "tsx scripts/tools/docs-generator.ts",
+    "changes": "tsx scripts/tools/generate-changes.ts",
+    "changes:check": "tsx scripts/tools/generate-changes.ts --check",
+    "commit": "pnpm run build && pnpm run test && pnpm run docs && git add docs && git commit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "debug": "vitest run --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
+    "debug:watch": "vitest --inspectBrk --pool=threads --poolOptions.threads.singleThread --no-file-parallelism --testTimeout=0 --hookTimeout=0",
+    "upd": "pnpm up -r",
+    "upd-l": "pnpm up -r --L"
+  },
+  "devDependencies": {
+    "@lotexiu/typescript-config": "workspace:*",
+    "@types/node": "^26.0.0",
+    "@vitest/ui": "4.1.9",
+    "chokidar": "^4.0.0",
+    "concurrently": "^9.0.0",
+    "prettier": "^3.8.4",
+    "tsx": "^4.19.0",
+    "turbo": "^2.9.18",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vite-plugin-dts": "^5.0.2",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "colorjs.io": "^0.6.1"
+  },
+  "sideEffects": true,
+  "typings": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

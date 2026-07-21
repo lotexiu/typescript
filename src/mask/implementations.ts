@@ -1,0 +1,462 @@
+import { _String } from '@tsn-string/implementations';
+import type {
+	TMaskApplyOptions,
+	TMaskCompiled,
+	TMaskCompiledPattern,
+	TMaskParserEntry,
+	TMaskTokenMatcher,
+	TMaskTokenRule,
+	TMaskTokenKind,
+} from './types';
+
+type TMaskRule = Required<TMaskTokenRule> & {
+	kind: TMaskTokenKind;
+};
+
+const DEFAULT_MASK_RULES: Record<string, TMaskRule> = {
+	'0': { kind: 'digit', match: _String.isDigit },
+	A: { kind: 'letterOrDigit', match: _String.isLetterOrDigit },
+	S: { kind: 'letter', match: _String.isLetter },
+	U: { kind: 'uppercaseLetter', match: _String.isUpperCase },
+	L: { kind: 'lowercaseLetter', match: _String.isLowerCase },
+	X: { kind: 'any', match: () => true },
+};
+
+const dynamicMaskRules = new Map<string, TMaskRule>();
+let ruleSetVersion = 0;
+const compileCache = new Map<string, TMaskCompiled>();
+
+function clearCompileCache(): void {
+	compileCache.clear();
+}
+
+function resolveMaskRule(key: string): TMaskRule | undefined {
+	return dynamicMaskRules.get(key) ?? DEFAULT_MASK_RULES[key];
+}
+
+function tokenFromRule(key: string, rule: TMaskRule): Extract<TMaskParserEntry, { kind: 'token' }> {
+	return {
+		kind: 'token',
+		token: rule.kind,
+		key,
+		min: 1,
+		max: 1,
+	};
+}
+
+function registerToken(key: string, matcher: TMaskTokenMatcher, kind: TMaskTokenKind = 'any'): void {
+	if (key.length !== 1) {
+		throw new Error('Mask token key must contain exactly one character.');
+	}
+
+	if (key === '\\' || key === '|' || key === '*' || key === '?' || key === '{' || key === '}') {
+		throw new Error(`Mask token key "${key}" is reserved and cannot be used.`);
+	}
+
+	dynamicMaskRules.set(key, { kind, match: matcher });
+	ruleSetVersion++;
+	clearCompileCache();
+}
+
+function unregisterToken(key: string): boolean {
+	if (!dynamicMaskRules.has(key)) {
+		return false;
+	}
+
+	dynamicMaskRules.delete(key);
+	ruleSetVersion++;
+	clearCompileCache();
+	return true;
+}
+
+function getTokenKeys(): string[] {
+	const keys = new Set<string>(Object.keys(DEFAULT_MASK_RULES));
+	for (const key of dynamicMaskRules.keys()) {
+		keys.add(key);
+	}
+	return [...keys].sort();
+}
+
+function splitPatterns(mask: string): string[] {
+	const patterns: string[] = [];
+	let current = '';
+	let escaped = false;
+
+	for (let index = 0; index < mask.length; index++) {
+		const char = mask[index];
+
+		if (escaped) {
+			current += char;
+			escaped = false;
+			continue;
+		}
+
+		if (char === '\\') {
+			escaped = true;
+			continue;
+		}
+
+		if (char === '|' && mask[index + 1] === '|') {
+			patterns.push(current);
+			current = '';
+			index++;
+			continue;
+		}
+
+		current += char;
+	}
+
+	patterns.push(current);
+	return patterns;
+}
+
+function compilePattern(pattern: string): TMaskCompiledPattern {
+	const entries: TMaskParserEntry[] = [];
+	let escaped = false;
+
+	for (let index = 0; index < pattern.length; index++) {
+		const char = pattern[index];
+
+		if (escaped) {
+			entries.push({ kind: 'literal', value: char });
+			escaped = false;
+			continue;
+		}
+
+		if (char === '\\') {
+			escaped = true;
+			continue;
+		}
+
+		const rule = resolveMaskRule(char);
+		if (rule) {
+			let min = 1;
+			let max = 1;
+
+			const nextChar = pattern[index + 1];
+			if (nextChar === '*') {
+				min = 0;
+				max = Number.POSITIVE_INFINITY;
+				index++;
+			} else if (nextChar === '?') {
+				min = 0;
+				max = 1;
+				index++;
+			} else if (nextChar === '{') {
+				const closeIndex = pattern.indexOf('}', index + 2);
+				if (closeIndex > -1) {
+					const body = pattern.slice(index + 2, closeIndex);
+					const parts = body.split(',').map((part) => part.trim());
+
+					if (parts.length === 1 && /^\d+$/.test(parts[0])) {
+						min = Number(parts[0]);
+						max = min;
+						index = closeIndex;
+					} else if (parts.length === 2 && /^\d+$/.test(parts[0]) && (parts[1] === '' || /^\d+$/.test(parts[1]))) {
+						min = Number(parts[0]);
+						max = parts[1] === '' ? Number.POSITIVE_INFINITY : Number(parts[1]);
+						if (max < min) {
+							max = min;
+						}
+						index = closeIndex;
+					}
+				}
+			}
+
+			const token = tokenFromRule(char, rule);
+			token.min = min;
+			token.max = max;
+			entries.push(token);
+			continue;
+		}
+
+		entries.push({ kind: 'literal', value: char });
+	}
+
+	return {
+		source: pattern,
+		entries,
+		tokenCount: entries.filter((entry) => entry.kind === 'token').length,
+	};
+}
+
+function compile(mask: string): TMaskCompiled {
+	const cacheKey = `${ruleSetVersion}:${mask}`;
+	const cached = compileCache.get(cacheKey);
+	if (cached) {
+		return cached;
+	}
+
+	const compiled = {
+		source: mask,
+		patterns: splitPatterns(mask).map(compilePattern),
+	};
+	compileCache.set(cacheKey, compiled);
+	return compiled;
+}
+
+function matchToken(entry: Extract<TMaskParserEntry, { kind: 'token' }>, char: string): boolean {
+	const rule = resolveMaskRule(entry.key);
+	if (!rule) return false;
+	return rule.match(char);
+}
+
+function unapplyFromPattern(value: string, pattern: TMaskCompiledPattern): string {
+	if (pattern.tokenCount === 0) return '';
+
+	const tokenEntries = pattern.entries.filter((entry): entry is Extract<TMaskParserEntry, { kind: 'token' }> => {
+		return entry.kind === 'token';
+	});
+
+	let tokenIndex = 0;
+	let currentTokenCount = 0;
+	let raw = '';
+
+	for (const char of value) {
+		if (tokenIndex >= tokenEntries.length) break;
+
+		const token = tokenEntries[tokenIndex];
+		if (matchToken(token, char)) {
+			raw += char;
+			currentTokenCount++;
+
+			if (currentTokenCount >= token.max) {
+				tokenIndex++;
+				currentTokenCount = 0;
+			}
+		}
+	}
+
+	return raw;
+}
+
+function unapply(value: string, mask: string | TMaskCompiled): string {
+	const compiled = typeof mask === 'string' ? compile(mask) : mask;
+
+	let bestRaw = '';
+	for (const pattern of compiled.patterns) {
+		const candidateRaw = unapplyFromPattern(value, pattern);
+		if (candidateRaw.length > bestRaw.length) {
+			bestRaw = candidateRaw;
+		}
+	}
+
+	return bestRaw;
+}
+
+function applyFromPattern(
+	rawValue: string,
+	pattern: TMaskCompiledPattern,
+): { value: string; consumed: number; requiredConsumed: number; valid: boolean } {
+	if (pattern.tokenCount === 0) {
+		return { value: '', consumed: 0, requiredConsumed: 0, valid: rawValue.length === 0 };
+	}
+
+	let output = '';
+	let lastTokenOutputEnd = 0;
+	let rawIndex = 0;
+	let consumedTokens = 0;
+	let requiredConsumedTokens = 0;
+	let patternFullySatisfied = true;
+
+	for (const entry of pattern.entries) {
+		if (entry.kind === 'literal') {
+			output += entry.value;
+			continue;
+		}
+
+		let matchedForEntry = 0;
+		while (matchedForEntry < entry.max && rawIndex < rawValue.length) {
+			let foundIndex = -1;
+			for (let index = rawIndex; index < rawValue.length; index++) {
+				if (matchToken(entry, rawValue[index])) {
+					foundIndex = index;
+					break;
+				}
+			}
+
+			if (foundIndex === -1) {
+				break;
+			}
+
+			output += rawValue[foundIndex];
+			lastTokenOutputEnd = output.length;
+			consumedTokens++;
+			matchedForEntry++;
+			rawIndex = foundIndex + 1;
+		}
+
+		requiredConsumedTokens += Math.min(matchedForEntry, entry.min);
+
+		if (matchedForEntry < entry.min) {
+			patternFullySatisfied = false;
+			break;
+		}
+	}
+
+	output = output.slice(0, lastTokenOutputEnd);
+
+	const valid = patternFullySatisfied && rawIndex === rawValue.length;
+	return {
+		value: output,
+		consumed: consumedTokens,
+		requiredConsumed: requiredConsumedTokens,
+		valid,
+	};
+}
+
+function apply(
+	value: string,
+	mask: string | TMaskCompiled,
+	options: TMaskApplyOptions = {},
+): string {
+	const compiled = typeof mask === 'string' ? compile(mask) : mask;
+	const rawValue = unapply(value, compiled);
+	const applyWhenValid = options.applyWhenValid === true;
+
+	let bestValue = '';
+	let bestScore = -1;
+
+	for (const pattern of compiled.patterns) {
+		const result = applyFromPattern(rawValue, pattern);
+
+		if (applyWhenValid && !result.valid) {
+			continue;
+		}
+
+		const score = (result.valid ? 1_000_000_000 : 0)
+			+ result.requiredConsumed * 100_000
+			+ result.consumed * 10_000
+			+ result.value.length;
+		if (score > bestScore) {
+			bestScore = score;
+			bestValue = result.value;
+		}
+	}
+
+	if (bestScore === -1) {
+		return applyWhenValid ? value : bestValue;
+	}
+
+	return bestValue;
+}
+
+function isValid(value: string, mask: string | TMaskCompiled): boolean {
+	const compiled = typeof mask === 'string' ? compile(mask) : mask;
+	const rawValue = unapply(value, compiled);
+
+	const isPatternValidForMaskedValue = (maskedValue: string, pattern: TMaskCompiledPattern): boolean => {
+		let valueIndex = 0;
+
+		for (const entry of pattern.entries) {
+			if (entry.kind === 'literal') {
+				if (maskedValue[valueIndex] !== entry.value) {
+					return false;
+				}
+				valueIndex++;
+				continue;
+			}
+
+			let matchedForEntry = 0;
+			while (
+				matchedForEntry < entry.max &&
+				valueIndex < maskedValue.length &&
+				matchToken(entry, maskedValue[valueIndex])
+			) {
+				matchedForEntry++;
+				valueIndex++;
+			}
+
+			if (matchedForEntry < entry.min) {
+				return false;
+			}
+		}
+
+		return valueIndex === maskedValue.length;
+	};
+
+	const isPatternValidForRawValue = (raw: string, pattern: TMaskCompiledPattern): boolean => {
+		const tokenEntries = pattern.entries.filter((entry): entry is Extract<TMaskParserEntry, { kind: 'token' }> => {
+			return entry.kind === 'token';
+		});
+
+		let rawIndex = 0;
+		for (const entry of tokenEntries) {
+			let matchedForEntry = 0;
+			while (
+				matchedForEntry < entry.max &&
+				rawIndex < raw.length &&
+				matchToken(entry, raw[rawIndex])
+			) {
+				matchedForEntry++;
+				rawIndex++;
+			}
+
+			if (matchedForEntry < entry.min) {
+				return false;
+			}
+		}
+
+		return rawIndex === raw.length;
+	};
+
+	for (const pattern of compiled.patterns) {
+		if (isPatternValidForMaskedValue(value, pattern)) {
+			return true;
+		}
+
+		if (value === rawValue && isPatternValidForRawValue(rawValue, pattern)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Depois de reformatar um valor mascarado (ex.: usuário digitou no meio de
+ * "111.444.777-35"), o caret pode ficar em qualquer posição do texto novo —
+ * não reimplementa o parsing do pattern: conta quantos caracteres "raw"
+ * (via `unapply`, já existente) ficam antes do caret no texto anterior, e
+ * acha a posição no texto novo onde essa mesma contagem é atingida. Quando
+ * a posição cai numa sequência de literais (ex.: logo depois de um "."), o
+ * caret avança até o próximo caractere preenchível — não fica preso entre
+ * literais.
+ */
+function caretPositionAfterFormat(
+	previousDisplay: string,
+	previousCaret: number,
+	nextDisplay: string,
+	mask: string | TMaskCompiled,
+): number {
+	const compiled = typeof mask === 'string' ? compile(mask) : mask;
+	const target = unapply(previousDisplay.slice(0, previousCaret), compiled).length;
+
+	let index = 0;
+	while (index < nextDisplay.length && unapply(nextDisplay.slice(0, index + 1), compiled).length <= target) {
+		index++;
+	}
+	return index;
+}
+
+/**
+ * @internal
+ */
+const _Mask = {
+	compile,
+	apply,
+	unapply,
+	isValid,
+	registerToken,
+	unregisterToken,
+	getTokenKeys,
+	caretPositionAfterFormat,
+};
+
+/** The static shape of the internal `_Mask` implementation — used to type `MaskUtils`. */
+type TUtilsMask = typeof _Mask;
+
+export {
+	_Mask,
+	TUtilsMask,
+}
