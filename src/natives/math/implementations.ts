@@ -9,6 +9,14 @@ class _Math {
 		if (max !== undefined && result > max) result = max;
 		return result;
 	}
+
+	static hasDecimals(value: number): boolean {
+		return _Math.getDecimals(value) > 0
+	}
+
+	static getDecimals(value: number): number {
+		return value % 1
+	}
 }
 
 export {

@@ -91,11 +91,27 @@ function commentFreeText(project: AnalyzerProject, file: string): string | undef
 	return commentFreePrinter.printFile(projectFile.getSourceFile());
 }
 
-/** Total added+removed lines a file has between `baseRef` and the working tree, from `git diff --numstat`. */
-function changedLineCount(repoDir: string, baseRef: string, file: string): number {
+/** [added, removed] line counts a file has between `baseRef` and the working tree, from `git diff --numstat`. */
+function numstat(repoDir: string, baseRef: string, file: string): [number, number] {
 	const output = run(`git diff --numstat ${baseRef} -- "${file}"`, repoDir);
 	const [added, removed] = output.split("\t");
-	return (Number(added) || 0) + (Number(removed) || 0);
+	return [Number(added) || 0, Number(removed) || 0];
+}
+
+/** Total added+removed lines a file has between `baseRef` and the working tree. */
+function changedLineCount(repoDir: string, baseRef: string, file: string): number {
+	const [added, removed] = numstat(repoDir, baseRef, file);
+	return added + removed;
+}
+
+/**
+ * Whether a file's diff removed/modified any pre-existing line at all — zero removed
+ * lines means the diff is pure net-new code (only lines appended), never touching
+ * anything that was already there.
+ */
+function hasModifiedExistingLines(repoDir: string, baseRef: string, file: string): boolean {
+	const [, removed] = numstat(repoDir, baseRef, file);
+	return removed > 0;
 }
 
 /**
@@ -114,11 +130,25 @@ const SMALL_CHANGE_LINE_THRESHOLD = 5;
  * - `docs` applies to any touched file whose code is byte-identical once comments are
  *   stripped — regardless of whether it lives in `src/**` or elsewhere, so a JSDoc-only
  *   edit to a public function counts as `docs`, not `refact`.
- * - `internal`/`refact` apply to files with an actual code difference: `internal` when
- *   that file exposes no non-`@internal` export, `refact` otherwise; if the total size of
- *   that real diff is small (see `SMALL_CHANGE_LINE_THRESHOLD`), `fix` is added alongside
- *   it too, since a same-signature change that small is as likely to be a bugfix as a
- *   refactor and telling them apart would need real semantic analysis.
+ * - `internal`/`refact` apply to files with an actual code difference that also modified
+ *   some pre-existing line (`hasModifiedExistingLines` — a file whose diff is pure net-new
+ *   code, nothing removed, never qualifies): `internal` when that file exposes no
+ *   non-`@internal` export, `refact` otherwise; if the total size of that real diff is
+ *   small (see `SMALL_CHANGE_LINE_THRESHOLD`), `fix` is added alongside it too, since a
+ *   same-signature change that small is as likely to be a bugfix as a refactor and telling
+ *   them apart would need real semantic analysis. A file that only ever had lines appended
+ *   to it (e.g. new methods added to an existing class, nothing existing touched) is pure
+ *   new API surface — that's what `feat`/`added` already covers, so it doesn't also earn
+ *   `internal`/`refact`/`fix` just for living in a file that happened to change.
+ * - A file already explained by a `kind: "body"` entry in `diff.changed` (an internal
+ *   implementation — e.g. `_Foo`'s own file — whose behavior change was traced through a
+ *   `FooUtils` alias by `api-signature.ts`'s `getMemberBody`) is excluded from the
+ *   `internal`/`refact`/threshold-`fix` heuristic above: that heuristic exists precisely to
+ *   catch real changes invisible to the structural diff, and this one no longer is — it
+ *   already produced a proper `changed` entry (and thus `fix`, from the rule above) tied to
+ *   the public member it actually affects, so double-tagging the same change as `internal`
+ *   would be redundant and, worse, misleading (implying no public-facing effect when there
+ *   demonstrably is one, however narrow).
  * - `clean-code` is deliberately never auto-applied — telling "purely cosmetic" apart
  *   from "a real internal change" beyond comments/whitespace needs far more than a
  *   "basic" check, so it stays a manual, human-added tag.
@@ -148,8 +178,15 @@ function classifyTypeTags(
 
 	if (noOpFiles.length > 0) tags.add("docs");
 
-	if (realChangeFiles.length > 0) {
-		const allInternal = realChangeFiles.every((file) => {
+	const filesExplainedByMemberDiff = new Set(
+		diff.changed.filter((c) => c.kind === "body" && c.implementationFile).map((c) => c.implementationFile as string),
+	);
+	const modifiedFiles = realChangeFiles.filter(
+		(file) => hasModifiedExistingLines(repoDir, baseRef, file) && !filesExplainedByMemberDiff.has(file),
+	);
+
+	if (modifiedFiles.length > 0) {
+		const allInternal = modifiedFiles.every((file) => {
 			const projectFile = headProject.getFile(file);
 			// A deleted file with a public export would already show up as `removed` above.
 			if (!projectFile) return true;
@@ -157,7 +194,7 @@ function classifyTypeTags(
 		});
 		tags.add(allInternal ? "internal" : "refact");
 
-		const totalChangedLines = realChangeFiles.reduce((sum, file) => sum + changedLineCount(repoDir, baseRef, file), 0);
+		const totalChangedLines = modifiedFiles.reduce((sum, file) => sum + changedLineCount(repoDir, baseRef, file), 0);
 		if (totalChangedLines <= SMALL_CHANGE_LINE_THRESHOLD) tags.add("fix");
 	}
 

@@ -1,6 +1,6 @@
 import { AnalyzerProject } from "../analyzer/model";
 import { isTestFile } from "./index-generator";
-import { getSignatureText } from "./api-signature";
+import { getSignatureText, getClassMemberSignatures, TClassMemberSignature } from "./api-signature";
 
 export interface TApiExportSnapshot {
 	name: string;
@@ -8,6 +8,8 @@ export interface TApiExportSnapshot {
 	isTypeOnly: boolean;
 	file: string;
 	signature: string;
+	/** Only present for `category === "class"` — enables member-level diffing in `api-diff.ts`. */
+	members?: TClassMemberSignature[];
 }
 
 export interface TApiSnapshot {
@@ -38,6 +40,7 @@ export function buildApiSnapshot(project: AnalyzerProject, entry = "src/index.ts
 				isTypeOnly: block.isTypeOnly,
 				file: block.location.file,
 				signature: getSignatureText(block, project.dir),
+				members: getClassMemberSignatures(block, project.dir),
 			});
 		});
 	});
