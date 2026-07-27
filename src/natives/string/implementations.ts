@@ -3,6 +3,17 @@
  * @internal
 */
 class _String {
+	static readonly WHITESPACE_CODE = " ".charCodeAt(0);
+	static readonly ESCAPE_CODE = "\\".charCodeAt(0);
+	static readonly TAB_CODE = "\t".charCodeAt(0);
+	static readonly NEWLINE_CODE = "\n".charCodeAt(0);
+	static readonly VERTICAL_TAB_CODE = "\v".charCodeAt(0);
+	static readonly FORM_FEED_CODE = "\f".charCodeAt(0);
+	static readonly CARRIAGE_RETURN_CODE = "\r".charCodeAt(0);
+	static readonly FORMAT_CODE_DISTANCE = [_String.TAB_CODE, _String.CARRIAGE_RETURN_CODE] as const;
+	static readonly DIGIT_CODE_DISTANCE = ["0".charCodeAt(0), "9".charCodeAt(0)] as const;
+	static readonly HEXADECIMAL_WORD_CODE_DISTANCE = ["a".charCodeAt(0), "f".charCodeAt(0)] as const;
+
 	/** Converts `camelCase`/`PascalCase` to `kebab-case`. */
 	static toKebabCase(str: string): string {
 		return str.replace(
@@ -25,12 +36,12 @@ class _String {
 	}
 
 	/** Pads `str` on the right with `padChar` up to `length` total characters. */
-	static rightPad(str: string, padChar: string, length: number): string {
+	static padRight(str: string, padChar: string, length: number): string {
 		return str + padChar.repeat(length - str.length);
 	}
 
 	/** Pads `str` on the left with `padChar` up to `length` total characters. */
-	static leftPad(str: string, padChar: string, length: number): string {
+	static padLeft(str: string, padChar: string, length: number): string {
 		return padChar.repeat(length - str.length) + str;
 	}
 
@@ -45,7 +56,7 @@ class _String {
 		});
 		return index === -1 ? defaultValue : index;
 	}
-	
+
 	/** Index of the last character (counting from the end) where `str1` and `str2` differ, or `defaultValue` if they never do. */
 	static getLastDifferentIndex(
 		str1: string,
@@ -73,10 +84,13 @@ class _String {
 	}
 
 	/** Maps each character of `str` to its hex char code. */
-	static stringToCharCodeArray(str: string): string[] {
-		return str.split("").map((char: string): string => {
-			return char.charCodeAt(0).toString(16);
-		});
+	static charCodeArray(str: string): Array<number> {
+		const len = str.length;
+		const arr = new Array(len);
+		for (let index = 0; index < len; index++) {
+			arr[index] = str.charCodeAt(index);
+		}
+		return arr;
 	}
 
 	/** True for a character valid in a JS identifier (letter, digit, `_`, or `$`). */
@@ -88,7 +102,7 @@ class _String {
 			char === '$'
 		);
 	}
-	
+
 	/** True for any alphabetic character (case-insensitively distinguishable from itself). */
 	static isLetter(char: string): boolean {
 		return char.toLowerCase() !== char.toUpperCase();
@@ -96,17 +110,31 @@ class _String {
 
 	/** True for a lowercase letter. */
 	static isLowerCase(char: string): boolean {
-		return char === char.toLowerCase() && _String.isLetter(char);
+		return _String.isLetter(char) && char === char.toLowerCase();
 	}
 
 	/** True for an uppercase letter. */
 	static isUpperCase(char: string): boolean {
-		return char === char.toUpperCase() && _String.isLetter(char);
+		return _String.isLetter(char) && char === char.toUpperCase();
 	}
 
-	/** True for `0`-`9`. */
-	static isDigit(char: string): boolean {
-		return char >= "0" && char <= "9";
+	/**
+	 * Validate if the string or character is a digit
+	 * @param str String to check
+	 * @param index if index is provided, it will check if the character at the index is a digit
+	 * @returns `TRUE` for a digit and `FALSE` if not
+	 */
+	static isDigit(str: string, index?: number): boolean {
+		if (index) {
+			const code = str.charCodeAt(0);
+			return _String.DIGIT_CODE_DISTANCE[0] <= code && code <= _String.DIGIT_CODE_DISTANCE[1];
+		}
+		const len = str.length;
+		for (let index = 0; index < len; index++) {
+			const code = str.charCodeAt(index)
+			if (_String.DIGIT_CODE_DISTANCE[0] > code || code > _String.DIGIT_CODE_DISTANCE[1]) return false;
+		}
+		return true;
 	}
 
 	/** True for a letter or a digit. */
@@ -114,73 +142,77 @@ class _String {
 		return _String.isLetter(char) || _String.isDigit(char);
 	}
 
-	/** True for a digit or an `a`-`f`/`A`-`F` hex letter. */
-	static isHexadecimal(char: string): boolean {
-		return (
-			_String.isDigit(char) ||
-			(char.toLowerCase() >= "a" && char.toLowerCase() <= "f")
-		);
+	/**
+	 * Validate if the string is a hexadecimal
+	 * @param str String to check
+	 * @returns `TRUE` if the string is a hexadecimal and `FALSE` if not
+	 */
+	static isHexadecimal(str: string): boolean {
+		const len = str.length;
+		if (len > 4 && len % 2) return false;
+		for (let index = 0; index < len; index++) {
+			const code = str.charCodeAt(index);
+			const notWordHex = _String.HEXADECIMAL_WORD_CODE_DISTANCE[0] > code || code > _String.HEXADECIMAL_WORD_CODE_DISTANCE[1]
+			const notDigitHex = _String.DIGIT_CODE_DISTANCE[0] > code || code > _String.DIGIT_CODE_DISTANCE[1]
+			if (notWordHex && notDigitHex) return false;
+		}
+		return true;
 	}
 
 	/** True for whitespace, a line break, tab, carriage return, form feed, or vertical tab. */
 	static isFormatting(char: string): boolean {
-		return (
-			_String.isWhitespace(char) ||
-			_String.isLineBreak(char) ||
-			_String.isTab(char) ||
-			_String.isCarriageReturn(char) ||
-			_String.isFormFeed(char) ||
-			_String.isVerticalTab(char)
-		);
+		const code = char.charCodeAt(0);
+		return code >= _String.FORMAT_CODE_DISTANCE[0] && code <= _String.FORMAT_CODE_DISTANCE[1];
 	}
-	
+
 	/** True for a plain space character. */
 	static isWhitespace(char: string): boolean {
-		return char == ' '
+		return char.charCodeAt(0) === _String.WHITESPACE_CODE;
 	}
 
 	/** True for `\n` or a carriage return. */
 	static isLineBreak(char: string): boolean {
-		return char == '\n' || _String.isCarriageReturn(char);
+		const code = char.charCodeAt(0);
+		return code == _String.NEWLINE_CODE || code == _String.CARRIAGE_RETURN_CODE;
 	}
 
 	/** True for `\t`. */
 	static isTab(char: string): boolean {
-		return char == '\t';
+		return char.charCodeAt(0) == _String.TAB_CODE;
 	}
 
 	/** True for `\r`. */
 	static isCarriageReturn(char: string): boolean {
-		return char == '\r';
+		return char.charCodeAt(0) == _String.CARRIAGE_RETURN_CODE;
 	}
 
 	/** True for `\f`. */
 	static isFormFeed(char: string): boolean {
-		return char == '\f';
+		return char.charCodeAt(0) == _String.FORM_FEED_CODE;
 	}
 
 	/** True for `\v`. */
 	static isVerticalTab(char: string): boolean {
-		return char == '\v';
+		return char.charCodeAt(0) == _String.VERTICAL_TAB_CODE;
 	}
 
 	/** True for `+ - * / % ^`. */
 	static isMathOperator(char: string): boolean {
 		switch (char) {
-			case '+':case '-':
-			case '*':case '/':
-			case '%':case '^':
+			case '+': case '-':
+			case '*': case '/':
+			case '%': case '^':
 				return true;
 			default:
 				return false;
 		}
 	}
-	
+
 	/** True for `> < = !`. */
 	static isRelationalOperator(char: string): boolean {
 		switch (char) {
-			case '>':case '<':
-			case '=':case '!':
+			case '>': case '<':
+			case '=': case '!':
 				return true;
 			default:
 				return false;
@@ -190,8 +222,8 @@ class _String {
 	/** True for `& | ^ ~`. */
 	static isBitwireOperator(char: string): boolean {
 		switch (char) {
-			case '&':case '|':
-			case '^':case '~':
+			case '&': case '|':
+			case '^': case '~':
 				return true;
 			default:
 				return false;
@@ -217,7 +249,7 @@ class _String {
 				return false;
 		}
 	}
-	
+
 	/** True for a character that's none of letter, digit, whitespace, line break, or tab. */
 	static isSymbol(char: string): boolean {
 		return (
@@ -231,10 +263,46 @@ class _String {
 
 	/** True for `\`. */
 	static isEscape(char: string): boolean {
-		return char === '\\';
+		return char.charCodeAt(0) == _String.ESCAPE_CODE;
+	}
+
+	/**
+	 * Iterate over each character in a string.
+	 * @param str - The string to iterate over.
+	 * @param callback - The callback to call for each character. If it returns `false`, iteration stops.
+	 */
+	static forEach(str: string, callback: (char: string, index: number) => void | false) {
+		const len = str.length;
+		for (let index = 0; index < len; index++) {
+			if (callback(str[index], index) === false) break;
+		}
+	}
+
+	/**
+	 * Create a function that iterates over each character in a string, calling a callback for each character that is in the given set.
+	 * @param chars - The set of characters to iterate over.
+	 * @returns A function that iterates over each character in a string, calling a callback for each character that is in the given set.
+	 */
+	static onChar(chars: string) {
+		let highestCode = 0
+		const cLen = chars.length
+		for (let i = 0; i < cLen; i++) {
+			const code = chars.charCodeAt(i)
+			if (code > highestCode) highestCode = code
+		}
+		const lookup = new Uint8Array(highestCode + 1)
+		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1
+
+		return function (str: string, callback: (char: string, index: number) => void | false) {
+			const len = str.length
+			for (let i = 0; i < len; i++) {
+				const code = str.charCodeAt(i)
+				if (code > highestCode || lookup[code] === 0) continue
+				if (callback(str[i], i) === false) break
+			}
+		}
 	}
 };
-
 
 export {
 	_String,

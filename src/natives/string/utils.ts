@@ -5,13 +5,13 @@ class StringUtils {
 	static readonly toKebabCase = _String.toKebabCase;
 	static readonly capitalize = _String.capitalize;
 	static readonly capitalizeAll = _String.capitalizeAll;
-	static readonly rightPad = _String.rightPad;
-	static readonly leftPad = _String.leftPad;
+	static readonly padRight = _String.padRight;
+	static readonly padLeft = _String.padLeft;
 	static readonly getFirstDifferentIndex = _String.getFirstDifferentIndex;
 	static readonly getLastDifferentIndex = _String.getLastDifferentIndex;
 	static readonly removeCharacters = _String.removeCharacters;
 	static readonly noAccent = _String.noAccent;
-	static readonly stringToCharCodeArray = _String.stringToCharCodeArray;
+	static readonly charCodeArray = _String.charCodeArray;
 	static readonly isIdentifier = _String.isIdentifier;
 	static readonly isLetter = _String.isLetter;
 	static readonly isLowerCase = _String.isLowerCase;
@@ -32,6 +32,8 @@ class StringUtils {
 	static readonly isPunctuation = _String.isPunctuation;
 	static readonly isSymbol = _String.isSymbol;
 	static readonly isEscape = _String.isEscape;
+	static readonly forEach = _String.forEach;
+	static readonly onChar = _String.onChar;
 }
 
 /** The `StringUtils` static-member shape — useful for typing something as "whatever `StringUtils` exposes." */

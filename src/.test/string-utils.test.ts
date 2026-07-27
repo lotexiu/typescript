@@ -12,8 +12,8 @@ describe('StringUtils formatting', () => {
 	});
 
 	it('leftPad/rightPad', () => {
-		expect(StringUtils.leftPad('5', '0', 3)).toBe('005');
-		expect(StringUtils.rightPad('5', '0', 3)).toBe('500');
+		expect(StringUtils.padLeft('5', '0', 3)).toBe('005');
+		expect(StringUtils.padRight('5', '0', 3)).toBe('500');
 	});
 
 	it('removeCharacters strips every listed character', () => {
@@ -31,7 +31,7 @@ describe('StringUtils formatting', () => {
 	});
 
 	it('stringToCharCodeArray returns hex char codes', () => {
-		expect(StringUtils.stringToCharCodeArray('AB')).toEqual(['41', '42']);
+		expect(StringUtils.charCodeArray('AB')).toEqual(['41', '42']);
 	});
 });
 
