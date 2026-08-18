@@ -1,44 +1,31 @@
-import { model } from "../model/model";
 import { computed } from "../computed/model";
-import { _Time } from "@ts/time/implementations";
+import { model } from "../model/model";
 
 class StopWatch {
 	private static readonly NOT_STARTED = new Error("StopWatch has not been started");
+	private startTime: number = NaN;
 
-	private _laps: number[] = []
-	
-	private startTime: number = -1;
-	private readonly model = model(-1)
-	readonly totalLaps = model(NaN)
+	laps = model<number[]>([])
+	totalLaps = model(NaN)
 
-	totalSum = computed(() => {
-		return this._laps.reduce((a, b) => a + b, 0);
-	}, [this.model])
-
-	avarage = computed(() => {
-		return this.totalSum.value / this._laps.length;
-	}, [this.totalSum, this.model])
-
-	estimated = computed(() => {
-		return this.avarage.value * (this.totalLaps.value - this._laps.length)
-	}, [this.avarage, this.totalLaps])
-
-	laps = computed(() => {
-		return this._laps.map(lap => _Time.convert(lap))
-	}, [this.model])
+	duration = computed(() => this.laps.value.reduce((a, b) => a + b, 0), [this.laps])
+	avarage = computed(() => this.duration.value / this.laps.value.length, [this.duration])
+	estimated = computed(() => this.avarage.value * (this.totalLaps.value - this.laps.value.length), [this.avarage, this.totalLaps])
+	currentLap = computed(() => this.laps.value[this.laps.value.length - 1], [this.laps])
 
 	start() {
-		this._laps = []
-		this.model.set(-1)
+		this.laps.set([]);
+		this.startTime = performance.now();
 	}
 
 	lap() {
-		if (this.startTime == -1) throw StopWatch.NOT_STARTED;
-		const value = performance.now() - this.startTime;
-		this._laps.push(value)
-		this.model.set(value);
-		return this.startTime = performance.now();
+		if (Number.isNaN(this.startTime)) throw StopWatch.NOT_STARTED;
+		this.laps.value.push(this.current())
+		this.laps.notifies(this.laps.value)
+		this.startTime = performance.now();
 	}
+
+	current() {return performance.now() - this.startTime}
 }
 
 export {

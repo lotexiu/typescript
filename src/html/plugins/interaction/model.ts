@@ -1,5 +1,5 @@
-import { Value } from "@ts/value-cell/model";
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
+import { model } from "@ts/reactive/model/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/reactive/types";
 import { TPlugin } from "../types";
 import { TInteractionState } from "./types";
 
@@ -12,7 +12,7 @@ import { TInteractionState } from "./types";
  * sem cada componente reimplementar esse controle na mão.
  */
 class InteractionPlugin implements TPlugin<TInteractionState> {
-	private cell = new Value<TInteractionState>({ focused: false, touched: false, dirty: false });
+	private cell = model<TInteractionState>({ focused: false, touched: false, dirty: false });
 
 	get value(): TInteractionState { return this.cell.value; }
 
@@ -23,26 +23,26 @@ class InteractionPlugin implements TPlugin<TInteractionState> {
 
 	/** Call when the field gains focus. */
 	onFocus(): void {
-		this.update({ focused: true });
+		this.tryUpdate({ focused: true });
 	}
 
 	/** Call when the field loses focus — marks it `touched`. */
 	onBlur(): void {
-		this.update({ focused: false, touched: true });
+		this.tryUpdate({ focused: false, touched: true });
 	}
 
 	/** Call when the field's value changes — marks it `dirty`. */
 	onChange(): void {
-		this.update({ dirty: true });
+		this.tryUpdate({ dirty: true });
 	}
 
 	/** Volta ao estado inicial — útil quando o campo é reaproveitado pra outro valor. */
 	reset(): void {
-		this.update({ focused: false, touched: false, dirty: false });
+		this.tryUpdate({ focused: false, touched: false, dirty: false });
 	}
 
 	/** Só cria um novo objeto (e notifica) se algum campo realmente mudou. */
-	private update(partial: Partial<TInteractionState>): void {
+	private tryUpdate(partial: Partial<TInteractionState>): void {
 		const current = this.cell.value;
 		const next = { ...current, ...partial };
 		if (

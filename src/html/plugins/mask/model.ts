@@ -1,7 +1,7 @@
 import { MaskUtils } from "@ts/mask/utils";
-import { Value } from "@ts/value-cell/model";
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
+import { TValueListener, TValueUnsubscribe } from "@ts/reactive/types";
+import { Model, model } from "@ts/reactive/model/model";
 
 /**
  * MaskPlugin
@@ -13,11 +13,11 @@ import { TPlugin } from "../types";
  */
 class MaskPlugin implements TPlugin<string> {
 	private raw: string;
-	private cell: Value<string>;
+	private cell: Model<string>;
 
 	constructor(private pattern: string, initialValue: string = "") {
 		this.raw = MaskUtils.unapply(initialValue, pattern);
-		this.cell = new Value(MaskUtils.apply(this.raw, pattern));
+		this.cell = model(MaskUtils.apply(this.raw, pattern));
 	}
 
 	get value(): string { return this.cell.value; }
@@ -28,7 +28,7 @@ class MaskPlugin implements TPlugin<string> {
 	}
 
 	/** Recebe o texto que o usuário digitou/colou e reaplica a máscara atual. */
-	update(display: string): void {
+	tryUpdate(display: string): void {
 		this.raw = MaskUtils.unapply(display, this.pattern);
 		this.cell.set(MaskUtils.apply(this.raw, this.pattern));
 	}

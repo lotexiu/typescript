@@ -1,9 +1,9 @@
 import { NumberUtils } from "@tsn-number/utils";
 import { MathUtils } from "@tsn-math/utils";
-import { Value } from "@ts/value-cell/model";
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 import { TNumberPluginOptions } from "./types";
+import { model } from "@ts/reactive/model/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/reactive/types";
 
 /**
  * NumberPlugin
@@ -16,7 +16,7 @@ import { TNumberPluginOptions } from "./types";
  * diferente de validação (que sinalizaria erro sem alterar o valor).
  */
 class NumberPlugin implements TPlugin<number | undefined> {
-	private cell = new Value<number | undefined>(undefined);
+	private cell = model<number | undefined>(undefined);
 	private min?: number;
 	private max?: number;
 

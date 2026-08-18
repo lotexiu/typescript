@@ -1,27 +1,34 @@
-import { Model } from "../model/model";
-import { TValueListener, TValueUnsubscribe } from "../model/types";
-import { TVariant, TVariantDerive } from "./types";
+import { Computed, computed } from "../computed/model";
+import { Subscription } from "../model";
+import { model, Model } from "../model/model";
+import { TVariantDerive } from "./types";
 
-class Variant<K, V> {
-	private _value: Model<TVariant<K, V>>;
+class Variant<K, V> extends Subscription<Variant<K,V>> {
+	private _prevKey?: K
+	private _key: Model<K>
+	private _value: Computed<V>
+
+	get key() {return this._key.value}
+	get value() {return this._value.value}
+
+	get prevKey() {return this._prevKey}
+	get prevValue() {return this._value.prevValue}
 
 	constructor(
 		private derive: TVariantDerive<K, V>,
 		initial: K
 	) {
-		this._value = new Model({ key: initial, value: derive(initial) })
+		super()
+		this._key = model(initial)
+		this._value = computed(() => this.derive(this._key.value), [this._key])
 	}
 
-	get active(): K { return this._value.value.key; }
-
-	get value(): V { return this._value.value.value; }
-
-	set(name: K): void { this._value.set({ key: name, value: this.derive(name) }); }
-
-	notifies(): void { this._value.notifies(); }
-
-	subscribe(listener: TValueListener<TVariant<K, V>>): TValueUnsubscribe {
-		return this._value.subscribe(listener);
+	set(key: K) {
+		const prev = this._key.value
+		if (this._key.set(key)) {
+			this._prevKey = prev;
+			this.notifies(this);
+		}
 	}
 }
 

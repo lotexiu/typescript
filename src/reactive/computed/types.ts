@@ -1,4 +1,4 @@
-import { TValueListener, TValueUnsubscribe } from "../model/types";
+import { TValueListener, TValueUnsubscribe } from "../types";
 
 type TSubscription = {
 	subscribe(listener: TValueListener<any>): TValueUnsubscribe

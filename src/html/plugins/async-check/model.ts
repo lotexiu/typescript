@@ -1,9 +1,9 @@
-import { Value } from "@ts/value-cell/model";
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { debounce } from "@ts/filters/implementations";
 import { TDebounceFn } from "@ts/filters/types";
 import { TPlugin } from "../types";
 import { TAsyncCheckFn, TAsyncCheckState } from "./types";
+import { TValueListener, TValueUnsubscribe } from "@ts/reactive/types";
+import { model } from "@ts/reactive/model/model";
 
 /**
  * O terceiro estado ("pendente") que uma checagem assíncrona (ex.: existe
@@ -14,7 +14,7 @@ import { TAsyncCheckFn, TAsyncCheckState } from "./types";
  * responder, só o resultado da checagem mais recente é aplicado.
  */
 class AsyncCheckPlugin<TInput, TResult> implements TPlugin<TAsyncCheckState<TResult>> {
-	private cell = new Value<TAsyncCheckState<TResult>>({ status: "idle" });
+	private cell = model<TAsyncCheckState<TResult>>({ status: "idle" });
 	private token = 0;
 	private debounced: TDebounceFn<(input: TInput) => void>;
 

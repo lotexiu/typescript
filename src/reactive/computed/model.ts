@@ -1,24 +1,44 @@
-import { Model } from "../model/model";
-import { TValueListener, TValueUnsubscribe } from "../model/types";
+import { Subscription } from "../model";
+import { TValueUnsubscribe } from "../types";
 import { TSubscription } from "./types";
 
-class Computed<T> {
-	private _value: Model<T>
-
-	get value() {return this._value.value}
+class Computed<T> extends Subscription<Computed<T>> {
+	private changed = true;
+	private _value?: T
+	private _prevValue?: T
+	private readonly unsubscribes: TValueUnsubscribe[];
 
 	constructor(
 		private readonly compute: () => T,
 		private readonly dependencies: TSubscription[]
 	) {
-		this._value = new Model(compute());
-		dependencies.forEach(dep => dep.subscribe(() => {
-			this._value.set(compute())
+		super()
+		this.unsubscribes = dependencies.map(dep => dep.subscribe(() => {
+			this.changed = true
+			this.notifies(this)
 		}));
 	}
 
-	subscribe(listener: TValueListener<T>): TValueUnsubscribe {
-		return this._value.subscribe(listener);
+	private tryUpdate() {
+		if (!this.changed) return;
+		this.changed = false;
+		this._prevValue = this._value;
+		this._value = this.compute();
+	}
+
+	get prevValue() {
+		this.tryUpdate()
+		return this._prevValue
+	}
+
+	get value() {
+		this.tryUpdate()
+		return this._value!
+	}
+
+	dispose(): void {
+		this.unsubscribes.forEach(unsubscribe => unsubscribe());
+		this.clearListeners();
 	}
 }
 

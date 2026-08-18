@@ -1,8 +1,7 @@
 import { DateUtils } from "@tsn-date/utils";
-import { Value } from "@ts/value-cell/model";
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 import { TDateParseFn, TDatePluginOptions } from "./types";
+import { model, TValueListener, TValueUnsubscribe } from "@ts/index";
 
 /**
  * DatePlugin
@@ -13,7 +12,7 @@ import { TDateParseFn, TDatePluginOptions } from "./types";
  * — isso é trabalho de outros plugins, compostos por quem consome.
  */
 class DatePlugin implements TPlugin<Date | undefined> {
-	private cell = new Value<Date | undefined>(undefined);
+	private cell = model<Date | undefined>(undefined);
 	private parseFn: TDateParseFn;
 
 	constructor(options: TDatePluginOptions = {}) {
