@@ -1,6 +1,6 @@
 import { DateUtils } from "@tsn-date/utils";
-import { ValueCell } from "@ts/value-cell/model";
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { Value } from "@ts/value-cell/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 import { TDateParseFn, TDatePluginOptions } from "./types";
 
@@ -13,7 +13,7 @@ import { TDateParseFn, TDatePluginOptions } from "./types";
  * — isso é trabalho de outros plugins, compostos por quem consome.
  */
 class DatePlugin implements TPlugin<Date | undefined> {
-	private cell = new ValueCell<Date | undefined>(undefined);
+	private cell = new Value<Date | undefined>(undefined);
 	private parseFn: TDateParseFn;
 
 	constructor(options: TDatePluginOptions = {}) {
@@ -23,7 +23,7 @@ class DatePlugin implements TPlugin<Date | undefined> {
 	get value(): Date | undefined { return this.cell.value; }
 
 	/** Subscribes to value changes. Returns an unsubscribe function. */
-	subscribe(listener: TValueCellListener<Date | undefined>): TValueCellUnsubscribe {
+	subscribe(listener: TValueListener<Date | undefined>): TValueUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 

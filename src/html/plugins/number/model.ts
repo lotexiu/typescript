@@ -1,7 +1,7 @@
 import { NumberUtils } from "@tsn-number/utils";
 import { MathUtils } from "@tsn-math/utils";
-import { ValueCell } from "@ts/value-cell/model";
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { Value } from "@ts/value-cell/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 import { TNumberPluginOptions } from "./types";
 
@@ -16,7 +16,7 @@ import { TNumberPluginOptions } from "./types";
  * diferente de validação (que sinalizaria erro sem alterar o valor).
  */
 class NumberPlugin implements TPlugin<number | undefined> {
-	private cell = new ValueCell<number | undefined>(undefined);
+	private cell = new Value<number | undefined>(undefined);
 	private min?: number;
 	private max?: number;
 
@@ -28,7 +28,7 @@ class NumberPlugin implements TPlugin<number | undefined> {
 	get value(): number | undefined { return this.cell.value; }
 
 	/** Subscribes to value changes. Returns an unsubscribe function. */
-	subscribe(listener: TValueCellListener<number | undefined>): TValueCellUnsubscribe {
+	subscribe(listener: TValueListener<number | undefined>): TValueUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 

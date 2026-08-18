@@ -1,6 +1,6 @@
 import { MaskUtils } from "@ts/mask/utils";
-import { ValueCell } from "@ts/value-cell/model";
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { Value } from "@ts/value-cell/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 
 /**
@@ -13,17 +13,17 @@ import { TPlugin } from "../types";
  */
 class MaskPlugin implements TPlugin<string> {
 	private raw: string;
-	private cell: ValueCell<string>;
+	private cell: Value<string>;
 
 	constructor(private pattern: string, initialValue: string = "") {
 		this.raw = MaskUtils.unapply(initialValue, pattern);
-		this.cell = new ValueCell(MaskUtils.apply(this.raw, pattern));
+		this.cell = new Value(MaskUtils.apply(this.raw, pattern));
 	}
 
 	get value(): string { return this.cell.value; }
 
 	/** Subscribes to the formatted display value's changes. Returns an unsubscribe function. */
-	subscribe(listener: TValueCellListener<string>): TValueCellUnsubscribe {
+	subscribe(listener: TValueListener<string>): TValueUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 

@@ -1,4 +1,4 @@
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 
 /**
  * Contrato mínimo que todo plugin de componente segue: ler o valor atual e
@@ -8,7 +8,7 @@ import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types"
  */
 interface TPlugin<T> {
 	get value(): T;
-	subscribe(listener: TValueCellListener<T>): TValueCellUnsubscribe;
+	subscribe(listener: TValueListener<T>): TValueUnsubscribe;
 }
 
 export type {

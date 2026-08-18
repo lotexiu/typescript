@@ -1,4 +1,4 @@
-import type { TUnkown } from "@ts/types";
+import type { TSameType, TUnkown } from "@ts/types";
 
 /** Thin alias over the built-in `Array<T>`. */
 type TArray<T = any> = Array<T>;
@@ -20,29 +20,19 @@ type TValueOf<
 	Index extends -1
 		? List extends [...infer Rest, infer Last] ? Last : never
 		: List[Index];
-
-/** Options bag for `TArrayOf`: an explicit args tuple and/or a type to infer the rest of the array as. */
-type TArrayOptions = {
-	args?: any[]
-	infAs?: any
-}
-
+		
 /** The remaining tuple elements of `A` after removing the leading elements shared with `B`. */
 type TArrayRest<
 	A extends any[],
 	B extends any[]
 > = A extends [...B, ...infer Rest] ? Rest : never;
 
-/** Builds a parameter-list-like tuple type from `TArrayOptions` — used to shape `TFn`'s argument list. */
-type TArrayOf<Option extends TArrayOptions> =
-	TUnkown<Option['args']> extends never
-		? TUnkown<Option['infAs']> extends never
-			? [...Exclude<Option['args'], undefined>, ...Option['infAs'][]]
-			: [...Exclude<Option['args'], undefined>]
-		: TUnkown<Option['infAs']> extends never
-			? Option['infAs'][]
-			: never
-
+type TArrayOf<Args extends any[] = never, InfType = never> =
+	TSameType<Args|InfType,never> extends true 
+		? [] 
+		: Args extends never ? [...InfType[]]
+		: [...(Args), ...(InfType|undefined)[]] 
+	
 /** A 2-tuple `[T, T2]`. */
 type TPair<T = any, T2 = any> = [T, T2];
 
@@ -58,7 +48,6 @@ export type {
 	TExtractValues,
 	TArrayType,
 	TValueOf,
-	TArrayOptions,
 	TArrayOf,
 	TPair,
 	TAsArray,

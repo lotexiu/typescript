@@ -1,31 +1,13 @@
 import { _Global } from "./global/implementations";
 import { _String } from "@tsn-string/implementations";
 import { _Object } from "@tsn-object/implementations";
-import { TBindFn, TFn, TFnDeclaration, TParameters } from "@tsn-function/types";
+import { TFn, TFnDeclaration } from "@tsn-function/types";
 import { _Function } from "@tsn-function/implementations";
 import { TUString } from "@tsn-string/utils";
+import { TEntriesReturn, TPath, TPathValue } from "@tsn-object/types";
+import { TAs } from "./types";
 
 declare global {
-	// TODO: Implement Number extensions
-	// interface Number {
-	// 	hasDecimals(): boolean;
-	// 	getDecimals(): number | undefined;
-	//
-	// 	/* Operators */
-	// 	"/"(...divideValues: number[]): number;
-	// 	"*"(...multiplyValues: number[]): number;
-	// 	"+"(...plusValues: number[]): number;
-	// 	"-"(...minusValues: number[]): number;
-	// 	"%"(value: number): number;
-	//
-	// 	divide(...divideValues: number[]): number;
-	// 	multiply(...multiplyValues: number[]): number;
-	// 	sum(...plusValues: number[]): number;
-	// 	minus(...minusValues: number[]): number;
-	// 	mod(value: number): number;
-	// 	trunc(): number;
-	// }
-
 	interface String {
 		toKebabCase: TFnDeclaration<TUString["toKebabCase"]>;
 		capitalize: TFnDeclaration<TUString["capitalize"]>;
@@ -60,15 +42,31 @@ declare global {
 
 	interface Function {
 		thisAsParameter<T extends TFn>(this: T): TFnDeclaration<T>;
-		rebind<T extends TFn>(this: T, context: any, ...args: any[]): TBindFn<{ fn: T; context: any; args: any[] }>;
-		negate<T extends TFn>(this: T): ((...args: TParameters<T>) => boolean) & { fn: T };
+		children?: TFn;
+		origin?: TFn;
+	}
+
+	interface Object {
+		valueFromPath<const T,const Path extends TPath<T>>(this: T, path: Path): TPathValue<T, Path>
+		setValueFromPath<const T, const Path extends TPath<T>, const Value extends TPathValue<T, Path>>(this: T, path: Path, value: Value): Value;
+		update<T extends object, U extends Partial<T>>(this: T, updates: U): TAs<T, U>
+		toEntries<T extends {}>(this: T): TEntriesReturn<T>[]
+		toJson<T>(this: T, compact: boolean): string
 	}
 }
 
+/* Always Function need to be registered first  */
 _Global.register(Function, {
 	thisAsParameter(this) { return _Function.thisAsParameter(this) },
-	rebind(this, context, ...args) { return _Function.rebind(this, context, ...args) },
-	negate(this) { return _Function.negate(this) },
+	bind(this:any, ...args) { return _Function.rebind(this, ...args) },
+});
+
+_Global.register(Object, {
+	setValueFromPath: _Object.setValueFromPath.thisAsParameter() as any,
+	valueFromPath: _Object.valueFromPath.thisAsParameter() as any,
+	update: _Object.update.thisAsParameter() as any,
+	toEntries: _Object.entries.thisAsParameter() as any,
+	toJson: _Object.json.thisAsParameter() as any,
 });
 
 _Global.register(String, {

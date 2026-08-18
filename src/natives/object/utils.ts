@@ -11,7 +11,7 @@ class ObjectUtils {
 	static readonly isObjectLike = _Object.isObject;
 	static readonly json = _Object.json;
 	static readonly isNull = _Object.isNull;
-	static readonly diffs = _Object.diffs;
+	static readonly diffs = _Object.diff;
 }
 
 export {

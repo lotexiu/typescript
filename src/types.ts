@@ -24,9 +24,9 @@ type TUnkown<T> = keyof T extends never ? T : never;
 type TSameType<A,B> =
 	A extends B
 		? B extends A
-			? A
-			: never
-		: never
+			? true
+			: false
+		: false
 
 export type {
 	TNullable,

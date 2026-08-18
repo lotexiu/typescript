@@ -1,35 +1,23 @@
 import { TArrayOf, TArrayRest } from "@tsn-array/types";
 
-type TFnOption = {
-	args?: any[]
-	infAs?: any
-	returnType: any
-}
 
-/** Generic function-type shape, parameterized by argument list/inference target/return type — the base other function-type utilities here build on. */
-type TFn<Option extends TFnOption = TFnOption> = (
-	...args: TArrayOf<{args: Option['args'], infAs: Option['infAs']}>
-) => Option['returnType']
+type TFnType = 'constructor' | 'normal'
+
+type TFn<
+	Args extends any[] = any[],
+	Return = any,
+	InfArgType = any,
+	Type extends TFnType = 'normal'
+> = 
+	Type extends 'constructor'
+		? abstract new (...args: TArrayOf<Args, InfArgType>) => Return
+		: (...args: TArrayOf<Args, InfArgType>) => Return
 
 /** Rewrites a function type with a leading "this-like" parameter into a method declaration with an explicit `this: V` parameter (used to type `thisAsParameter`-wrapped functions). */
 type TFnDeclaration<T extends TFn> =
 	T extends (value: infer This, ...args: infer Args) => infer R
 		? <V extends This>(this: V, ...args: Args) => R
 		: never
-
-type R = (str: string, splitStr: string) => string
-
-type R2 = TFnDeclaration<R>
-
-/* 
-Type 
-<V extends string>(this: V, splitStr: string) => string' 
-<V extends unknown>(this: V, ...args: unknown[]) => unknown'.
-
-  Types of parameters 'splitStr' and 'args' are incompatible.
-    Type 'unknown' is not assignable to type 'string'.
-types.ts(5, 88): The expected type comes from property 'capitalizeAll' which is declared here on type 'TargetImpl<StringConstructor>' 
-*/
 
 // Questionando utilidade de TBindFnOption
 type TBindFnOption = {

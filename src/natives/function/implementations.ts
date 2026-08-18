@@ -11,32 +11,17 @@ class _Function {
 		} as any;
 	}
 
-	/** Wraps `fn` so it returns the boolean negation of its result. */
-	static negate<T extends TFn>(fn: T) {
-		function newFn(this: any, ...args: TParameters<T>) {
-			return !fn.apply(this, args);
+	static rebind<
+		Applied extends any[],
+		Rest extends any[],
+		Return
+	>(fn: TFn<[...Applied, ...Rest], Return>, thisArg: any, ...args: Applied): TFn<Rest, Return> {
+		function rebinded(...nextArgs: Rest): Return {
+				return rebinded.children.call(thisArg, ...args, ...nextArgs)
 		}
-		newFn.fn = fn;
-		return newFn
-	}
-
-	/**
-	 * Cria uma nova função com `this` e argumentos pré-aplicados fixos.
-	 * Rebinding em cima de uma função já rebindada acumula os argumentos
-	 * (não empilha wrappers) — `fn.fn` sempre aponta pra função original.
-	 */
-	static rebind<T extends TFn>(fn: T, context: any, ...args: any[]): TBindFn<{ fn: T; context: any; args: any[] }> {
-		const originalFn: TFn = (fn as any).fn ?? fn;
-		const boundArgs: any[] = [...((fn as any).args ?? []), ...args];
-
-		function newFn(this: any, ...callArgs: any[]) {
-			return originalFn.apply(context, [...boundArgs, ...callArgs]);
-		}
-		newFn.fn = originalFn;
-		newFn.context = context;
-		newFn.args = boundArgs;
-
-		return newFn as any;
+		rebinded.origin = fn.origin ?? fn;
+		rebinded.children = fn as TFn;
+		return rebinded as any;
 	}
 };
 

@@ -1,5 +1,5 @@
-import { ValueCell } from "@ts/value-cell/model";
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { Value } from "@ts/value-cell/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { TPlugin } from "../types";
 import { TInteractionState } from "./types";
 
@@ -12,12 +12,12 @@ import { TInteractionState } from "./types";
  * sem cada componente reimplementar esse controle na mão.
  */
 class InteractionPlugin implements TPlugin<TInteractionState> {
-	private cell = new ValueCell<TInteractionState>({ focused: false, touched: false, dirty: false });
+	private cell = new Value<TInteractionState>({ focused: false, touched: false, dirty: false });
 
 	get value(): TInteractionState { return this.cell.value; }
 
 	/** Subscribes to interaction-state changes. Returns an unsubscribe function. */
-	subscribe(listener: TValueCellListener<TInteractionState>): TValueCellUnsubscribe {
+	subscribe(listener: TValueListener<TInteractionState>): TValueUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 

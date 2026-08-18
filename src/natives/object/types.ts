@@ -1,97 +1,105 @@
-import { TSameType, TUnkown } from "@ts/types";
-import type { TPick } from "./types.native";
+import { TSameType } from "@ts/types";
+
+/** Basic Non-object types (primitives, functions, and arrays). Used for filtering out non-object values. */
+type TNonObject = String | Number | Boolean | BigInt | Symbol | null | undefined | Function | readonly any[];
 
 /** `T` narrowed to plain-object shapes only — `never` for functions, arrays, or non-objects. */
-type TObject<T> = T extends Function
-	? never
-	: T extends readonly any[]
-		? never
-		: T extends object
-			? T
-			: never;
+type TObject<T> = Exclude<T, TNonObject> & object;
+
+/** Keys of `T` that are iterable (string or number). */
+type TIterate<T> = keyof T & (string | number)
+
+type TKeyOfOptions<T> = {
+	iterable?: boolean
+	exclude?: keyof T,
+}
+
+/** Keys of `T` with optional filtering and iterable constraints. */
+type TKeyOf<T, Options extends TKeyOfOptions<T> = {}> =
+	{} extends Options
+		? keyof T
+		: Options['iterable'] extends true
+			? unknown extends Options['exclude'] 
+				? TIterate<T>
+				: Exclude<TIterate<T>, Options['exclude']>
+			: Exclude<keyof T, Options['exclude']>
 
 /** Builds an object type from a union of `[key, value]` tuples — the inverse of `TEntriesReturn`. */
 type TRecord<T extends [any, any]> = {
 	[P in T as P[0]]: P[1];
 };
 
-/** `T` with every nested property (recursively) made optional. */
-type TDeepPartial<T> =
-	TObject<T> extends never ? T : { [K in keyof T]?: TDeepPartial<T[K]> | T[K] };
-
 /** The subset of `T`'s fields whose keys also exist on `U`. */
-type TCommonFields<T, U> = TPick<T, Extract<keyof T, keyof U>>;
+type TCommonFields<T, U> = keyof T & keyof U;
+
+/** Keys of `T` that are recursive (i.e., their values are also of of type `T`). */
+type TRecursiveKeys<T> = {
+	[K in keyof T]: T[K] extends T ? K : never
+}[keyof T];
+
+/** `T` with every nested property (recursively) made optional. */
+type TDeepPartial<T> = {
+	[K in Exclude<keyof T, keyof Object>]?:
+		T[K] extends infer R extends TObject<T[K]>
+			? R extends T 
+				? T 
+				: TDeepPartial<R>
+			: T[K]
+}
 
 /** Every valid dot-separated path string into `T`, including nested object paths — used to type `valueFromPath`/`setValueFromPath`. */
-type TPath<T> = {
-	[K in keyof T & string]: TObject<T[K]> extends never
-		? K
-		: K | `${K}.${TPath<T[K]>}`;
-}[keyof T & string];
+type TPath<T> = 
+	TObject<T> extends never ? never :
+	TObject<T> extends infer R 
+		? {[K in TIterate<R>] : K | `${K}.${TPath<R[K]>}`}[TIterate<R>]
+		: never
 
 /** Resolves the type found at a dot-separated `Path` string into `T` (the return type of `valueFromPath`). */
-type TPathResolver<
-	T,
-	Path extends String,
-> = Path extends `${infer Key}.${infer Rest}`
-	? Key extends keyof T
-		? TPathResolver<T[Key], Rest>
-		: never
-	: Path extends keyof T
-		? T[Path]
-		: never;
+type TPathValue<T, Path extends TPath<T>> = TObject<T> extends infer R 
+	? Extract<T, null | undefined> | (
+		Path extends keyof R
+			? R[Path]
+			: Path extends `${infer K extends TIterate<R>}.${infer Rest}`
+				? Rest extends TPath<R[K]>
+					? TPathValue<R[K], Rest>
+					: never
+				: never
+	) : never;
 
 /** The `[key, value]` tuple union `Object.entries(value)` would produce for `T` — the return type of `ObjectUtils.entries`. */
 type TEntriesReturn<T> = {
 	[K in keyof T]: [K, T[K]];
 }[keyof T];
 
-type TKeyOfOptions<T> = {
-	extract?: keyof T,
-	exclude?: keyof T,
+type TDiffTypes = ['REMOVED', any] | ['ADDED',any] | ['CHANGED', any, any]
+interface TDiffObject {
+	[K: string|number]: TDiffTypes | TDiffObject
 }
+type TDiffValues = TDiffTypes | TDiffObject;
 
-/** `keyof T`, optionally narrowed to just `extract` or with `exclude` removed. */
-type TKeyOf<T, Options extends TKeyOfOptions<T> | null = null> =
-	Options extends null
-		? keyof T
-		: Options extends { extract: infer E extends keyof T }
-			? E
-			: Options extends { exclude: infer E extends keyof T }
-				? Exclude<keyof T, E>
-				: never
-
-type TIterableKeys<T> = T extends object ? keyof T & (string|number) : never
-
-type Added<Path, Type> = { type: 'added', path: Path, b: Type }
-type Removed<Path, Type> = { type: 'removed', path: Path, a: Type }
-type Changed<Path, TypeA, TypeB> = { type: 'changed', path: Path, a: TypeA, b: TypeB }
-
-/** Recursive structural diff between `A` and `B` — per key, `added`/`removed`/`changed` (or a nested `TDiffs` for nested objects). The return type of `ObjectUtils.diffs`. */
-type TDiffs<A, B, Prefix extends string = ''> =
-	TSameType<A,B> extends never
-	? {
-		[Key in TIterableKeys<A|B>]: 
-				Key extends keyof A
-					? Key extends keyof B
-						? (A[Key]|B[Key]) extends TObject<A[Key]|B[Key]>
-							? TDiffs<A[Key], B[Key], `${Prefix}${Key}.`>
-							: Changed<`${Prefix}${Key}`, A[Key], B[Key]>
-						: Removed<`${Prefix}${Key}`, A[Key]>
-					: Key extends keyof B
-						? Added<`${Prefix}${Key}`, B[Key]>
-						: never
-	}
+type TDiff<A, B> =
+  TSameType<A, B> extends false
+		? A|B extends TObject<A|B> ? {
+			[K in TIterate<A&B>]:
+				K extends TIterate<A|B> ? TDiff<A[K], B[K]> :
+				K extends TIterate<A> ? ['REMOVED', A[K]] :
+				K extends TIterate<B> ? ['ADDED', B[K]] :
+				never
+		}
+		: ['CHANGED', A, B]
 	: never
 
 export type {
+	TNonObject,
 	TObject,
+	TIterate,
 	TRecord,
 	TDeepPartial,
 	TCommonFields,
 	TPath,
-	TPathResolver,
+	TPathValue,
 	TEntriesReturn,
 	TKeyOf,
-	TDiffs,
+	TDiffValues,
+	TDiff,
 };

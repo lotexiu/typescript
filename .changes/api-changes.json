@@ -1,67 +1,481 @@
 {
   "schemaVersion": 1,
   "package": "@lotexiu/typescript",
-  "baseRef": "359b99074d06dc7f96178e8904a85b4f2fc5c47b",
-  "headRef": "359b99074d06dc7f96178e8904a85b4f2fc5c47b",
-  "generatedAt": "2026-07-21T19:51:26.340Z",
+  "baseRef": "03abe48eb1e21f16b7ee9d7fa20547dc0dca94ba",
+  "headRef": "0666e01070de5e745ce6bb075947c9485809e23a",
+  "generatedAt": "2026-08-17T13:39:19.495Z",
   "tags": [
     "major",
     "feat",
     "fix",
-    "docs",
     "refact"
   ],
   "added": [
     {
-      "name": "ClassUtils",
+      "name": "_Regex",
       "category": "class",
-      "file": "src/natives/class/utils.ts"
+      "file": "src/natives/regex/implementations.ts"
+    },
+    {
+      "name": "isObject",
+      "category": "function",
+      "file": "src/natives/object/implementations.ts"
+    },
+    {
+      "name": "MathUtils.static.getDecimals",
+      "category": "member",
+      "file": "src/natives/math/utils.ts"
+    },
+    {
+      "name": "MathUtils.static.hasDecimals",
+      "category": "member",
+      "file": "src/natives/math/utils.ts"
+    },
+    {
+      "name": "Parser",
+      "category": "class",
+      "file": "src/parser/model.ts"
+    },
+    {
+      "name": "ParserGate",
+      "category": "class",
+      "file": "src/parser/model.ts"
+    },
+    {
+      "name": "ParserNode",
+      "category": "class",
+      "file": "src/parser/model.ts"
+    },
+    {
+      "name": "REGEX_PATTERNS",
+      "category": "const",
+      "file": "src/natives/regex/declarations.ts"
+    },
+    {
+      "name": "StringUtils.static.charCodeArray",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
+    },
+    {
+      "name": "StringUtils.static.forEach",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
+    },
+    {
+      "name": "StringUtils.static.onChar",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
+    },
+    {
+      "name": "StringUtils.static.padLeft",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
+    },
+    {
+      "name": "StringUtils.static.padRight",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
+    },
+    {
+      "name": "TDiff",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TDiffValues",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TIterate",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TNonObject",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TPathValue",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TStrForEeachCallback",
+      "category": "type",
+      "file": "src/natives/string/types.ts"
+    },
+    {
+      "name": "TStrToArray",
+      "category": "type",
+      "file": "src/natives/string/types.ts"
+    },
+    {
+      "name": "TStrToUnion",
+      "category": "type",
+      "file": "src/natives/string/types.ts"
+    },
+    {
+      "name": "TTimeConverted",
+      "category": "type",
+      "file": "src/time/types.ts"
+    },
+    {
+      "name": "TTimeUnit",
+      "category": "type",
+      "file": "src/time/types.ts"
     }
   ],
   "removed": [
     {
-      "name": "clamp",
-      "category": "const",
-      "file": "src/natives/math/implementations.ts"
+      "name": "deleteProxy",
+      "category": "function",
+      "file": "src/natives/object/proxy/implementations.ts"
     },
     {
-      "name": "convert",
-      "category": "const",
-      "file": "src/time/implementations.ts"
+      "name": "proxyHandler",
+      "category": "function",
+      "file": "src/natives/object/proxy/implementations.ts"
     },
     {
-      "name": "isValidCNPJ",
-      "category": "const",
-      "file": "src/natives/validation/implementations.ts"
+      "name": "StringUtils.static.leftPad",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
     },
     {
-      "name": "isValidCPF",
-      "category": "const",
-      "file": "src/natives/validation/implementations.ts"
+      "name": "StringUtils.static.rightPad",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
     },
     {
-      "name": "parse",
-      "category": "const",
-      "file": "src/natives/number/implementations.ts"
+      "name": "StringUtils.static.stringToCharCodeArray",
+      "category": "member",
+      "file": "src/natives/string/utils.ts"
     },
     {
-      "name": "timeExecution",
-      "category": "const",
-      "file": "src/spy/implementations.ts"
-    },
-    {
-      "name": "TUFunction",
+      "name": "TArrayOptions",
       "category": "type",
-      "file": "src/natives/function/implementations.ts"
+      "file": "src/natives/array/types.ts"
+    },
+    {
+      "name": "TDiffs",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TPathResolver",
+      "category": "type",
+      "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TProperty",
+      "category": "interface",
+      "file": "src/natives/object/proxy/types.ts"
+    },
+    {
+      "name": "TPropertyState",
+      "category": "type",
+      "file": "src/natives/object/proxy/types.ts"
+    },
+    {
+      "name": "TProxyCallFunction",
+      "category": "type",
+      "file": "src/natives/object/proxy/types.ts"
+    },
+    {
+      "name": "TProxyOptions",
+      "category": "type",
+      "file": "src/natives/object/proxy/types.ts"
     }
   ],
   "changed": [
     {
-      "name": "TUString",
-      "category": "type",
+      "name": "MathUtils.static.clamp",
+      "category": "member",
+      "file": "src/natives/math/utils.ts",
+      "previousSignature": "(value: number, min?: number, max?: number) => number",
+      "nextSignature": "(value: number, min?: number, max?: number) => number",
+      "kind": "body",
+      "implementationFile": "src/natives/math/implementations.ts"
+    },
+    {
+      "name": "ObjectUtils.static.diffs",
+      "category": "member",
+      "file": "src/natives/object/utils.ts",
+      "previousSignature": "<const A, const B>(a: import(\"./types\").TObject<A>, b: import(\"./types\").TObject<B>) => import(\"./types\").TDiffs<A, B>",
+      "nextSignature": "<const A extends object, const B extends object>(a: A, b: B) => import(\"./types\").TDiff<A, B>",
+      "kind": "signature"
+    },
+    {
+      "name": "ObjectUtils.static.isObjectLike",
+      "category": "member",
+      "file": "src/natives/object/utils.ts",
+      "previousSignature": "(value: unknown) => value is Object",
+      "nextSignature": "(value: any) => value is Object",
+      "kind": "signature"
+    },
+    {
+      "name": "ObjectUtils.static.setValueFromPath",
+      "category": "member",
+      "file": "src/natives/object/utils.ts",
+      "previousSignature": "<const T, const Path extends import(\"./types\").TPath<T>, const Value extends import(\"./types\").TPathResolver<T, Path>>(obj: T, path: Path, value: Value) => Value",
+      "nextSignature": "<const T, const Path extends import(\"./types\").TPath<T>, const Value extends import(\"./types\").TPathValue<T, Path>>(obj: T, path: Path, value: Value) => Value",
+      "kind": "signature"
+    },
+    {
+      "name": "ObjectUtils.static.valueFromPath",
+      "category": "member",
+      "file": "src/natives/object/utils.ts",
+      "previousSignature": "<const T, const Path extends import(\"./types\").TPath<T>>(obj: T, path: Path) => import(\"./types\").TPathResolver<T, Path>",
+      "nextSignature": "<const T, const P extends import(\"./types\").TPath<T>>(obj: T, path: P) => import(\"./types\").TPathValue<T, P>",
+      "kind": "signature"
+    },
+    {
+      "name": "SpyUtils.static.timeExecution",
+      "category": "member",
+      "file": "src/spy/utils.ts",
+      "previousSignature": "<T extends import(\"..\").TFn>(fn: T, name: string, averageAmount?: number) => T",
+      "nextSignature": "<T extends import(\"..\").TFn>(fn: T, callback: (value: number) => void, iterations?: number) => T",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.capitalize",
+      "category": "member",
       "file": "src/natives/string/utils.ts",
-      "previousSignature": "type TUString = typeof _String;",
-      "nextSignature": "type TUString = typeof StringUtils;"
+      "previousSignature": "(str: string) => string",
+      "nextSignature": "<T extends string>(str: T) => Capitalize<T>",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isCarriageReturn",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => boolean",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "StringUtils.static.isDigit",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(str: string, index?: number, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isEscape",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => char is \"\\\\\"",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isFormatting",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isFormFeed",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => boolean",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "StringUtils.static.isHexadecimal",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(str: string) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isIdentifier",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isLetter",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isLetterOrDigit",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isLineBreak",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => boolean",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "StringUtils.static.isLowerCase",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isPunctuation",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isSymbol",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isTab",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => boolean",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "StringUtils.static.isUpperCase",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.isVerticalTab",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string) => boolean",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "StringUtils.static.isWhitespace",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(char: string) => boolean",
+      "nextSignature": "(char: string, extended?: boolean) => boolean",
+      "kind": "signature"
+    },
+    {
+      "name": "StringUtils.static.toKebabCase",
+      "category": "member",
+      "file": "src/natives/string/utils.ts",
+      "previousSignature": "(str: string) => string",
+      "nextSignature": "(str: string) => string",
+      "kind": "body",
+      "implementationFile": "src/natives/string/implementations.ts"
+    },
+    {
+      "name": "TargetImpl",
+      "category": "type",
+      "file": "src/global/types.ts",
+      "previousSignature": "type TargetImpl<T extends TConstructor, I extends InstanceType<T> = InstanceType<T>> = { [Key in TKeyOf<I, {exclude: 'valueOf'}>]?: I[Key] extends TFn ? I[Key] : never; }",
+      "nextSignature": "type TargetImpl<T extends TConstructor, I extends InstanceType<T> = InstanceType<T>> = { [Key in TKeyOf<I, {exclude: 'valueOf'|'constructor'}>]?: I[Key] extends TFn ? I[Key] : never; }",
+      "kind": "signature"
+    },
+    {
+      "name": "TArrayOf",
+      "category": "type",
+      "file": "src/natives/array/types.ts",
+      "previousSignature": "type TArrayOf<Option extends TArrayOptions> = TUnkown<Option['args']> extends never ? TUnkown<Option['infAs']> extends never ? [...Exclude<Option['args'], undefined>, ...Option['infAs'][]] : [...Exclude<Option['args'], undefined>] : TUnkown<Option['infAs']> extends never ? Option['infAs'][] : never",
+      "nextSignature": "type TArrayOf<Args extends any[] = never, InfType = never> = TSameType<Args|InfType,never> extends true ? [] : Args extends never ? [...InfType[]] : [...(Args), ...(InfType|undefined)[]]",
+      "kind": "signature"
+    },
+    {
+      "name": "TCommonFields",
+      "category": "type",
+      "file": "src/natives/object/types.ts",
+      "previousSignature": "type TCommonFields<T, U> = TPick<T, Extract<keyof T, keyof U>>;",
+      "nextSignature": "type TCommonFields<T, U> = keyof T & keyof U;",
+      "kind": "signature"
+    },
+    {
+      "name": "TDeepPartial",
+      "category": "type",
+      "file": "src/natives/object/types.ts",
+      "previousSignature": "type TDeepPartial<T> = TObject<T> extends never ? T : { [K in keyof T]?: TDeepPartial<T[K]> | T[K] };",
+      "nextSignature": "type TDeepPartial<T> = { [K in Exclude<keyof T, keyof Object>]?: T[K] extends infer R extends TObject<T[K]> ? R extends T ? T : TDeepPartial<R> : T[K] }",
+      "kind": "signature"
+    },
+    {
+      "name": "TFn",
+      "category": "type",
+      "file": "src/natives/function/types.ts",
+      "previousSignature": "type TFn<Option extends TFnOption = TFnOption> = ( ...args: TArrayOf<{args: Option['args'], infAs: Option['infAs']}> ) => Option['returnType']",
+      "nextSignature": "type TFn< Args extends any[] = any[], Return = any, InfArgType = any, Type extends TFnType = 'normal' > = Type extends 'constructor' ? abstract new (...args: TArrayOf<Args, InfArgType>) => Return : (...args: TArrayOf<Args, InfArgType>) => Return",
+      "kind": "signature"
+    },
+    {
+      "name": "TimeUtils.static.convert",
+      "category": "member",
+      "file": "src/time/utils.ts",
+      "previousSignature": "(ms: number) => { value: string; unit: string; }",
+      "nextSignature": "(ms: number) => import(\"./types\").TTimeConverted",
+      "kind": "signature"
+    },
+    {
+      "name": "TKeyOf",
+      "category": "type",
+      "file": "src/natives/object/types.ts",
+      "previousSignature": "type TKeyOf<T, Options extends TKeyOfOptions<T> | null = null> = Options extends null ? keyof T : Options extends { extract: infer E extends keyof T } ? E : Options extends { exclude: infer E extends keyof T } ? Exclude<keyof T, E> : never",
+      "nextSignature": "type TKeyOf<T, Options extends TKeyOfOptions<T> = {}> = {} extends Options ? keyof T : Options['iterable'] extends true ? unknown extends Options['exclude'] ? TIterate<T> : Exclude<TIterate<T>, Options['exclude']> : Exclude<keyof T, Options['exclude']>",
+      "kind": "signature"
+    },
+    {
+      "name": "TObject",
+      "category": "type",
+      "file": "src/natives/object/types.ts",
+      "previousSignature": "type TObject<T> = T extends Function ? never : T extends readonly any[] ? never : T extends object ? T : never;",
+      "nextSignature": "type TObject<T> = Exclude<T, TNonObject> & object;",
+      "kind": "signature"
+    },
+    {
+      "name": "TPath",
+      "category": "type",
+      "file": "src/natives/object/types.ts",
+      "previousSignature": "type TPath<T> = { [K in keyof T & string]: TObject<T[K]> extends never ? K : K | `${K}.${TPath<T[K]>}`; }[keyof T & string];",
+      "nextSignature": "type TPath<T> = TObject<T> extends never ? never : TObject<T> extends infer R ? {[K in TIterate<R>] : K | `${K}.${TPath<R[K]>}`}[TIterate<R>] : never",
+      "kind": "signature"
+    },
+    {
+      "name": "TSameType",
+      "category": "type",
+      "file": "src/types.ts",
+      "previousSignature": "type TSameType<A,B> = A extends B ? B extends A ? A : never : never",
+      "nextSignature": "type TSameType<A,B> = A extends B ? B extends A ? true : false : false",
+      "kind": "signature"
     }
   ]
 }

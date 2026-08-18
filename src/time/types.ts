@@ -1,7 +1,8 @@
-type TTimeUnit = 'ns' | 'µs' | 'ms' | 's' | 'min'
+type TTimeUnit = 'ns' | 'µs' | 'ms' | 's' | 'min' | 'hour' | 'days' | 'week'
 
 type TTimeConverted = {
-	value: string,
+	value: number,
+	display: string,
 	unit: TTimeUnit
 }
 

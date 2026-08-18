@@ -1,3 +1,7 @@
+import { REGEX_PATTERNS } from "@tsn/regex/declarations";
+import { TStrForEeachCallback, TStrToUnion } from "./types";
+
+const { LETTERS, DIGITS, WHITESPACE, SYMBOLS } = REGEX_PATTERNS
 
 /**
  * @internal
@@ -13,21 +17,27 @@ class _String {
 	static readonly FORMAT_CODE_DISTANCE = [_String.TAB_CODE, _String.CARRIAGE_RETURN_CODE] as const;
 	static readonly DIGIT_CODE_DISTANCE = ["0".charCodeAt(0), "9".charCodeAt(0)] as const;
 	static readonly HEXADECIMAL_WORD_CODE_DISTANCE = ["a".charCodeAt(0), "f".charCodeAt(0)] as const;
+	private static readonly CAMEL_TO_KEBAB = new RegExp(`${LETTERS.EXTENDED.UPPERCASE}+(?![a-z])|${LETTERS.EXTENDED.UPPERCASE}`, "gu")
 
-	/** Converts `camelCase`/`PascalCase` to `kebab-case`. */
+	private static readonly IS_LETTER_BASIC = new RegExp(`^${LETTERS.BASIC.ALL}$`);
+	private static readonly IS_LETTER_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.ALL}$`, "u");
+	private static readonly IS_LOWERCASE_BASIC = new RegExp(`^${LETTERS.BASIC.LOWERCASE}$`);
+	private static readonly IS_LOWERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.LOWERCASE}$`, "u");
+	private static readonly IS_UPPERCASE_BASIC = new RegExp(`^${LETTERS.BASIC.UPPERCASE}$`);
+	private static readonly IS_UPPERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.UPPERCASE}$`, "u");
+	private static readonly IS_DIGIT_EXTENDED = new RegExp(`^${DIGITS.EXTENDED}$`, "u");
+	private static readonly IS_WHITESPACE_EXTENDED = new RegExp(`^${WHITESPACE.EXTENDED}$`, "u");
+	private static readonly IS_FORMATTING_EXTENDED = new RegExp(`^[${WHITESPACE.EXTENDED}\\t\\n\\v\\f\\r]$`, "u");
+	private static readonly IS_PUNCTUATION_EXTENDED = new RegExp(`^${SYMBOLS.PUNCTUATION.EXTENDED}$`, "u");
+
 	static toKebabCase(str: string): string {
-		return str.replace(
-			/[A-Z]+(?![a-z])|[A-Z]/g,
-			($, ofs) => (ofs ? "-" : "") + $.toLowerCase(),
-		);
+		return str.replace(_String.CAMEL_TO_KEBAB, ($, ofs) => (ofs ? "-" : "") + $.toLowerCase());
 	}
 
-	/** Uppercases the first character, leaves the rest untouched. */
-	static capitalize(str: string): string {
-		return str.charAt(0).toUpperCase() + str.slice(1);
+	static capitalize<T extends string>(str: T): Capitalize<T> {
+		return str.charAt(0).toUpperCase() + str.slice(1) as Capitalize<T>;
 	}
 
-	/** Splits `str` on `splitStr` and capitalizes every resulting segment. */
 	static capitalizeAll(str: string, splitStr: string): string {
 		return str
 			.split(splitStr)
@@ -35,17 +45,14 @@ class _String {
 			.join(splitStr);
 	}
 
-	/** Pads `str` on the right with `padChar` up to `length` total characters. */
 	static padRight(str: string, padChar: string, length: number): string {
 		return str + padChar.repeat(length - str.length);
 	}
 
-	/** Pads `str` on the left with `padChar` up to `length` total characters. */
 	static padLeft(str: string, padChar: string, length: number): string {
 		return padChar.repeat(length - str.length) + str;
 	}
 
-	/** Index of the first character where `str1` and `str2` differ, or `defaultValue` if they never do. */
 	static getFirstDifferentIndex(
 		str1: string,
 		str2: string,
@@ -57,7 +64,6 @@ class _String {
 		return index === -1 ? defaultValue : index;
 	}
 
-	/** Index of the last character (counting from the end) where `str1` and `str2` differ, or `defaultValue` if they never do. */
 	static getLastDifferentIndex(
 		str1: string,
 		str2: string,
@@ -70,7 +76,6 @@ class _String {
 		);
 	}
 
-	/** Removes every character in `charsToRemove` from `baseString`. */
 	static removeCharacters(baseString: string, charsToRemove: string): string {
 		return baseString
 			.split("")
@@ -78,80 +83,76 @@ class _String {
 			.join("");
 	}
 
-	/** Strips diacritics (accents) from `str` via Unicode normalization. */
 	static noAccent(str: string): string {
 		return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 	}
 
-	/** Maps each character of `str` to its hex char code. */
-	static charCodeArray(str: string): Array<number> {
+	static charCodeArray(str: string): Array<string> {
 		const len = str.length;
 		const arr = new Array(len);
 		for (let index = 0; index < len; index++) {
-			arr[index] = str.charCodeAt(index);
+			arr[index] = str.charCodeAt(index).toString(16);
 		}
 		return arr;
 	}
 
-	/** True for a character valid in a JS identifier (letter, digit, `_`, or `$`). */
-	static isIdentifier(char: string): boolean {
+	static isIdentifier(char: string, extended: boolean = false): boolean {
 		return (
-			_String.isLetter(char) ||
-			_String.isDigit(char) ||
+			_String.isLetter(char, extended) ||
+			_String.isDigit(char, undefined, extended) ||
 			char === '_' ||
 			char === '$'
 		);
 	}
 
-	/** True for any alphabetic character (case-insensitively distinguishable from itself). */
-	static isLetter(char: string): boolean {
-		return char.toLowerCase() !== char.toUpperCase();
+	static isLetter(char: string, extended: boolean = false): boolean {
+		return extended
+			? _String.IS_LETTER_EXTENDED.test(char)
+			: _String.IS_LETTER_BASIC.test(char);
 	}
 
-	/** True for a lowercase letter. */
-	static isLowerCase(char: string): boolean {
-		return _String.isLetter(char) && char === char.toLowerCase();
+	static isLowerCase(char: string, extended: boolean = false): boolean {
+		return extended
+			? _String.IS_LOWERCASE_EXTENDED.test(char)
+			: _String.IS_LOWERCASE_BASIC.test(char);
 	}
 
-	/** True for an uppercase letter. */
-	static isUpperCase(char: string): boolean {
-		return _String.isLetter(char) && char === char.toUpperCase();
+	static isUpperCase(char: string, extended: boolean = false): boolean {
+		return extended
+			? _String.IS_UPPERCASE_EXTENDED.test(char)
+			: _String.IS_UPPERCASE_BASIC.test(char);
 	}
 
-	/**
-	 * Validate if the string or character is a digit
-	 * @param str String to check
-	 * @param index if index is provided, it will check if the character at the index is a digit
-	 * @returns `TRUE` for a digit and `FALSE` if not
-	 */
-	static isDigit(str: string, index?: number): boolean {
-		if (index) {
-			const code = str.charCodeAt(0);
+	static isDigit(str: string, index?: number, extended: boolean = false): boolean {
+		if (extended) {
+			if (index !== undefined) return _String.IS_DIGIT_EXTENDED.test(str[index] ?? '');
+			for (const char of str) {
+				if (!_String.IS_DIGIT_EXTENDED.test(char)) return false;
+			}
+			return true;
+		}
+		if (index !== undefined) {
+			const code = str.charCodeAt(index);
 			return _String.DIGIT_CODE_DISTANCE[0] <= code && code <= _String.DIGIT_CODE_DISTANCE[1];
 		}
 		const len = str.length;
-		for (let index = 0; index < len; index++) {
-			const code = str.charCodeAt(index)
+		for (let i = 0; i < len; i++) {
+			const code = str.charCodeAt(i);
 			if (_String.DIGIT_CODE_DISTANCE[0] > code || code > _String.DIGIT_CODE_DISTANCE[1]) return false;
 		}
 		return true;
 	}
 
-	/** True for a letter or a digit. */
-	static isLetterOrDigit(char: string): boolean {
-		return _String.isLetter(char) || _String.isDigit(char);
+	static isLetterOrDigit(char: string, extended: boolean = false): boolean {
+		return _String.isLetter(char, extended) || _String.isDigit(char, undefined, extended);
 	}
 
-	/**
-	 * Validate if the string is a hexadecimal
-	 * @param str String to check
-	 * @returns `TRUE` if the string is a hexadecimal and `FALSE` if not
-	 */
 	static isHexadecimal(str: string): boolean {
 		const len = str.length;
 		if (len > 4 && len % 2) return false;
+		const lower = str.toLowerCase();
 		for (let index = 0; index < len; index++) {
-			const code = str.charCodeAt(index);
+			const code = lower.charCodeAt(index);
 			const notWordHex = _String.HEXADECIMAL_WORD_CODE_DISTANCE[0] > code || code > _String.HEXADECIMAL_WORD_CODE_DISTANCE[1]
 			const notDigitHex = _String.DIGIT_CODE_DISTANCE[0] > code || code > _String.DIGIT_CODE_DISTANCE[1]
 			if (notWordHex && notDigitHex) return false;
@@ -159,44 +160,38 @@ class _String {
 		return true;
 	}
 
-	/** True for whitespace, a line break, tab, carriage return, form feed, or vertical tab. */
-	static isFormatting(char: string): boolean {
+	static isFormatting(char: string, extended: boolean = false): boolean {
+		if (extended) return _String.IS_FORMATTING_EXTENDED.test(char);
 		const code = char.charCodeAt(0);
-		return code >= _String.FORMAT_CODE_DISTANCE[0] && code <= _String.FORMAT_CODE_DISTANCE[1];
+		return code === _String.WHITESPACE_CODE || (code >= _String.FORMAT_CODE_DISTANCE[0] && code <= _String.FORMAT_CODE_DISTANCE[1]);
 	}
 
-	/** True for a plain space character. */
-	static isWhitespace(char: string): boolean {
+	static isWhitespace(char: string, extended: boolean = false): boolean {
+		if (extended) return _String.IS_WHITESPACE_EXTENDED.test(char);
 		return char.charCodeAt(0) === _String.WHITESPACE_CODE;
 	}
 
-	/** True for `\n` or a carriage return. */
 	static isLineBreak(char: string): boolean {
 		const code = char.charCodeAt(0);
 		return code == _String.NEWLINE_CODE || code == _String.CARRIAGE_RETURN_CODE;
 	}
 
-	/** True for `\t`. */
 	static isTab(char: string): boolean {
 		return char.charCodeAt(0) == _String.TAB_CODE;
 	}
 
-	/** True for `\r`. */
 	static isCarriageReturn(char: string): boolean {
 		return char.charCodeAt(0) == _String.CARRIAGE_RETURN_CODE;
 	}
 
-	/** True for `\f`. */
 	static isFormFeed(char: string): boolean {
 		return char.charCodeAt(0) == _String.FORM_FEED_CODE;
 	}
 
-	/** True for `\v`. */
 	static isVerticalTab(char: string): boolean {
 		return char.charCodeAt(0) == _String.VERTICAL_TAB_CODE;
 	}
 
-	/** True for `+ - * / % ^`. */
 	static isMathOperator(char: string): boolean {
 		switch (char) {
 			case '+': case '-':
@@ -208,7 +203,6 @@ class _String {
 		}
 	}
 
-	/** True for `> < = !`. */
 	static isRelationalOperator(char: string): boolean {
 		switch (char) {
 			case '>': case '<':
@@ -219,7 +213,6 @@ class _String {
 		}
 	}
 
-	/** True for `& | ^ ~`. */
 	static isBitwireOperator(char: string): boolean {
 		switch (char) {
 			case '&': case '|':
@@ -230,8 +223,8 @@ class _String {
 		}
 	}
 
-	/** True for common punctuation/bracket/quote characters. */
-	static isPunctuation(char: string): boolean {
+	static isPunctuation(char: string, extended: boolean = false): boolean {
+		if (extended) return _String.IS_PUNCTUATION_EXTENDED.test(char);
 		switch (char) {
 			case '.': case ',':
 			case ';': case ':':
@@ -250,40 +243,42 @@ class _String {
 		}
 	}
 
-	/** True for a character that's none of letter, digit, whitespace, line break, or tab. */
-	static isSymbol(char: string): boolean {
+	static isSymbol(char: string, extended: boolean = false): boolean {
 		return (
-			!_String.isLetter(char) &&
-			!_String.isDigit(char) &&
-			!_String.isWhitespace(char) &&
+			!_String.isLetter(char, extended) &&
+			!_String.isDigit(char, undefined, extended) &&
+			!_String.isWhitespace(char, extended) &&
 			!_String.isLineBreak(char) &&
 			!_String.isTab(char)
 		)
 	}
 
-	/** True for `\`. */
-	static isEscape(char: string): boolean {
+	static isEscape(char: string): char is "\\" {
 		return char.charCodeAt(0) == _String.ESCAPE_CODE;
 	}
 
-	/**
-	 * Iterate over each character in a string.
-	 * @param str - The string to iterate over.
-	 * @param callback - The callback to call for each character. If it returns `false`, iteration stops.
-	 */
-	static forEach(str: string, callback: (char: string, index: number) => void | false) {
+	static forEach(str: string, callback: TStrForEeachCallback) {
 		const len = str.length;
 		for (let index = 0; index < len; index++) {
 			if (callback(str[index], index) === false) break;
 		}
 	}
 
-	/**
-	 * Create a function that iterates over each character in a string, calling a callback for each character that is in the given set.
-	 * @param chars - The set of characters to iterate over.
-	 * @returns A function that iterates over each character in a string, calling a callback for each character that is in the given set.
-	 */
 	static onChar(chars: string) {
+		const lookup = _String.lookupArray(chars)
+		const highestCode = lookup.length - 1
+
+		return function (str: string, callback: (index: number) => void | false) {
+			const len = str.length
+			for (let i = 0; i < len; i++) {
+				const code = str.charCodeAt(i)
+				if (code > highestCode || lookup[code] === 0) continue
+				if (callback(i) === false) break
+			}
+		}
+	}
+
+	static lookupArray(chars: string) {
 		let highestCode = 0
 		const cLen = chars.length
 		for (let i = 0; i < cLen; i++) {
@@ -292,15 +287,14 @@ class _String {
 		}
 		const lookup = new Uint8Array(highestCode + 1)
 		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1
+		return lookup
+	}
 
-		return function (str: string, callback: (char: string, index: number) => void | false) {
-			const len = str.length
-			for (let i = 0; i < len; i++) {
-				const code = str.charCodeAt(i)
-				if (code > highestCode || lookup[code] === 0) continue
-				if (callback(str[i], i) === false) break
-			}
-		}
+	static lookupArray128(chars: string) {
+		const lookup = new Uint8Array(128)
+		const cLen = chars.length
+		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1
+		return lookup
 	}
 };
 

@@ -1,27 +1,22 @@
 import { TAs, TNullable } from "@ts/types";
-import { TDiffs, TEntriesReturn, TObject, TPath, TPathResolver } from "./types";
+import { TDiff, TEntriesReturn, TPath, TPathValue } from "./types";
 
 /**
  * @internal
 */
 class _Object {
-	/** Reads a nested value out of `obj` following a dot-separated `path` (e.g. `"a.b.c"`), typed via `TPath`/`TPathResolver`. */
-	static valueFromPath<
-		const T,
-		const Path extends TPath<T>,
-	>(obj: T, path: Path): TPathResolver<T, Path> {
-		return path.split(".").reduce((acc: any, key: string): any => {
+	static valueFromPath<const T, const P extends TPath<T>>(obj: T, path: P): TPathValue<T, P> {
+		return String(path).split(".").reduce((acc: any, key: string): any => {
 			return acc[key];
 		}, obj);
 	}
 
-	/** Writes `value` into `obj` at a nested dot-separated `path`, creating/traversing intermediate keys along the way. */
 	static setValueFromPath<
 		const T,
 		const Path extends TPath<T>,
-		const Value extends TPathResolver<T, Path>,
+		const Value extends TPathValue<T, Path>,
 	>(obj: T, path: Path, value: Value): Value {
-		const keys: string[] = path.split(".");
+		const keys: string[] = String(path).split(".");
 		keys.reduce((acc: any, key: string, idx: number): any => {
 			if (idx == keys.length - 1) {
 				acc[key] = value;
@@ -31,27 +26,22 @@ class _Object {
 		return value;
 	}
 
-	/** Shallow-merges `updates` onto `obj` via `Object.assign`, typed as the combined shape. */
 	static update<T extends object, U extends Partial<T>>(obj: T, updates: U): TAs<T, U> {
 		return Object.assign(obj, updates) as TAs<T, U>;
 	}
 
-	/** Typed `Object.entries` — keeps each `[key, value]` pair's value type instead of widening to `any`. */
 	static entries<T extends {}>(value: T): TEntriesReturn<T>[] {
 		return Object.entries(value) as TEntriesReturn<T>[];
 	}
 
-	/** True for `null` or `undefined` (loose equality — catches both in one check). */
 	static isNullOrUndefined<T>(value: TNullable<T>): value is TNullable {
 		return value == null || value == undefined;
 	}
 
-	/** True for any non-`null` value of type `"object"` (arrays included). */
-	static isObject(value: unknown): value is Object {
-		return value !== null && typeof value === 'object';
+	static isObject(value: any): value is Object {
+		return value && typeof value === 'object';
 	}
 
-	/** `JSON.stringify` that tolerates circular references (dropping them) instead of throwing. */
 	static json(obj: any, compact: boolean = true): string {
 		const seen = new Set();
 		return JSON.stringify(
@@ -66,7 +56,6 @@ class _Object {
 		);
 	}
 
-	/** True for `null`/`undefined`, or for any value strictly-equal to one of `nullValues`. */
 	static isNull<T>(value: TNullable<T>, nullValues: any[] = []): value is TNullable {
 		if (value === null || value === undefined) return true;
 		if (nullValues.length === 0) return false;
@@ -76,30 +65,19 @@ class _Object {
 		return false;
 	}
 
-	private static recursiveDiffs<const A, const B>(a: TObject<A>, b: TObject<B>, prefix = ''): TDiffs<A, B> {
+	static diff<const A extends object, const B extends object>(a: A, b: B): TDiff<A, B> {
 		const result: any = {};
 		const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
 		for (const key of keys) {
-			const aVal = (a as any)[key]
-			const bVal = (b as any)[key]
-			const path = `${prefix}${key}`
-
-			if (!(key in b)) {
-				result[key] = { type: 'removed', path, a: aVal }
-			} else if (!(key in a)) {
-				result[key] = { type: 'added', path, b: bVal }
-			} else if (_Object.isObject(aVal) && _Object.isObject(bVal)) {
-				result[key] = _Object.recursiveDiffs(aVal, bVal, `${path}.`)
-			} else if (aVal !== bVal) {
-				result[key] = { type: 'changed', path, a: aVal, b: bVal }
-			}
+			const aVal: any = (a as any)[key];
+			const bVal: any = (b as any)[key];
+			if (!(key in b)) {result[key] = ['REMOVED', aVal]; continue;}
+			if (!(key in a)) {result[key] = ['ADDED', bVal]; continue;}
+			if (aVal == bVal) continue;
+			if (isObject(aVal) && isObject(bVal)) {result[key] = _Object.diff(aVal, bVal); continue;}
+			result[key] = ['CHANGED', aVal, bVal];
 		}
 		return result;
-	}
-
-	/** Recursively diffs `a` against `b`, tagging each differing path as `added`/`removed`/`changed`. */
-	static diffs<const A, const B>(a: TObject<A>, b: TObject<B>): TDiffs<A, B> {
-		return _Object.recursiveDiffs(a, b);
 	}
 }
 
@@ -107,6 +85,7 @@ const {
 	isNull,
 	isNullOrUndefined,
 	json,
+	isObject,
 } = _Object;
 
 export {
@@ -114,4 +93,5 @@ export {
 	isNull,
 	isNullOrUndefined,
 	json,
+	isObject,
 }

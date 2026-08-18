@@ -1,5 +1,5 @@
-import { ValueCell } from "@ts/value-cell/model";
-import { TValueCellListener, TValueCellUnsubscribe } from "@ts/value-cell/types";
+import { Value } from "@ts/value-cell/model";
+import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
 import { debounce } from "@ts/filters/implementations";
 import { TDebounceFn } from "@ts/filters/types";
 import { TPlugin } from "../types";
@@ -14,7 +14,7 @@ import { TAsyncCheckFn, TAsyncCheckState } from "./types";
  * responder, só o resultado da checagem mais recente é aplicado.
  */
 class AsyncCheckPlugin<TInput, TResult> implements TPlugin<TAsyncCheckState<TResult>> {
-	private cell = new ValueCell<TAsyncCheckState<TResult>>({ status: "idle" });
+	private cell = new Value<TAsyncCheckState<TResult>>({ status: "idle" });
 	private token = 0;
 	private debounced: TDebounceFn<(input: TInput) => void>;
 
@@ -25,7 +25,7 @@ class AsyncCheckPlugin<TInput, TResult> implements TPlugin<TAsyncCheckState<TRes
 	get value(): TAsyncCheckState<TResult> { return this.cell.value; }
 
 	/** Subscribes to state changes. Returns an unsubscribe function. */
-	subscribe(listener: TValueCellListener<TAsyncCheckState<TResult>>): TValueCellUnsubscribe {
+	subscribe(listener: TValueListener<TAsyncCheckState<TResult>>): TValueUnsubscribe {
 		return this.cell.subscribe(listener);
 	}
 
