@@ -49,7 +49,7 @@ declare global {
 	interface Object {
 		valueFromPath<const T,const Path extends TPath<T>>(this: T, path: Path): TPathValue<T, Path>
 		setValueFromPath<const T, const Path extends TPath<T>, const Value extends TPathValue<T, Path>>(this: T, path: Path, value: Value): Value;
-		tryUpdate<T extends object, U extends Partial<T>>(this: T, updates: U): TAs<T, U>
+		update<T extends object, U extends Partial<T>>(this: T, updates: U): TAs<T, U>
 		toEntries<T extends {}>(this: T): TEntriesReturn<T>[]
 		toJson<T>(this: T, compact: boolean): string
 	}
