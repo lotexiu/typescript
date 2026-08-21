@@ -2,7 +2,7 @@ import { Computed, computed } from "@ts/reactive/computed/model";
 import { Model, model } from "@ts/reactive/model/model";
 import Color, { ColorTypes } from "colorjs.io";
 import { ColorSpace } from "colorjs.io/fn";
-import { TToneStop } from "./types";
+import { TToneStop, TToneStops } from "./types";
 
 abstract class AbstractPalette {
 	protected tones: Map<TToneStop, Color> = new Map()
@@ -50,13 +50,14 @@ class TonalPalette<T extends ColorTypes = string> extends AbstractPalette {
 		}, [this.seed])
 	}
 	
-	get(toneStop: TToneStop) {
+	get(toneStop: TToneStops[number]) {
 		if (this.changed || !this.tones.has(toneStop)) {
 			this.tones.clear()
 			const lightness = toneStop / 100
 			const chroma = this.seedOklch.value.coords[1]
 			const hue = this.seedOklch.value.coords[2]
 			this.tones.set(toneStop, new Color("oklch", [lightness, chroma, hue]))
+			this.changed = false
 		}
 		return this.tones.get(toneStop)!
 	}

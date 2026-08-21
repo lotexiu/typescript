@@ -1,31 +1,107 @@
-import { Palette, TonalPalette } from "./model";
+import { TonalPalette } from "./model";
 
 const TONE_STOPS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100] as const
 
+// Seeds corrigidas: L entre 0.40–0.65 em OKLCH para boa distribuição nos extremos
 const BASIC_PALETTES = [
-	new TonalPalette('darkgreen', 'Dark Green'),
-	new TonalPalette('green', 'Green'),
-	new TonalPalette('lightgreen', 'Light Green'),
-	new TonalPalette('aquamarine', 'Aquamarine'),
-	new TonalPalette('cyan', 'Cyan'),
-	new TonalPalette('deepskyblue', 'Deep Sky Blue'),
-	new TonalPalette('dodgerblue', 'Dodger Blue'),
-	new TonalPalette('blue', 'Blue'),
-	new TonalPalette('slateblue', 'Slate Blue'),
-	new TonalPalette('blueviolet', 'Blue Violet'),
-	new TonalPalette('purple', 'Purple'),
-	new TonalPalette('mediumvioletred', 'Medium Violet Red'),
-	new TonalPalette('red', 'Red'),
-	new TonalPalette('brown', 'brown'),
-	new TonalPalette('orange', 'Orange'),
-	new TonalPalette('yellow', 'Yellow'),
-	new TonalPalette('lemonchiffon', 'Lemon Chiffon'),
-	new TonalPalette('beige', 'Beige'),
-	new TonalPalette('white', 'White'),
-	new TonalPalette('black', 'Black'),
-]
+  new TonalPalette('#2d6a2d', 'FOREST_GREEN'),
+  new TonalPalette('#1a7f1a', 'PURE_GREEN'),
+  new TonalPalette('#5a9e5a', 'SAGE_GREEN'),
+  new TonalPalette('#2ab88a', 'AQUAMARINE'),
+  new TonalPalette('#008080', 'TEAL'),
+  new TonalPalette('#0077b6', 'SKY_BLUE'),
+  new TonalPalette('#1a5fb4', 'ROYAL_BLUE'),
+  new TonalPalette('#0047ab', 'COBALT'),
+  new TonalPalette('#5465a0', 'SLATE_BLUE'),
+  new TonalPalette('#6a21c4', 'BLUE_VIOLET'),
+  new TonalPalette('#7b2d8b', 'PURPLE'),
+  new TonalPalette('#b5174f', 'ROSE_RED'),
+  new TonalPalette('#c0392b', 'CRIMSON'),
+  new TonalPalette('#8b4513', 'SIENNA'),
+  new TonalPalette('#c46200', 'AMBER_ORANGE'),
+  new TonalPalette('#b8860b', 'GOLDEN'),
+  new TonalPalette('#808000', 'OLIVE'),
+  new TonalPalette('#7d7168', 'WARM_GRAY'),
+  new TonalPalette('#607080', 'COOL_GRAY'),
+  new TonalPalette('#6b6b6b', 'NEUTRAL'),
+] as const
+
+// Seeds claras com croma alto — pastéis vibrantes (L 0.78–0.84)
+const LIGHT_COLORS = [
+  new TonalPalette('#f28b9f', 'BLUSH'),
+  new TonalPalette('#f7a072', 'PEACH'),
+  new TonalPalette('#f5c542', 'HONEY'),
+  new TonalPalette('#a8d84e', 'LIME'),
+  new TonalPalette('#5ecfb1', 'MINT'),
+  new TonalPalette('#6db8e8', 'BABY_BLUE'),
+  new TonalPalette('#a78fdb', 'LAVENDER'),
+  new TonalPalette('#c07ec0', 'LILAC'),
+  new TonalPalette('#f28b72', 'CORAL'),
+  new TonalPalette('#f5d96b', 'BUTTER'),
+] as const
+
+// Seeds escuras com croma alto — cores profundas (L 0.30–0.40)
+const DARK_COLORS = [
+  new TonalPalette('#1a4d1a', 'DEEP_FOREST'),
+  new TonalPalette('#0a3d5c', 'DEEP_OCEAN'),
+  new TonalPalette('#3d0f6b', 'DEEP_PURPLE'),
+  new TonalPalette('#7a0f2e', 'DEEP_CRIMSON'),
+  new TonalPalette('#0d2b6b', 'MIDNIGHT_BLUE'),
+  new TonalPalette('#0a4a45', 'DARK_TEAL'),
+  new TonalPalette('#4a2010', 'ESPRESSO'),
+  new TonalPalette('#4a1040', 'DARK_PLUM'),
+  new TonalPalette('#3a4a0a', 'DEEP_OLIVE'),
+  new TonalPalette('#1a3a3a', 'CHARCOAL_TEAL'),
+] as const
+
+// Croma máximo no sRGB — neons saturados (L 0.75–0.88)
+const NEON_COLORS = [
+  new TonalPalette('#39ff14', 'NEON_GREEN'),
+  new TonalPalette('#ff2d78', 'NEON_PINK'),
+  new TonalPalette('#ff6600', 'NEON_ORANGE'),
+  new TonalPalette('#ffe800', 'NEON_YELLOW'),
+  new TonalPalette('#00f5ff', 'NEON_CYAN'),
+  new TonalPalette('#bf00ff', 'NEON_PURPLE'),
+  new TonalPalette('#ff1a1a', 'NEON_RED'),
+  new TonalPalette('#1a8cff', 'NEON_BLUE'),
+  new TonalPalette('#ccff00', 'NEON_LIME'),
+  new TonalPalette('#ff00cc', 'NEON_MAGENTA'),
+] as const
+
+// Tons terrosos naturais (L 0.42–0.58)
+const EARTH_COLORS = [
+  new TonalPalette('#c1440e', 'TERRACOTTA'),
+  new TonalPalette('#b34700', 'RUST'),
+  new TonalPalette('#6b4423', 'UMBER'),
+  new TonalPalette('#c2a060', 'SAND'),
+  new TonalPalette('#b06040', 'CLAY'),
+  new TonalPalette('#4e6b3a', 'MOSS'),
+  new TonalPalette('#7d7060', 'STONE'),
+  new TonalPalette('#c8a86b', 'DESERT'),
+  new TonalPalette('#7a5230', 'BARK'),
+  new TonalPalette('#6b8f71', 'SAGE'),
+] as const
+
+// Tons suaves — pastéis com L alto e C baixo (L 0.82–0.90)
+const PASTEL_COLORS = [
+  new TonalPalette('#f4a7c3', 'COTTON_CANDY'),
+  new TonalPalette('#a7c4e8', 'POWDER_BLUE'),
+  new TonalPalette('#a8d8a8', 'PISTACHIO'),
+  new TonalPalette('#e8d5b0', 'CHAMPAGNE'),
+  new TonalPalette('#e8b4b8', 'ROSE_QUARTZ'),
+  new TonalPalette('#b4b8e8', 'PERIWINKLE'),
+  new TonalPalette('#a8d8cf', 'SEAFOAM'),
+  new TonalPalette('#d4a8c8', 'MAUVE'),
+  new TonalPalette('#e8e0a8', 'PRIMROSE'),
+  new TonalPalette('#f0c8a0', 'APRICOT'),
+] as const
 
 export {
-	TONE_STOPS,
-	BASIC_PALETTES
+  TONE_STOPS,
+  BASIC_PALETTES,
+  LIGHT_COLORS,
+  DARK_COLORS,
+  NEON_COLORS,
+  EARTH_COLORS,
+  PASTEL_COLORS,
 }
