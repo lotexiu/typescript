@@ -2,11 +2,17 @@ import { Computed, computed } from "@ts/reactive/computed/model";
 import { Model, model } from "@ts/reactive/model/model";
 import Color, { ColorTypes } from "colorjs.io";
 import { ColorSpace } from "colorjs.io/fn";
+import { TToneStop } from "./types";
 
 abstract class AbstractPalette {
-	tones: Map<number, Color> = new Map()
+	protected tones: Map<TToneStop, Color> = new Map()
+	name: Model<string>
 
-	abstract get(toneStop: number): Color
+	constructor(name: string){
+		this.name = model(name)
+	}
+	
+	abstract get(toneStop: TToneStop): Color
 
 	rangeTo(color: Color, space: string|ColorSpace = 'srgb') {
 		return color.toGamut({space}).to(space)
@@ -14,9 +20,12 @@ abstract class AbstractPalette {
 }
 
 class Palette extends AbstractPalette {
-	constructor(public readonly seedTones: Record<number, string>) {super()}
+	constructor(
+		name: string,
+		public readonly seedTones: Record<number, string>
+	) {super(name)}
 
-	get(toneStop: number) {
+	get(toneStop: TToneStop) {
 		if (!this.tones.has(toneStop)) {
 			this.tones.set(toneStop, new Color(this.seedTones[toneStop]))
 		}
@@ -24,13 +33,16 @@ class Palette extends AbstractPalette {
 	}
 }
 
-class TonalPalette<T extends ColorTypes> extends AbstractPalette {
+class TonalPalette<T extends ColorTypes = string> extends AbstractPalette {
 	seed: Model<T>
-	seedOklch: Computed<Color>
-	changed: boolean = true
+	protected seedOklch: Computed<Color>
+	protected changed: boolean = true
 	
-	constructor(seed: T){
-		super()
+	constructor(
+		seed: T,
+		name: string,
+	){
+		super(name)
 		this.seed = model(seed)
 		this.seedOklch = computed(()=> {
 			this.changed = true
@@ -38,7 +50,7 @@ class TonalPalette<T extends ColorTypes> extends AbstractPalette {
 		}, [this.seed])
 	}
 	
-	get(toneStop: number) {
+	get(toneStop: TToneStop) {
 		if (this.changed || !this.tones.has(toneStop)) {
 			this.tones.clear()
 			const lightness = toneStop / 100
