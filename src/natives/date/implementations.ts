@@ -1,12 +1,9 @@
+import { MS_CONVERTIONS } from "./declarations";
+
 /**
  * @internal
 */
 class _Date {
-	/**
-	 * Parse estrito de "yyyy-mm-dd" (ISO 8601, data). undefined se vazio, mal
-	 * formatado, ou data de calendário inválida (ex.: 2024-02-30 não vira
-	 * março, é rejeitada). Não tenta adivinhar outros formatos de propósito.
-	 */
 	static parseISO(raw: string): Date | undefined {
 		const trimmed = raw.trim();
 		if (trimmed === "") return undefined;
@@ -25,6 +22,11 @@ class _Date {
 			date.getUTCDate() === day;
 
 		return isRealCalendarDate ? date : undefined;
+	}
+
+	formatMS(ms: number) {
+		const [unit, _, factor] = (MS_CONVERTIONS.find(([_,threshold]) => ms < threshold) ?? MS_CONVERTIONS.at(-1)!)
+		return `${Math.round(ms * factor)} ${unit}`;
 	}
 }
 

@@ -41,14 +41,13 @@ const REGEX_PATTERNS = {
 	},
 	SYMBOLS: {
 		PUNCTUATION: {
-			BASIC: '[^\\w\\s]',
 			EXTENDED: '\\p{P}',
 			MATH: '\\p{Sm}',
 		},
 		CURRENCY: '\\p{Sc}',
 		PRESENTATION: '\\p{Emoji_Presentation}',
 		EMOJI: '\\p{RGI_Emoji}',
-		ALL: '\\p{Emoji}',
+		ALL: '[^\\p{L}]',
 	},
 } as const
 
