@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "package": "@lotexiu/typescript",
   "baseRef": "03abe48eb1e21f16b7ee9d7fa20547dc0dca94ba",
-  "headRef": "0666e01070de5e745ce6bb075947c9485809e23a",
-  "generatedAt": "2026-08-17T13:39:19.495Z",
+  "headRef": "a8ffe48963399f690475a746f30bee98c329f391",
+  "generatedAt": "2026-08-23T14:54:55.840Z",
   "tags": [
     "major",
     "feat",
@@ -17,9 +17,39 @@
       "file": "src/natives/regex/implementations.ts"
     },
     {
+      "name": "computed",
+      "category": "function",
+      "file": "src/reactive/computed/model.ts"
+    },
+    {
+      "name": "Computed",
+      "category": "class",
+      "file": "src/reactive/computed/model.ts"
+    },
+    {
+      "name": "CustomPalette",
+      "category": "class",
+      "file": "src/reactive/theme/palette/model.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.tryUpdate",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts"
+    },
+    {
       "name": "isObject",
       "category": "function",
       "file": "src/natives/object/implementations.ts"
+    },
+    {
+      "name": "Item",
+      "category": "class",
+      "file": "src/reactive/item/model.ts"
+    },
+    {
+      "name": "MaskPlugin.instance.tryUpdate",
+      "category": "member",
+      "file": "src/html/plugins/mask/model.ts"
     },
     {
       "name": "MathUtils.static.getDecimals",
@@ -30,6 +60,26 @@
       "name": "MathUtils.static.hasDecimals",
       "category": "member",
       "file": "src/natives/math/utils.ts"
+    },
+    {
+      "name": "model",
+      "category": "function",
+      "file": "src/reactive/model/model.ts"
+    },
+    {
+      "name": "Model",
+      "category": "class",
+      "file": "src/reactive/model/model.ts"
+    },
+    {
+      "name": "Palette",
+      "category": "class",
+      "file": "src/reactive/theme/palette/model.ts"
+    },
+    {
+      "name": "PALETTES",
+      "category": "const",
+      "file": "src/reactive/theme/palette/constants.ts"
     },
     {
       "name": "Parser",
@@ -50,6 +100,21 @@
       "name": "REGEX_PATTERNS",
       "category": "const",
       "file": "src/natives/regex/declarations.ts"
+    },
+    {
+      "name": "SlotColor",
+      "category": "type",
+      "file": "src/reactive/theme/style/types.ts"
+    },
+    {
+      "name": "SpyUtils.static.benchmark",
+      "category": "member",
+      "file": "src/spy/utils.ts"
+    },
+    {
+      "name": "StopWatch",
+      "category": "class",
+      "file": "src/reactive/stopwatch/model.ts"
     },
     {
       "name": "StringUtils.static.charCodeArray",
@@ -77,6 +142,11 @@
       "file": "src/natives/string/utils.ts"
     },
     {
+      "name": "Subscription",
+      "category": "class",
+      "file": "src/reactive/model.ts"
+    },
+    {
       "name": "TDiff",
       "category": "type",
       "file": "src/natives/object/types.ts"
@@ -85,6 +155,16 @@
       "name": "TDiffValues",
       "category": "type",
       "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "ThemeStyle",
+      "category": "class",
+      "file": "src/reactive/theme/style/model.ts"
+    },
+    {
+      "name": "TIndexedValue",
+      "category": "type",
+      "file": "src/reactive/history/types.ts"
     },
     {
       "name": "TIterate",
@@ -97,9 +177,24 @@
       "file": "src/natives/object/types.ts"
     },
     {
+      "name": "TonalPalette",
+      "category": "class",
+      "file": "src/reactive/theme/palette/model.ts"
+    },
+    {
+      "name": "TONE_STOPS",
+      "category": "const",
+      "file": "src/reactive/theme/palette/constants.ts"
+    },
+    {
       "name": "TPathValue",
       "category": "type",
       "file": "src/natives/object/types.ts"
+    },
+    {
+      "name": "TSAST",
+      "category": "class",
+      "file": "src/ts-ast/model.ts"
     },
     {
       "name": "TStrForEeachCallback",
@@ -117,6 +212,16 @@
       "file": "src/natives/string/types.ts"
     },
     {
+      "name": "TSubscription",
+      "category": "type",
+      "file": "src/reactive/computed/types.ts"
+    },
+    {
+      "name": "TThemeMode",
+      "category": "type",
+      "file": "src/reactive/theme/types.ts"
+    },
+    {
       "name": "TTimeConverted",
       "category": "type",
       "file": "src/time/types.ts"
@@ -125,13 +230,73 @@
       "name": "TTimeUnit",
       "category": "type",
       "file": "src/time/types.ts"
+    },
+    {
+      "name": "TToneStops",
+      "category": "type",
+      "file": "src/reactive/theme/palette/types.ts"
+    },
+    {
+      "name": "TValueListener",
+      "category": "type",
+      "file": "src/reactive/types.ts"
+    },
+    {
+      "name": "TValueUnsubscribe",
+      "category": "type",
+      "file": "src/reactive/types.ts"
+    },
+    {
+      "name": "TVariant",
+      "category": "type",
+      "file": "src/reactive/variant/types.ts"
+    },
+    {
+      "name": "ValueHistory.instance._history",
+      "category": "member",
+      "file": "src/reactive/history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.length",
+      "category": "member",
+      "file": "src/reactive/history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.toIndexedValue",
+      "category": "member",
+      "file": "src/reactive/history/model.ts"
+    },
+    {
+      "name": "variant",
+      "category": "function",
+      "file": "src/reactive/variant/model.ts"
+    },
+    {
+      "name": "Variant",
+      "category": "class",
+      "file": "src/reactive/variant/model.ts"
     }
   ],
   "removed": [
     {
+      "name": "buildTonalPalette",
+      "category": "const",
+      "file": "src/palette/implementations.ts"
+    },
+    {
       "name": "deleteProxy",
       "category": "function",
       "file": "src/natives/object/proxy/implementations.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.update",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts"
+    },
+    {
+      "name": "MaskPlugin.instance.update",
+      "category": "member",
+      "file": "src/html/plugins/mask/model.ts"
     },
     {
       "name": "proxyHandler",
@@ -164,6 +329,11 @@
       "file": "src/natives/object/types.ts"
     },
     {
+      "name": "TIndexedItem",
+      "category": "type",
+      "file": "src/value-history/types.ts"
+    },
+    {
       "name": "TPathResolver",
       "category": "type",
       "file": "src/natives/object/types.ts"
@@ -187,9 +357,194 @@
       "name": "TProxyOptions",
       "category": "type",
       "file": "src/natives/object/proxy/types.ts"
+    },
+    {
+      "name": "TTonalPalette",
+      "category": "type",
+      "file": "src/palette/types.ts"
+    },
+    {
+      "name": "TTonalPaletteSeeds",
+      "category": "type",
+      "file": "src/palette/types.ts"
+    },
+    {
+      "name": "TValueCellListener",
+      "category": "type",
+      "file": "src/value-cell/types.ts"
+    },
+    {
+      "name": "TValueCellUnsubscribe",
+      "category": "type",
+      "file": "src/value-cell/types.ts"
+    },
+    {
+      "name": "ValueCell",
+      "category": "class",
+      "file": "src/value-cell/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.canRedo",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.canUndo",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.clear",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.maintainHistorySize",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.onBeforeClear",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.onBeforeRedo",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.onBeforeRegister",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.onBeforeUndo",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.registerState",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.removeFuture",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "ValueHistory.instance.state",
+      "category": "member",
+      "file": "src/value-history/model.ts"
+    },
+    {
+      "name": "VariantCell",
+      "category": "class",
+      "file": "src/variant-cell/model.ts"
     }
   ],
   "changed": [
+    {
+      "name": "AsyncCheckPlugin.instance.cell",
+      "category": "member",
+      "file": "src/html/plugins/async-check/model.ts",
+      "previousSignature": "ValueCell<TAsyncCheckState<TResult>>",
+      "nextSignature": "import(\"@ts/reactive/model/model\").Model<TAsyncCheckState<TResult>>",
+      "kind": "signature"
+    },
+    {
+      "name": "AsyncCheckPlugin.instance.subscribe",
+      "category": "member",
+      "file": "src/html/plugins/async-check/model.ts",
+      "previousSignature": "(listener: TValueCellListener<TAsyncCheckState<TResult>>) => TValueCellUnsubscribe",
+      "nextSignature": "(listener: TValueListener<TAsyncCheckState<TResult>>) => TValueUnsubscribe",
+      "kind": "signature"
+    },
+    {
+      "name": "DatePlugin.instance.cell",
+      "category": "member",
+      "file": "src/html/plugins/date/model.ts",
+      "previousSignature": "ValueCell<Date | undefined>",
+      "nextSignature": "import(\"@ts/index\").Model<Date | undefined>",
+      "kind": "signature"
+    },
+    {
+      "name": "DatePlugin.instance.subscribe",
+      "category": "member",
+      "file": "src/html/plugins/date/model.ts",
+      "previousSignature": "(listener: TValueCellListener<Date | undefined>) => TValueCellUnsubscribe",
+      "nextSignature": "(listener: TValueListener<Date | undefined>) => TValueUnsubscribe",
+      "kind": "signature"
+    },
+    {
+      "name": "InteractionPlugin.instance.cell",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "ValueCell<TInteractionState>",
+      "nextSignature": "import(\"@ts/reactive/model/model\").Model<TInteractionState>",
+      "kind": "signature"
+    },
+    {
+      "name": "InteractionPlugin.instance.onBlur",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "() => void",
+      "nextSignature": "() => void",
+      "kind": "body",
+      "implementationFile": "src/html/plugins/interaction/model.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.onChange",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "() => void",
+      "nextSignature": "() => void",
+      "kind": "body",
+      "implementationFile": "src/html/plugins/interaction/model.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.onFocus",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "() => void",
+      "nextSignature": "() => void",
+      "kind": "body",
+      "implementationFile": "src/html/plugins/interaction/model.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.reset",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "() => void",
+      "nextSignature": "() => void",
+      "kind": "body",
+      "implementationFile": "src/html/plugins/interaction/model.ts"
+    },
+    {
+      "name": "InteractionPlugin.instance.subscribe",
+      "category": "member",
+      "file": "src/html/plugins/interaction/model.ts",
+      "previousSignature": "(listener: TValueCellListener<TInteractionState>) => TValueCellUnsubscribe",
+      "nextSignature": "(listener: TValueListener<TInteractionState>) => TValueUnsubscribe",
+      "kind": "signature"
+    },
+    {
+      "name": "MaskPlugin.instance.cell",
+      "category": "member",
+      "file": "src/html/plugins/mask/model.ts",
+      "previousSignature": "ValueCell<string>",
+      "nextSignature": "Model<string>",
+      "kind": "signature"
+    },
+    {
+      "name": "MaskPlugin.instance.subscribe",
+      "category": "member",
+      "file": "src/html/plugins/mask/model.ts",
+      "previousSignature": "(listener: TValueCellListener<string>) => TValueCellUnsubscribe",
+      "nextSignature": "(listener: TValueListener<string>) => TValueUnsubscribe",
+      "kind": "signature"
+    },
     {
       "name": "MathUtils.static.clamp",
       "category": "member",
@@ -198,6 +553,22 @@
       "nextSignature": "(value: number, min?: number, max?: number) => number",
       "kind": "body",
       "implementationFile": "src/natives/math/implementations.ts"
+    },
+    {
+      "name": "NumberPlugin.instance.cell",
+      "category": "member",
+      "file": "src/html/plugins/number/model.ts",
+      "previousSignature": "ValueCell<number | undefined>",
+      "nextSignature": "import(\"@ts/reactive/model/model\").Model<number | undefined>",
+      "kind": "signature"
+    },
+    {
+      "name": "NumberPlugin.instance.subscribe",
+      "category": "member",
+      "file": "src/html/plugins/number/model.ts",
+      "previousSignature": "(listener: TValueCellListener<number | undefined>) => TValueCellUnsubscribe",
+      "nextSignature": "(listener: TValueListener<number | undefined>) => TValueUnsubscribe",
+      "kind": "signature"
     },
     {
       "name": "ObjectUtils.static.diffs",
@@ -236,7 +607,7 @@
       "category": "member",
       "file": "src/spy/utils.ts",
       "previousSignature": "<T extends import(\"..\").TFn>(fn: T, name: string, averageAmount?: number) => T",
-      "nextSignature": "<T extends import(\"..\").TFn>(fn: T, callback: (value: number) => void, iterations?: number) => T",
+      "nextSignature": "<T extends import(\"..\").TFn>(fn: T, iterations?: number, callback?: (value: number) => void) => T",
       "kind": "signature"
     },
     {
@@ -454,6 +825,14 @@
       "kind": "signature"
     },
     {
+      "name": "TNewValueHistoryState",
+      "category": "interface",
+      "file": "src/reactive/history/types.ts",
+      "previousSignature": "interface TNewValueHistoryState<T> extends TValueHistoryState<T> { new: TIndexedItem<T> }",
+      "nextSignature": "interface TNewValueHistoryState<T> extends TValueHistoryState<T> { new: TIndexedValue<T> }",
+      "kind": "signature"
+    },
+    {
       "name": "TObject",
       "category": "type",
       "file": "src/natives/object/types.ts",
@@ -470,11 +849,107 @@
       "kind": "signature"
     },
     {
+      "name": "TPlugin",
+      "category": "interface",
+      "file": "src/html/plugins/types.ts",
+      "previousSignature": "interface TPlugin<T> { get value(): T; subscribe(listener: TValueCellListener<T>): TValueCellUnsubscribe; }",
+      "nextSignature": "interface TPlugin<T> { get value(): T; subscribe(listener: TValueListener<T>): TValueUnsubscribe; }",
+      "kind": "signature"
+    },
+    {
       "name": "TSameType",
       "category": "type",
       "file": "src/types.ts",
       "previousSignature": "type TSameType<A,B> = A extends B ? B extends A ? A : never : never",
       "nextSignature": "type TSameType<A,B> = A extends B ? B extends A ? true : false : false",
+      "kind": "signature"
+    },
+    {
+      "name": "TToneStop",
+      "category": "type",
+      "file": "src/reactive/theme/palette/types.ts",
+      "previousSignature": "type TToneStop = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 95 | 99 | 100;",
+      "nextSignature": "type TToneStop = TToneStops[number]",
+      "kind": "signature"
+    },
+    {
+      "name": "TValueHistoryState",
+      "category": "interface",
+      "file": "src/reactive/history/types.ts",
+      "previousSignature": "interface TValueHistoryState<T> { previous?: TIndexedItem<T> current?: TIndexedItem<T> next?: TIndexedItem<T> }",
+      "nextSignature": "interface TValueHistoryState<T> { previous?: TIndexedValue<T> current?: TIndexedValue<T> next?: TIndexedValue<T> }",
+      "kind": "signature"
+    },
+    {
+      "name": "TVariantDerive",
+      "category": "type",
+      "file": "src/reactive/variant/types.ts",
+      "previousSignature": "type TVariantDerive<TName extends string, TValue> = (name: TName) => TValue;",
+      "nextSignature": "type TVariantDerive<TName, TValue> = (name: TName) => TValue;",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.add",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "(item: T) => void",
+      "nextSignature": "(value: T) => void",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.current",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "TIndexedItem<T>",
+      "nextSignature": "import(\"../..\").Computed<TIndexedValue<T> | undefined>",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.history",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "T[]",
+      "nextSignature": "import(\"../..\").Computed<{ index: number; value: T; }[]>",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.index",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "number",
+      "nextSignature": "import(\"../..\").Model<number>",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.next",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "TIndexedItem<T>",
+      "nextSignature": "import(\"../..\").Computed<TIndexedValue<T> | undefined>",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.previous",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "TIndexedItem<T>",
+      "nextSignature": "import(\"../..\").Computed<TIndexedValue<T> | undefined>",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.redo",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "() => T | undefined",
+      "nextSignature": "() => void",
+      "kind": "signature"
+    },
+    {
+      "name": "ValueHistory.instance.undo",
+      "category": "member",
+      "file": "src/reactive/history/model.ts",
+      "previousSignature": "() => T | undefined",
+      "nextSignature": "() => void",
       "kind": "signature"
     }
   ]

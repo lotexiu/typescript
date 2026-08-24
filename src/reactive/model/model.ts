@@ -1,4 +1,4 @@
-import { Subscription } from "../model";
+import { Subscription } from "../subscription/model";
 
 /**
  * Menor primitivo reativo da lib: guarda um valor e notifica assinantes quando ele muda.

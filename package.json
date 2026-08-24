@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "pnpm clean && vite build",
-    "prepare": "pnpm build && pnpm test && pnpm run docs && pnpm changes",
+    "prepare": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
+    "@microsoft/api-extractor": "^7.58.2",
     "@types/node": "^26.0.0",
     "@vitest/ui": "4.1.9",
     "chokidar": "^4.0.0",

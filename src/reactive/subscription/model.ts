@@ -1,6 +1,6 @@
 import { TValueListener, TValueUnsubscribe } from "./types";
 
-class Subscription<T> {
+abstract class Subscription<T> {
 	private listeners = new Set<TValueListener<T>>();
 
 	protected notifies(value: T) {
@@ -12,11 +12,17 @@ class Subscription<T> {
 		return () => { this.listeners.delete(listener); };
 	}
 
-	protected clearListeners(): void {
+	protected dispose(): void {
 		this.listeners.clear();
 	}
 }
 
+class SubscriptionController<T> extends Subscription<T> {
+	notifies(value: T): void {super.notifies(value)}
+	dispose(): void {super.dispose()}
+}
+
 export {
-	Subscription
+	Subscription,
+	SubscriptionController
 }

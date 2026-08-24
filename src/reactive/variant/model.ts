@@ -1,5 +1,5 @@
 import { Computed, computed } from "../computed/model";
-import { Subscription } from "../model";
+import { Subscription } from "../subscription/model";
 import { model, Model } from "../model/model";
 import { TVariantDerive } from "./types";
 

@@ -1,5 +1,5 @@
 import { CaptureManager } from "@ts/capture-manager/model";
-import { TMouseButtons, TMouseButtonsCode, TMouseOnEvent, TMouseValue } from "./types";
+import { TMouseButtons, TMouseButtonsCode, TMouseDragHandlers, TMouseOnEvent, TMousePoint, TMouseValue } from "./types";
 import { MOUSE_BUTTON_MAP } from "./declarations";
 
 class MouseManager extends CaptureManager<TMouseOnEvent> {	
@@ -119,6 +119,29 @@ class MouseManager extends CaptureManager<TMouseOnEvent> {
 		if (isDown) nextButtons.add(button)
 		else nextButtons.delete(button);
 		this.currentButtons = nextButtons;
+	}
+
+	/**
+	 * Tracks one drag gesture end-to-end: subscribes for its duration, calls
+	 * `onMove` with the pixel delta from `start` on every cursor move, and
+	 * — the moment every mouse button is released — calls `onEnd` and
+	 * unsubscribes itself. Consumers no longer need to reconstruct "did the
+	 * drag just end" from `buttonsChanged`/`buttons.current.length` by hand;
+	 * that's exactly the fragile part this method owns instead. Returns an
+	 * unsubscribe function for cancelling the gesture early (e.g. on unmount).
+	 */
+	trackDrag(start: TMousePoint, handlers: TMouseDragHandlers): () => void {
+		const unsubscribe = this.add((value) => {
+			if (value.isMove) {
+				handlers.onMove(value.coord.x.current - start.x, value.coord.y.current - start.y, value);
+				return;
+			}
+			if (value.buttonsChanged && value.buttons.current.length === 0) {
+				handlers.onEnd?.(value);
+				unsubscribe();
+			}
+		});
+		return unsubscribe;
 	}
 }
 

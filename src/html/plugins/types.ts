@@ -1,4 +1,4 @@
-import { TValueListener, TValueUnsubscribe } from "@ts/value-cell/types";
+import { TValueListener, TValueUnsubscribe } from "@ts/reactive/types";
 
 /**
  * Contrato mínimo que todo plugin de componente segue: ler o valor atual e

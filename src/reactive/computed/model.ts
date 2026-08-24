@@ -1,4 +1,4 @@
-import { Subscription } from "../model";
+import { Subscription } from "../subscription/model";
 import { TValueUnsubscribe } from "../types";
 import { TSubscription } from "./types";
 
@@ -38,7 +38,7 @@ class Computed<T> extends Subscription<Computed<T>> {
 
 	dispose(): void {
 		this.unsubscribes.forEach(unsubscribe => unsubscribe());
-		this.clearListeners();
+		super.dispose();
 	}
 }
 

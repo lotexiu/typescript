@@ -36,6 +36,20 @@ type TMouseState = {
 	y?: number,
 }
 
+/** A plain cursor point — the shape `mouseManager.trackDrag(...)`'s `start` parameter takes. */
+type TMousePoint = {
+	x: number,
+	y: number,
+}
+
+/** Handlers `mouseManager.trackDrag(...)` calls as the gesture progresses. */
+type TMouseDragHandlers = {
+	/** Called on every cursor move, with the pixel delta since the gesture's `start` point. */
+	onMove: (dx: number, dy: number, value: TMouseValue) => void,
+	/** Called once — right before the gesture unsubscribes itself — the moment every mouse button is released. */
+	onEnd?: (value: TMouseValue) => void,
+}
+
 export {
 	TMouseButtonsCode,
 	TMouseButtons,
@@ -43,4 +57,6 @@ export {
 	TMouseOnEvent,
 	TMouseValue,
 	TMouseState,
+	TMousePoint,
+	TMouseDragHandlers,
 }
