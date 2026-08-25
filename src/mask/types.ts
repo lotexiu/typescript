@@ -1,20 +1,17 @@
+import { TMaskRuleToken, TMaskToken } from "./token/model";
 
 type TMaskRule = {
 	match: string[];
 	flags?: string;
 }
 
-type TMaskToken =
-	| { type: 'mask', value: string }
-	| { type: 'rule', value: string, min: number, max: number, flags?: string, test: RegExp }
-
 type TMaskCompiledPattern = {
 	source: string
-	tokens: TMaskToken[]
+	ruleTokens: TMaskRuleToken[]
+	tokens: (TMaskToken | TMaskRuleToken)[]
 }
 
 export {
 	TMaskRule,
-	TMaskToken,
 	TMaskCompiledPattern
 }

@@ -1,58 +1,67 @@
 import { REGEX_PATTERNS } from "@tsn/regex/declarations";
-import { TMaskCompiledPattern, TMaskRule, TMaskToken } from "./types";
+import { TMaskCompiledPattern, TMaskRule } from "./types";
 import { model } from "@ts/model/model";
 import { computed } from "@ts/computed/model";
+import { TMaskRuleToken, TMaskToken } from "./token/model";
+import { _Regex } from "@tsn/regex/implementations";
 
 const { DIGITS, LETTERS, SYMBOLS } = REGEX_PATTERNS
 
 class Mask {
-	private static readonly cache = new Map<string, TMaskCompiledPattern[]>()
+	private static readonly cache = new Map<string, TMaskCompiledPattern>()
 
-	private static readonly _rules = model<Map<string, TMaskRule>>(new Map([
-		['0', { match: [DIGITS.BASIC] }],
-		['A', { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: 'v' }],
-		['W', { match: [LETTERS.EXTENDED.ALL], flags: 'v' }],
-		['U', { match: [LETTERS.EXTENDED.UPPERCASE], flags: 'v' }],
-		['L', { match: [LETTERS.EXTENDED.LOWERCASE], flags: 'v' }],
-		['S', { match: [SYMBOLS.ALL], flags: 'v' }],
-		['C', { match: [SYMBOLS.CURRENCY], flags: 'v' }],
-		['E', { match: [SYMBOLS.EMOJI], flags: 'v' }],
-		['X', { match: ['.'], flags: 'v' }],
-	]))
-	private static readonly ruleKeys = computed(() => [...Mask._rules.value.keys()], [Mask._rules])
-	private static readonly ruleMatcher = computed(() => {
-		const keys = Mask.ruleKeys.value.map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+	private static readonly _rules = model<Map<string, TMaskRule>>(new Map())
+	static readonly rules = computed(() => [...Mask._rules.value.values()], [Mask._rules])
+	static readonly ruleKeys = computed(() => [...Mask._rules.value.keys()], [Mask._rules])
+	static readonly ruleMatcher = computed(() => {
+		const keys = Mask.ruleKeys.value.map(key => _Regex.escapeReservedKeys(key))
 		return new RegExp(`(${keys.join('|')})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, 'g')
 	}, [Mask.ruleKeys])
 
-	static init() {
-		Mask._rules.subscribe(() => {
-			this.cache.clear()
-		})
+	static {
+		Mask.resetRulesToDefault();
+		Mask._rules.subscribe(() => Mask.cache.clear())
 	}
 
-	/** Every registered mask token, keyed by its character — read-only, use `setToken` to change it. */
-	static get rules(): ReadonlyMap<string, TMaskRule> {
-		return Mask._rules.value
+	static resetRulesToDefault() {
+		Mask._rules.value.clear()
+		Mask._rules.value.set('0', { match: [DIGITS.BASIC] })
+		Mask._rules.value.set('A', { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: 'v' })
+		Mask._rules.value.set('W', { match: [LETTERS.EXTENDED.ALL], flags: 'v' })
+		Mask._rules.value.set('U', { match: [LETTERS.EXTENDED.UPPERCASE], flags: 'v' })
+		Mask._rules.value.set('L', { match: [LETTERS.EXTENDED.LOWERCASE], flags: 'v' })
+		Mask._rules.value.set('S', { match: [SYMBOLS.ALL], flags: 'v' })
+		Mask._rules.value.set('C', { match: [SYMBOLS.CURRENCY], flags: 'v' })
+		Mask._rules.value.set('E', { match: [SYMBOLS.EMOJI], flags: 'v' })
+		Mask._rules.value.set('X', { match: ['.'], flags: 'v' })
+		Mask._rules.notifies(Mask._rules.value)
 	}
 
-	/** Registers or overwrites a mask token character with a new rule, notifying subscribers (and clearing the compile cache) manually. */
-	static setToken(key: string, rule: TMaskRule) {
+	static clearRules() {
+		Mask._rules.value.clear()
+		Mask._rules.notifies(Mask._rules.value)
+	}
+
+	static setRule(key: string, rule: TMaskRule) {
 		Mask._rules.value.set(key, rule)
 		Mask._rules.notifies(Mask._rules.value)
 	}
 
 	private static compile(mask: string): TMaskCompiledPattern[] {
-		if (Mask.cache.has(mask)) return Mask.cache.get(mask)!
-
 		const patterns = mask.split('||')
-		const compiledPatterns = patterns.map((pattern): TMaskCompiledPattern => {
+		const compiledPatterns: TMaskCompiledPattern[] = []
+
+		for (const pattern of patterns) {
+			if (Mask.cache.has(pattern)) {
+				compiledPatterns.push(Mask.cache.get(pattern)!)
+				continue;
+			}
 			const tokens: TMaskToken[] = []
 			let lastIndex = 0
 
 			for (const m of pattern.matchAll(Mask.ruleMatcher.value)) {
 				if (lastIndex < m.index) {
-					tokens.push({ type: 'mask', value: pattern.slice(lastIndex, m.index) })
+					tokens.push(new TMaskToken(pattern.slice(lastIndex, m.index)))
 				}
 				lastIndex = m.index + m[0].length
 
@@ -73,68 +82,97 @@ class Mask {
 					max = braceMax === undefined ? min : (braceMax === '' ? Infinity : Number(braceMax))
 				}
 
-				tokens.push({
-					type: 'rule',
-					value,
-					min,
-					max,
-					flags: rule.flags,
-					test: new RegExp(`^(?:${value})$`, rule.flags),
-				})
+				tokens.push(new TMaskRuleToken(value, min, max, rule.flags))
 			}
 			if (lastIndex < pattern.length) {
-				tokens.push({ type: 'mask', value: pattern.slice(lastIndex) })
+				tokens.push(new TMaskToken(pattern.slice(lastIndex)))
 			}
+			const compiledPattern: TMaskCompiledPattern = {
+				source: pattern,
+				ruleTokens: tokens.filter(token => token instanceof TMaskRuleToken),
+				tokens
+			}
+			Mask.cache.set(pattern, compiledPattern)
+			compiledPatterns.push(compiledPattern)
+		}
 
-			return { source: pattern, tokens }
-		})
-
-		Mask.cache.set(mask, compiledPatterns)
 		return compiledPatterns
 	}
 
-	apply(value: string, mask: string) {
-		const raw = this.unapply(value, mask)
+	static apply(value: string, mask: string) {
+		const raw = Mask.unapply(value, mask)
 		let best = ''
+
+		if (_Regex.hasAstralChar(raw)) {
+			const rawChars = [...raw]
+			for (const pattern of Mask.compile(mask)) {
+				let formatted = ''
+				let pendingLiteral = ''
+				let index = 0
+				let truncated = false
+
+				for (const token of pattern.tokens) {
+					if (token instanceof TMaskToken) {
+						pendingLiteral += token.value
+						continue
+					}
+					if (index >= rawChars.length) {
+						truncated = true
+						break
+					}
+
+					const takenChars = rawChars.slice(index, index + token.max)
+					formatted += pendingLiteral + takenChars.join('')
+					pendingLiteral = ''
+					index += takenChars.length
+				}
+				if (!truncated) formatted += pendingLiteral
+				if (formatted.length > best.length) best = formatted
+			}
+			return best
+		}
 
 		for (const pattern of Mask.compile(mask)) {
 			let formatted = ''
 			let pendingLiteral = ''
 			let index = 0
+			let truncated = false
 
 			for (const token of pattern.tokens) {
-				if (token.type === 'mask') {
+				if (token instanceof TMaskToken) {
 					pendingLiteral += token.value
 					continue
 				}
-				if (index >= raw.length) break
+				if (index >= raw.length) {
+					truncated = true
+					break
+				}
 
 				const chunk = raw.slice(index, index + token.max)
 				formatted += pendingLiteral + chunk
 				pendingLiteral = ''
 				index += chunk.length
 			}
-
+			if (!truncated) formatted += pendingLiteral
 			if (formatted.length > best.length) best = formatted
 		}
 
 		return best
 	}
 
-	unapply(value: string, mask: string) {
+	static unapply(value: string, mask: string) {
 		let best = ''
 
 		for (const pattern of Mask.compile(mask)) {
-			const rules = pattern.tokens.filter(token => token.type === 'rule')
-			if (!rules.length) continue
+			if (!pattern.ruleTokens.length) continue
 
 			let ruleIndex = 0
 			let count = 0
 			let raw = ''
 
 			for (const char of value) {
-				if (ruleIndex >= rules.length) break
-				const rule = rules[ruleIndex]
+				if (ruleIndex >= pattern.ruleTokens.length) break
+				const rule = pattern.ruleTokens[ruleIndex]
 				if (!rule.test.test(char)) continue
 
 				raw += char
@@ -150,13 +188,14 @@ class Mask {
 		return best
 	}
 
-	valid(value: string, mask: string): boolean {
+	static valid(value: string, mask: string): boolean {
+		const hasAstral = _Regex.hasAstralChar(value)
 		for (const pattern of Mask.compile(mask)) {
 			let index = 0
 			let ok = true
 
 			for (const token of pattern.tokens) {
-				if (token.type === 'mask') {
+				if (token instanceof TMaskToken) {
 					if (!value.startsWith(token.value, index)) {
 						ok = false
 						break
@@ -166,8 +205,18 @@ class Mask {
 				}
 
 				let count = 0
-				while (count < token.max && token.test.test(value[index] ?? '')) {
-					index++
+				while (count < token.max) {
+					if (!hasAstral) {
+						if (!token.test.test(value[index] ?? '')) break
+						index++
+						count++
+						continue
+					}
+
+					const codePoint = index < value.length ? value.codePointAt(index) : undefined
+					const char = codePoint === undefined ? '' : String.fromCodePoint(codePoint)
+					if (!token.test.test(char)) break
+					index += char.length
 					count++
 				}
 				if (count < token.min) {

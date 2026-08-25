@@ -1,293 +1,449 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Contexto do projeto para auxiliar Claude em sessões de desenvolvimento.
+Atualizar incrementalmente conforme decisões são tomadas — não reescrever em bloco.
 
-## What this package is
+---
 
-`@lotexiu/typescript` is a general-purpose TypeScript utility library, published to npm and meant to be dropped into **any** project (inside or outside the `@lotexiu` monorepo) to provide small, dependency-light building blocks: null-safety helpers, functional filters (debounce/throttle/step/once), object/array/function type utilities, an input-mask engine, browser input managers (keyboard/mouse/hotkey), a value-history (undo/redo) structure, a path-based tree map, native prototype extensions, etc.
+## O que é este projeto
 
-Because it's a foundational library, the bar is different from an app repo:
-- **Public API stability and predictability matter more than app code.** Every export is surface area consumers depend on.
-- **Zero/near-zero runtime dependencies.** Only `colorjs.io` is a real dependency; everything else should stay dependency-free.
-- **The project is still actively taking shape.** Conventions below are the *current* target pattern, not settled forever — expect them to keep getting polished as the "ideal stable shape" is found. When you see code that doesn't match a convention, that's usually pre-existing drift, not license to invent a third pattern; prefer bringing it in line with the dominant convention unless asked otherwise.
-- **`todo.md`** tracks known inconsistencies/bugs the author is already aware of (naming typos, an inconsistent class pattern, missing tests, etc.). Check it before "fixing" something — it may already be tracked with a planned direction.
+`@lotexiu/typescript` é uma lib TypeScript de primitivos universais agnósticos de framework, publicada no npm. Cobre os problemas mais comuns no desenvolvimento de software: reatividade, estado, máscaras, parsing, utilitários de string, temas, variantes, histórico de valores, etc.
 
-### A systemic bug class fixed here (2026-07-17): never call a sibling static method via `this`
+O objetivo é publicar uma versão estável que precise apenas de manutenções pontuais após o lançamento. Existe uma versão antiga considerada defeituosa — este projeto é uma reescrita completa deliberada.
 
-Found and fixed across `_String`, `_Object`, and `_Function`: static methods that called a sibling static method via `this.otherMethod()` instead of `ClassName.otherMethod()`. This isn't cosmetic — it broke real, exported public API at runtime (confirmed empirically, not just by reading): `ObjectUtils.json()` and `ObjectUtils.diffs()` threw unconditionally on every call (`this` inside `_Object`'s methods resolves to `ObjectUtils`, the delegating wrapper, once accessed as `ObjectUtils.json = _Object.json`, and `ObjectUtils` doesn't have the sibling method) — and several `_String` predicates (`isLowerCase`/`isUpperCase`/`isLetterOrDigit`/etc.) broke both when extracted as bare references (e.g. `mask/implementations.ts`'s `DEFAULT_MASK_RULES`, which is exactly why the mask engine's "supports quantifiers" test used to fail) and when reached through `String.prototype.*` (`_Global.register` + `thisAsParameter` calls the underlying function with `this` forced to `null`, not the class). **The `_Foo`/`FooUtils` delegation pattern and the "destructure static methods into bare functions" convention used throughout this repo are only safe if internal cross-calls always use the explicit class name, never `this`.** Keep this in mind for every new `_Foo` class — it's not specific to the three that got fixed.
+**Bar diferente de um app repo:**
+- Estabilidade e previsibilidade da API pública importam mais que em código de aplicação — cada export é superfície que consumidores dependem
+- Zero/near-zero dependências de runtime — apenas `colorjs.io` é dependência real
+- O projeto ainda está tomando forma — convenções abaixo são o padrão alvo atual, não definitivo. Código que não segue uma convenção é drift pré-existente, não licença para inventar um terceiro padrão
+- **O autor faz reescritas em escala, de propósito, quando algo para de "parecer certo"** — não é acidente nem instabilidade. Quando isso acontece, é comum um módulo inteiro (estrutura, testes, documentação) ser deletado em bloco — mas **"deletado" não significa a mesma coisa toda vez**: às vezes é permanente (o código não volta, o conceito foi descartado), às vezes é intencional-pra-refazer-diferente (o conceito continua válido, só a forma vai mudar quando for reconstruído). De fora não dá pra saber qual dos dois é sem perguntar — não presumir nenhum dos lados. Testes e docs, especificamente, tendem a voltar só quando a forma nova estabilizar, não junto com a reescrita. Ver "⚠️ Este arquivo pode estar desatualizado" logo abaixo e em "Mantendo este arquivo" no final.
 
-Also fixed in the same pass: `debounce()` used `timeoutId.refresh()` (a Node-only `Timeout` method, absent from the browser's `setTimeout` return value) and, independent of that, never picked up a later call's arguments once a timeout was already pending — both fixed by a straightforward `clearTimeout`+`setTimeout` reschedule using the latest `args`/`this`; it was also missing the `.clear()` method `TDebounceFn`'s type and the README both promise (only visible because the return was cast `as any`, silently defeating the type check). `step()` had an off-by-one: docs/README say it fires "every `amount` calls," but the old check-then-increment order actually needed `amount + 1` calls before the first fire — fixed by incrementing first, then checking. This one changes observable timing of a public API (not just an internal safety fix), so it's worth the author double-checking nothing relied on the old cadence.
+### ⚠️ Este arquivo pode estar desatualizado — e isso é esperado, não um bug do processo
 
-**Resolved and removed:** `ObjectUtils.thisAsParameter = _Object.thisAsParameter` (`natives/object/utils.ts`) turned out to be migration residue, confirmed by checking the pre-conversion commit (this repo used to have `_Object`/`_Function`/etc. as plain object literals, not classes — the author is mid-conversion to the class-based `_Foo`/`FooUtils` pattern for better intellisense/type inference, as uncommitted local changes). In that old code, `thisAsParameter` really was an `_Object` method, and `declarations.ts` wired `Function.prototype.thisAsParameter` through `_Object.thisAsParameter`. During the conversion, `thisAsParameter` was correctly re-homed onto `_Function` (a better fit — it's about function-calling-convention, not objects) and `declarations.ts` was updated to match, but the old `ObjectUtils.thisAsParameter` line calling into a method `_Object` no longer has was left behind. Deleted it — nothing else referenced it.
+CLAUDE.md descreve o estado do projeto **no momento em que foi escrito**. Depois de uma reescrita em escala (ver bullet acima), partes inteiras deste arquivo podem não bater mais com o código — módulos documentados aqui podem ter sido deletados, testes/docs podem ter sumido de propósito para voltar depois, convenções podem ter mudado. **Isso não significa que o arquivo está "errado" ou que precisa virar verdade absoluta — significa que numa conversa nova, antes de agir sobre uma afirmação estrutural (existência de um módulo/arquivo, cobertura de teste, comando de um script), vale a pena checar rápido (`ls`, `grep`, ler o arquivo) em vez de assumir.**
 
-**Resolved — deliberately not ported:** `isEmptyObj`, `isAClassDeclaration`, `addPrefixToKeys`, `removeNullFields`, and the standalone `circularReferenceHandler()` factory existed pre-conversion and have no counterpart in the new `_Object` class. Author confirmed (2026-07-17) this was intentional pruning, not migration debt: several of these felt "too specific or kind of useless" and the author is actively guarding against over-building things that don't need to exist (echoes [[feedback-reuse-when-proven]] — same principle, applied by the author to their own old code, not just to new plugin code). Cross-checked: zero references to any of these names (or their supporting types, e.g. `TConcatStrIntoKeys`) anywhere in the current codebase, confirming no live need. **Don't resurrect these speculatively** — only if a concrete consumer need surfaces, same bar as everything else in this repo. `getValueFromPath`/`setValueFromPath` were not dropped, just upgraded/renamed (`valueFromPath`, now with real `TPath<T>`-based typing instead of loose `string`), and `differenceBetweenObjects` is superseded on purpose by the new, richer recursive `diffs()`. README.md's Object section (lines ~161-169) still documents the old names regardless — needs a pass, tracked in `todo.md`.
+O que tende a ficar estável mesmo entre reescritas (pode confiar direto): filosofia, convenções de nomenclatura/arquivo, critérios de qualidade, "o que NÃO fazer", histórico de bugs (o padrão do bug tende a se repetir mesmo que o arquivo específico mude).
+O que é mais volátil (checar antes de confiar): a árvore de "Estrutura de módulos", afirmações de "X não existe mais"/"Y foi removido", presença/ausência de testes e docs, comandos exatos em `package.json`.
 
-### Another flag-omission bug class (2026-08-11): `\p{...}` property escapes silently no-op without the `u`/`v` flag
+**"Removido" tem dois sentidos possíveis, e não dá pra saber qual de fora:** às vezes é definitivo — o conceito foi descartado, não volta. Às vezes é intencional-pra-refazer-diferente — o conceito continua válido, só a implementação vai mudar de forma quando for reconstruído. As notas de "X foi removido" espalhadas por este arquivo (sistema de plugins, reactive proxy, `ValueCell`/`VariantCell`, etc.) registram **que sumiu e quando**, não qual dos dois casos é — isso só o autor sabe com certeza. Não assumir nenhum dos lados: nem que vai voltar igual, nem que morreu de vez. Se a resposta importar pra uma decisão (ex.: vale a pena reconstruir algo parecido agora?), perguntar em vez de supor.
 
-Distinct from the `this`-in-sibling-call bug above, but the same shape of failure: `_String`'s character-class regexes (`IS_LETTER`, `IS_LOWERCASE`, `IS_UPPERCASE`, and `toKebabCase`'s `CAMEL_TO_KEBAB`) were built from `REGEX_PATTERNS.LETTERS.EXTENDED` (`\p{L}`, `\p{Lu}`, `\p{Ll}`) but constructed as `new RegExp(...)` with no `u` flag. Without `u`, `\p{L}` is not a Unicode property escape at all — it's parsed as literal characters `p`, `{`, `L`, `}` — so the character class silently matched the wrong thing instead of throwing. Confirmed empirically: `isLetter('A')` and `isUpperCase('A')` returned `false` for plain ASCII input (not just failing on non-ASCII), and `toKebabCase('fooBarBaz')` returned the string unchanged. This had gone unnoticed because nothing in the test suite exercised these particular predicates before `src/.test/string-utils.test.ts` was added — once it existed, 5 of its 13 assertions were red.
+Estado registrado nesta revisão (2026-08-25, branch `clean-code`, commits `temp`): módulos inteiros do `master` foram removidos — `html/` (managers de tema + sistema de plugins inteiro: `MaskPlugin`, `NumberPlugin`, `AsyncCheckPlugin`, `ValidationPlugin`, registry), `capture-manager/`, `palette/` (top-level, virou `theme/palette/`), `rule-factory/`, `value-cell/`, `variant-cell/`, `natives/object/proxy/`, `natives/validation/`, `spy/`, `time/`, `path-map/`. Confirmado via grep: zero referências remanescentes a esses caminhos em `src/`, e `src/index.ts` (gerado) não tenta exportar nada deles. **Não há testes nem docs de nível de módulo neste momento, de propósito** — os únicos `*.test.ts` do repo cobrem os scripts de build/docs/versionamento (`scripts/tools/*.test.ts`); `Mask`, `_String`, `Parser`, etc. não têm suite própria até o autor decidir que é a hora de recriá-las. Não trazer nada disso de volta especulativamente (mesma regra de "Decisões técnicas" para código removido de propósito) — e não estranhar a ausência de testes/docs como se fosse descuido.
 
-Fixed alongside adding an `extended: boolean = false` parameter to the character-classification predicates (`isLetter`, `isLowerCase`, `isUpperCase`, `isDigit`, `isLetterOrDigit`, `isIdentifier`, `isWhitespace`, `isFormatting`, `isPunctuation`, `isSymbol`) — `false` (default) uses ASCII-only matching (`charCodeAt` ranges where that already existed, or `REGEX_PATTERNS.*.BASIC` regexes otherwise, no `u` flag needed since those patterns are plain character classes), `true` switches to the corresponding `REGEX_PATTERNS.*.EXTENDED` pattern compiled with the `u` flag. This mirrors the `BASIC`/`EXTENDED` split already declared in `src/natives/regex/declarations.ts` (a new, not-yet-committed module at the time of writing) — the split existed there before this fix, so adding `extended` here is finishing what was already scaffolded, not inventing a new axis. Rationale for keeping ASCII as the default rather than always paying for Unicode-aware regex: several of these predicates run per-character in loops (`onChar`'s lookup table, mask-engine character matching), where a `charCodeAt` range check is meaningfully cheaper than a `RegExp.test()` call per character — the default should stay fast for the overwhelmingly common ASCII case, and the `u`-flag/`\p{...}` cost should be opt-in. `isHexadecimal` and `toKebabCase` were deliberately **not** given an `extended` param (author's call) — only the flag bug in `CAMEL_TO_KEBAB` was fixed, since hex digits and camelCase-splitting don't have a meaningful "locale-extended" reading the way letter/digit/whitespace/punctuation classification does.
+---
 
-## Commands
+## Estrutura de módulos
+
+```
+src/
+  computed/           — valores derivados lazy com dependências reativas
+  filters/            — debounce, throttle, step, once
+  global/             — extensões de prototype nativas (_Global.register)
+  item/               — Item<V> extends Subscription — item reativo genérico (id, label computado, value)
+  mask/               — Mask — formatação/validação por máscara (classe totalmente static)
+    token/            — TMaskToken / TMaskRuleToken — tokens compilados de um pattern
+  model/              — primitivo reativo base (Model<T>)
+  natives/
+    array/            — ArrayUtils
+    class/            — instanceOf/ClassUtils + Timeout (construtor NodeJS.Timeout recuperado)
+    date/             — parseISO (estrito, valida calendário real) + formatMS
+    function/         — _Function (thisAsParameter, rebind, negate)
+    math/             — _Math / MathUtils
+    number/           — _Number / NumberUtils
+    object/           — _Object / ObjectUtils
+    regex/            — REGEX_PATTERNS, _Regex (escapeReservedKeys, hasAstralChar)
+    string/           — _String, utilitários de string
+  parser/             — parser de escopos genérico configurável
+  state/
+    keyboard/         — KeyboardState (extends Subscription direto, sem base intermediária)
+    mouse/            — MouseState<Buttons> (idem — capture-manager foi removido/inlined)
+  stopwatch/          — medição de tempo/performance
+  subscription/       — Subscription<T> / SubscriptionController<T> (base de notificação)
+  theme/              — Theme (mode + style, dois Model<T> simples)
+    palette/          — Palette / CustomPalette / TonalPalette (reativo via Model/Computed + colorjs.io)
+    style/            — ThemeStyle, SlotColor
+  value-history/      — ValueHistory<T> (undo/redo, construído sobre Model/Computed)
+  variant/            — Variant<K,V> — chave → valor derivado (chave muda → recomputa)
+  declarations.ts     — monkey-patch de prototypes nativos (@required, não exporta)
+
+.old-mask/            — implementação anterior do Mask (incl. MaskUtils.caretPositionAfterFormat), arquivada.
+                        Dot-prefixed → fora de `tsconfig.json` include e não referenciada por index.ts.
+                        Mantida como referência durante a reescrita do mask, não wired em lugar nenhum.
+```
+
+---
+
+## Comandos
 
 ```bash
-pnpm build          # vite build -> dist/ (ESM + UMD/CJS + bundled .d.ts)
-pnpm dev            # vite build --watch
+pnpm build          # pnpm clean && vite build → dist/ (ESM + UMD/CJS + bundled .d.ts)
 pnpm clean          # rm -rf dist
 pnpm test           # vitest run (single pass)
 pnpm test:watch     # vitest watch mode
 pnpm test:ui        # vitest UI
-pnpm debug          # vitest run with --inspectBrk, single-threaded, no timeouts
+pnpm run docs       # tsx scripts/tools/docs-generator.ts → docs/modules/*.md, docs/PROJECT.md, docs/API.md
+pnpm changes        # tsx scripts/tools/generate-changes.ts — gera changes file por diff real de API (git worktree do branch base vs HEAD)
+pnpm changes:check  # mesma coisa, mas falha se o changes file não bater com o estado atual (uso pensado pra CI)
 ```
 
-Run a single test file: `pnpm test src/.test/mask.test.ts` (or any `vitest run <path>`).
-Tests live either in `src/.test/*.test.ts` (cross-cutting/behavioral tests) or co-located as `*.test.ts` next to the module (e.g. `src/natives/object/proxy/ProxyHandler.test.ts`). Both are picked up by `vitest.config.ts` (`include: ['src/**/*.test.ts']`).
+Não há mais `pnpm dev`/`pnpm debug` no `package.json` atual — pra watch mode, rodar `vite build --watch` direto (o plugin de análise ainda reage a `config.build.watch`, ver "Armadilhas do watcher" abaixo).
 
-There is no separate lint script; `tsc`/vite build and the custom project validator (see below) are the correctness gates.
+Não há teste de nível de módulo hoje pra exemplificar (`src/.test/` não existe mais) — os únicos `*.test.ts` do repo estão em `scripts/tools/` e cobrem os scripts de build/docs/versionamento, não `Mask`/`_String`/`Parser`. Rodar um deles: `pnpm test scripts/tools/api-diff.test.ts`.
 
-## Build & source-generation architecture (important — read before adding files)
+**Sempre `pnpm run docs` com `run` explícito** — `pnpm docs` sem `run` invoca o comando builtin do pnpm (equivalente a `npm docs`, abre a homepage do pacote no browser) em vez do script local de mesmo nome — comportamento do pnpm, não óbvio.
 
-This is the single most non-obvious thing about the repo: **`src/index.ts` is generated code, not hand-written.**
+Scripts em `scripts/` **não são type-checked pelo `tsc -p tsconfig.json`** (include é só `src/**/*`). A única verificação real de um script é rodá-lo: `pnpm build` (exercita analyzer + validator + index-generator) e `pnpm run docs`.
 
-**Reworked 2026-07-19** — the analyzer/tools split used to be `scripts/project/*` + two functions in one `scripts/utils.ts`, called as plain top-level statements in `vite.config.ts` before `defineConfig` even ran (not a real Vite plugin). Current shape:
+---
 
-- `scripts/analyzer/` (renamed from `scripts/project/` — the name communicates its role better) — `AnalyzerProject` (`model.ts`), `ProjectFile` (`file/model.ts`), `AnalyzerBlockCode` (`block/model.ts`), comment extraction (`comment/`). Loads `tsconfig.json`, builds a real `ts.Program` over `src/**`, and exposes every file/export/JSDoc block. `AnalyzerBlockCode` also has `getSignature()` (a normalized type signature via the TS checker — call-signature string for functions, the actual declaration source for interfaces/types since the checker only prints a type-alias *reference* back to its own name, nothing for classes/enums since their useful signature is really their member list, not modeled here) and `isInternal()` (the `@internal`-tag check, previously duplicated inline in three places).
-- `scripts/tools/index-generator.ts` — `createEntryFile`, unchanged logic, just moved.
-- `scripts/tools/validator.ts` — `validateProject`, moved, plus **one new rule**: a publicly-exported (non-`@internal`) block with no JSDoc description gets a warning (`"Public export "X" has no documentation."`). Still warnings-only, doesn't fail the build.
-- `scripts/tools/docs-generator.ts` — new, see below.
-- `scripts/vite-plugin.ts` — `analyzerPlugin(project, entry)`, a real Vite plugin (not top-level calls) wiring index-generation + validation into `buildStart` (fires on the initial build and every rebuild).
+## Aliases de import
 
-`vite.config.ts` now just constructs `AnalyzerProject` and passes it into `analyzerPlugin(...)` in `plugins: []`.
-
-Consequences (unchanged from before the rework):
-- **Never hand-edit `src/index.ts`.** Any manual change is silently overwritten on the next build/dev run. If an export is missing/wrong in the generated index, fix the *source* file (naming, missing `export`, wrong JSDoc tag), not the index.
-- Adding a new module = create the file(s) under `src/`, `export` the runtime/type symbols normally, and rebuild — no manual index wiring needed.
-- `@required` as a **standalone comment** (not JSDoc, just `// @required`) in a file forces it to be imported for side effects in the generated entry, instead of re-exported. Used for modules like `src/declarations.ts` that register global prototype extensions and must run but export nothing meaningful at the top level.
-- `@internal` JSDoc tag on a block (e.g. the `_Mask`, `_Object`, `_Global` implementation classes) marks it as intentionally excluded from `src/index.ts`, and also suppresses the "name starts with `_` but not exported" validator warning.
-
-**A subtle trap worth knowing if you touch `AnalyzerProject.writeFile` again:** it skips the write when content is unchanged. This isn't a micro-optimization — it's load-bearing. `src/index.ts` is both a *generated output* and part of Rollup's own watched module graph (it's the entry point). An unconditional write on every `buildStart` bumps its mtime even with byte-identical content, which the watcher sees as "the entry changed," triggering another `buildStart`, which writes it again, forever — a real infinite rebuild loop hit and fixed during this rework, not a hypothetical.
-
-### The destructure-then-list-export pattern used to break JSDoc discovery — fixed at the analyzer root (2026-07-21)
-
-Several `implementations.ts` files re-export free functions like `const { isNull, json } = _Object; export { _Object, isNull, json }`. The analyzer used to create only one `AnalyzerBlockCode` per top-level *declaration*, and a destructuring `VariableDeclaration`'s `.name` is a binding pattern, not an identifier — so `createBlockFromNode` produced one block with a garbage name (the pattern's own source text), never matching `isNull`. `processExportNodes` then fell back to synthesizing a placeholder block for `isNull` with `documentation: undefined` hardcoded — meaning **no JSDoc placed anywhere in that statement could ever be discovered**, regardless of exactly where the comment sat. Discovered while documenting the codebase for the missing-docs validator rule (`scripts/tools/validator.ts`) — `json`/`isNull`/`isNullOrUndefined` kept showing as undocumented no matter what, and later resurfaced as false-positive warnings on `natives/validation`'s `required`/`pattern` even though both had JSDoc on their `_Validation` static methods (the per-`const` workaround below had in fact never actually been applied to any file, despite this doc claiming otherwise at the time).
-
-**Real fix (`scripts/analyzer/file/model.ts`): `ProjectFile` now creates one real `AnalyzerBlockCode` per destructured binding name** (`createBlocksFromBindingPattern`), resolving each one's documentation by getting the type of the destructured initializer (`checker.getTypeAtLocation`) and reading `.getProperty(name)`'s declaration — i.e. it follows `required`/`pattern` back to `_Validation.required`/`_Validation.pattern`'s own JSDoc, wherever that lives, instead of guessing from source position. `createBlockFromNode` got the same fallback for the simpler single-alias shape (`const isNull = _Object.isNull`) via `resolveAliasedDocumentation` on the initializer's `PropertyAccessExpression`. Net effect: JSDoc lives exactly where it always made sense to put it — on the `_Foo` static method — and is discovered from there through *any* of the destructure/alias shapes in this codebase, no per-file "move the const onto its own line" workaround required anymore. Confirmed by rerunning `pnpm build`: it went from false-positive warnings on `natives/validation`'s `required`/`pattern` straight to correctly flagging `natives/object`'s `isNull`/`isNullOrUndefined`/`json` (which genuinely had no JSDoc on the `_Object` methods themselves) — i.e. the validator's missing-docs rule now actually reflects the real declaration's doc state instead of always failing (destructured) or always trusting the anchor node (single-alias, silently wrong for anything not already following the workaround).
-
-The `const isNull = _Object.isNull;` per-name-statement style is no longer *required* for documentation discovery, but is still a reasonable style if you want it — just no longer load-bearing for this specific bug.
-
-### Documentation generator (`scripts/tools/docs-generator.ts`)
-
-Walks every file/block the analyzer knows about (not just exports) and groups them by **containing source directory** ("module" — e.g. `src/mask`, `src/natives/object/proxy`; root-level files like `src/types.ts` land in a synthetic `root` module). Produces, all git-tracked at the package root:
-
-- **`docs/modules/<slug>.md`** — one page per module, regenerated from scratch every run (`docs/modules/` is `rm -rf`'d first so renamed/removed modules don't leave stale pages behind). Every block gets an `<a id="Name">` anchor, a heading that's a **link straight to its source line** (`[\`Name\`](../../src/mask/utils.ts#L42)`, GitHub's own `#L<line>` blob-anchor convention — clicking it jumps to the exact declaration), its classification (`_(interface, type-only)_` etc.), and its JSDoc description/tags. **No source code is ever repeated here** — that was a deliberate reversal (see below).
-- **`docs/PROJECT.md`** — the root index: every block in the project (exported or not, internal `_Foo` classes included), as a link into its module page (`modules/<slug>.md#Name`). No descriptions here either — just name, classification, and where to go for the rest.
-- **`docs/API.md`** — the one meant to travel with the published package. Deliberately minimal: **only the public surface** (same "not `@internal` + actually exported" resolution `index-generator` uses), grouped by module, showing just the name and its classification — no descriptions, no links, no code. Ends with a pointer to the GitHub repo (read from `package.json`'s `repository.url`) for anyone who wants the real detail.
-
-Runs via `pnpm run docs`, not wired into the Vite build (docs generation isn't a build-time concern). **Always use `pnpm run docs` (with `run`), never bare `pnpm docs`** — confirmed empirically (2026-07-19): pnpm treats the bare form as a shortcut to open the package's homepage in the browser instead of running the script, even though `docs` doesn't appear in `pnpm help -a`'s documented command list for this pnpm version (10.21.0). `scripts/package.json`'s own `commit` script was affected by this and had to be fixed to call `pnpm run build && pnpm run test && pnpm run docs && ...` explicitly.
-
-**Reversed the same day (2026-07-19), same-day feedback from a first pass:** the first version dumped literal code into both files — the actual declaration source for interfaces/types (via `getText()`) and a checker-derived signature for everything else (`AnalyzerBlockCode.getSignature()`, since removed — it had no other caller). Two problems: complex recursive conditional types (e.g. `TDiffs`) rendered as an ugly multi-line dump, and "Location: `path:line`" was plain unclickable text. The fix removed source-code rendering entirely in favor of the source-line link described above, and split what was one giant `PROJECT.md`/`API.md` pair into the per-module-page structure — a single flat file mixing every declaration in the project was already heading toward unmanageable. `API.md` also lost its per-item descriptions entirely on the same pass: the published package's doc file isn't meant to carry usage documentation at all, just "here's what exists" plus a link to the repo for the rest.
-
-As of 2026-07-19, every export in the library has real JSDoc — the validator's missing-docs rule went from 316 warnings across 60 files to zero. Worth knowing for future additions: **the codebase-wide documentation pass is what surfaced the destructure-export bug above** — don't assume a `const {a,b} = _Foo; export {a,b}` pattern can ever carry per-name docs without first checking whether it's been split into individual `const` statements.
-
-### Validator conventions enforced by `scripts/tools/validator.ts::validateProject`
-
-These are warnings today (they don't fail CI), but treat them as the intended style:
-- File basenames (excluding tests) must be one of: `types`, `types.native`, `implementations`, `utils`, `model`, `declarations`. Anything else is flagged.
-- A type-only export must have a name starting with `T` (e.g. `TMaskCompiled`). This is enforced by convention across the whole codebase — always prefix type/interface names with `T`.
-- A runtime symbol name starting with `_` (an internal implementation class, e.g. `_Object`, `_Mask`, `_Global`) must carry an `@internal` JSDoc tag, or it's flagged as a mistake.
-- A publicly exported (non-`@internal`) block with no JSDoc description at all is flagged (added 2026-07-19, alongside the documentation pass above).
-- Exports declared directly on the statement (`export class Foo {}` / `export function bar(){}`) rather than via a separate `export { x } from './y'` reexport are flagged as "prefer reexport from index" and are expected to have a corresponding test file that imports them (checked via the reference graph) — an export with zero importers anywhere in the project is flagged as unused.
-
-## File-role convention per module directory
-
-Each feature lives in its own directory under `src/` (or `src/natives/<type>/`, `src/html/managers/<name>/`) and splits concerns across up to five files, named by role rather than by feature:
-
-| File | Role |
+| Alias | Target |
 |---|---|
-| `types.ts` | Pure type-level exports (`T`-prefixed types/interfaces). No runtime code. |
-| `types.native.ts` | Type-level re-derivations of TS builtins (`TRequired`, `TPick`, etc.) — currently only used in `natives/object`. |
-| `implementations.ts` | The actual logic. Often a `/** @internal */`-tagged class named `_Foo` holding `static` methods, or free functions when there's no natural grouping (e.g. `filters/implementations.ts`). |
-| `utils.ts` | The **public-facing wrapper**: a plain class `FooUtils` with `static` members that alias `_Foo`'s methods (e.g. `MaskUtils`, `ObjectUtils`, `GlobalUtils`). This is the class that actually gets exported from the package; `_Foo` stays internal. |
-| `model.ts` / `declarations.ts` | Stateful classes, singletons, or constants that don't fit the implementation/utils split — e.g. `CaptureManager` (abstract base class), `keyboardManager`/`mouseManager`/`hotkey` (singleton instances), `PathMap`, `Timeout`, `DEFAULT_*` constants. |
+| `@ts/*` | `src/*` |
+| `@tsn/*` | `src/natives/*` |
+| `@tsn-string/*` | `src/natives/string/*` |
+| `@tsn-object/*` | `src/natives/object/*` |
+| `@tsn-function/*` | `src/natives/function/*` |
+| `@tsn-regex/*` | `src/natives/regex/*` |
+| `@tsn-math/*`, `@tsn-number/*` | `src/natives/<name>/*` (parcial) |
 
-**The `_Foo` (internal implementation) + `FooUtils` (public static wrapper) split is the author's explicitly stated rule, not just an observed majority pattern** — confirmed by a near-identical convention documented in this author's own AI-assistant instructions in a sibling project (`Learning_Angular/copilot-instructions.md`, "Padrão de Delegação": internal named functions grouped into an object, the public class only delegates to it). See `mask/` and `natives/object/` for the clearest examples in this repo.
+Sempre importar via alias ao cruzar boundaries de `src/natives/<x>/`. Dentro de um mesmo diretório de módulo, imports relativos são o padrão.
 
-**The rule for which classes get the split, resolved 2026-07-17 (this had been an open question — see `todo.md` #9's history):** it applies to **static-utility-namespace classes** (no `new`, only static methods — `Mask`, `Object`, `String`, `Function`, `Time`, `Spy`), not to **instantiable, stateful classes** (`ValueHistory`, `PathMap`, `CaptureManager`-based singletons like `keyboardManager`/`themeManager`) — those are correctly bare-exported as-is, the split wouldn't make sense for something whose public API is `new Foo(...)`. `Time`→`_Time`/`TimeUtils` and `Spy`→`_Spy`/`SpyUtils` were converted to match; `ValueHistory`/`PathMap` were deliberately left alone. When adding a **new** module, ask "is this a stateless namespace of static methods, or an instantiable thing with its own state?" to know which shape it should take — not "does everything need `_Foo`/`FooUtils`?".
+---
 
-One divergence worth asking about rather than assuming: that sibling project's convention says the internal file should have **no individual exports and no comments/JSDoc at all** (only the grouped object is exported); this repo's `implementations.ts` files (e.g. `_Mask`, `_Object`) do export the internal class individually (tagged `@internal`) and do carry doc comments. Not clear if the current repo's approach is a deliberate refinement or drift — flagging per the "surface structural inconsistency, don't silently pick one" habit, not changing anything based on a guess.
+## Convenção de arquivos por módulo
 
-**This repo is also mid-migration on a separate, related axis:** the `_Foo` internal classes themselves used to be plain object literals (`const _Object = { isNull, json, ... }`, free functions grouped into one object) rather than `class _Foo { static ... }`. The author is converting these to classes for better intellisense/type inference and less verbosity (in progress as uncommitted changes at the time of writing). When you hit a `_Foo` that's still an object literal, that's this migration mid-flight, not a different convention to preserve.
+| Arquivo | Papel |
+|---|---|
+| `types.ts` | Exports de tipo puro (prefixo `T`). Sem código runtime. |
+| `types.native.ts` | Re-derivações de builtins TS — só em `natives/object` |
+| `implementations.ts` | A lógica real. Classe `_Foo` com `static` methods, tagged `@internal` |
+| `utils.ts` | Wrapper público: classe `FooUtils` com statics que delegam para `_Foo` |
+| `model.ts` / `declarations.ts` | Classes com estado, singletons, constantes |
 
-Singletons that manage global browser state (`keyboardManager`, `mouseManager`, `hotkey`, `themeManager`) extend the abstract `CaptureManager<T>` (`src/capture-manager/model.ts`), which centralizes the "activate listeners only while someone is subscribed" lifecycle: `add(value)` turns capture on and returns an unsubscribe function that turns it back off once the last subscriber is gone. Keep any state these managers cache (e.g. `ThemeManager.currentTheme`) **lazily computed on first access**, never eagerly in a field initializer or constructor — the whole module (including the singleton instantiation) runs under plain Node in tests (`vitest.config.ts` sets `environment: 'node'`, no jsdom), so eager access to `matchMedia`/`localStorage`/`document` at import time breaks under test. `src/.test/theme-manager.test.ts` shows the pattern for testing these without adding a DOM dependency: `vi.stubGlobal(...)` for the browser globals the manager touches, plus `vi.resetModules()` + dynamic `await import(...)` per test so the singleton is re-created fresh against that test's mocks.
+**Regra do split `_Foo`/`FooUtils`:** aplica-se a **classes de utilitários estáticos** (sem `new`, só static methods). **Não** aplica-se a **classes instanciáveis com estado** (`ValueHistory`, `Item`, `KeyboardState`, `MouseState`) — essas são exportadas diretamente. Ao adicionar um módulo novo: "é um namespace de static methods ou uma coisa instanciável com estado próprio?"
 
-### Theme manager (`src/html/managers/theme/`) — first layer only
+**Caso cinzento a observar: `Mask`.** Depois da reescrita em `mask/model.ts`, `Mask` é totalmente static (sem `new Mask()`, cache + `Model<Map>` de regras como estado de classe) mas não segue nem `_Foo`/`FooUtils` nem o padrão de instanciável-com-estado — é exportada direto como `Mask` (igual `model.ts`/`declarations.ts` da tabela acima: "singleton"). Não é necessariamente um erro, mas é uma terceira forma que a regra atual não cobre explicitamente — vale perguntar ao autor se isso deveria virar uma terceira categoria nomeada, em vez de inventar por conta própria.
 
-`themeManager` (light/dark detect + persist + live system-preference tracking) is built; this is deliberately just the first, smallest layer. Cross-referencing three sibling Angular projects on this machine (`clube-desconto-front-a20`, `Learning_Angular`, `sgmapa_front` — all under `/mnt/D/repositories/`, all belonging to the same author) turned up a second, bigger layer that recurs in all three and was **not fully built here yet**: generating a full color-token set (Material-3-style tonal ramps: primary/secondary/tertiary/neutral/error seeds → light/dark/high-contrast semantic roles) from a handful of seed colors — currently hand-rolled in SCSS in those repos (`theme.scss`/`color.scss`), a natural fit for `colorjs.io` (already a dependency here specifically for this) to do properly instead of naive RGB math. This is a bigger, more consequential design decision (color space choice, token taxonomy) than the toggle manager was; don't build the color-specific part speculatively.
+**O projeto está em migração:** classes `_Foo` que ainda são object literals estão sendo convertidas para `class _Foo { static ... }`. Ao encontrar um `_Foo` que ainda é object literal, é essa migração em andamento, não uma convenção diferente.
 
-### Rule factory (`src/rule-factory/`) — the shared primitive palette + theme will build on
+---
 
-`createFactory(rules)` (2026-07-18) is the first concrete piece of the color-token-set layer above: a generic, color-agnostic "declare computed slots, get a reusable factory" primitive. You declare a `TFactoryRules<TSeeds, TSlots>` map — each slot has a `derive({ seeds, get })` (compute this slot's value; `get(otherSlotName)` reads another slot **declared earlier**, throwing a clear error if it isn't resolved yet) and an optional `suggest(value, { seeds, get })` (offer a better value **without ever forcing it**). `createFactory(rules)` returns a `build(seeds)` function; calling it returns `{ values, suggestions }` — `values` is exactly what `derive` computed for every slot, never silently mutated; `suggestions` only contains entries where `suggest` actually offered something different.
+## Convenções de nomenclatura
 
-Two design calls worth knowing the reasoning behind:
-- **Resolution follows declaration order, on purpose — rejected a fancier "resolve by name regardless of order" version.** An earlier draft (2026-07-18, replaced same day) made `get()` lazily resolve any slot regardless of where it was declared, memoized via a cache + a re-entrancy `Set` to catch circular references at runtime. The author pushed back: that flexibility isn't actually a virtue — it removes any expectation that whoever writes rules organizes them sensibly, which both invites careless graphs and costs real overhead (the cache/re-entrancy bookkeeping) to support that carelessness. Declaration-order resolution requires a small, reasonable amount of discipline (put dependencies before what depends on them) in exchange for being simpler *and* cheaper — one linear pass, no cache map, no cycle-detection set, and circular dependencies become structurally impossible rather than something caught at runtime.
-- **Suggestions are structurally separate from values, always** — this generalizes the same "suggest, don't force" principle from the `NumberPlugin` clamp discussion (see "Component plugin system" above) to this layer too: a plugin/factory slot with a notion of "better value" should offer it, never auto-apply it. Expect `TPlugin` to eventually grow an analogous optional `suggestedValue`, once a concrete plugin needs it — not built yet, no consumer yet.
+- Tipos/interfaces sempre prefixados com `T` (ex: `TMaskCompiled`, `TPlugin<T>`)
+- Classes internas: `_Foo` + tag `@internal`
+- Wrappers públicos: `FooUtils`
+- Singletons de manager: camelCase (`keyboardManager`, `mouseManager`, `hotkey`)
 
-Palette generation (seed colors → full tonal set) and theme generation (palette → semantic roles, e.g. contrast-correcting a text/background pair) are meant to be two *specializations* of this same primitive — a theme's `seeds` would typically be a resolved palette's `values`. First real slice built (2026-07-18): **`src/palette/`** — `buildTonalPalette` (13 tone stops — the same stop set popularized by Material 3 — from one seed color, via `colorjs.io`'s OKLCH space + `.toGamut()` to stay in real sRGB). This one stays: despite the tone-stop count being Material-3-flavored, generating a tonal ramp from one seed via lightness variation is a generic, well-known color technique, not tied to any one design system.
+---
 
-A theme-role layer (`primary`/`onPrimary`/`primaryContainer`/etc., assigning a resolved palette to Material 3's specific semantic-role vocabulary) was built the same day as a **validation exercise for `createFactory`** — it exercised `get()` referencing an earlier-declared slot and the `suggest`-based contrast correction (via `contrastWCAG21`) against a real color problem — and then **deliberately removed** once it had served that purpose. The author's call: Material 3's semantic-role naming/structure is itself a specific, opinionated design system, and building it out further would point the library at "a specific framework" the way the whole project is trying not to. `buildTonalPalette` survives because it isn't that; a real theme-role layer, if one gets built later, should find its own vocabulary rather than adopt Material 3's.
+## Módulos reativos
 
-**Real-world validation, round 1, confirmed `ValueCell` alone is enough for "switch between named themes"** (`apps/proton-desk`) — no new library primitive seemed needed yet: a shared `ValueCell<themeName>` plus `buildTonalPalette(seed)` per theme name, looked up on change, recolored ten structurally different visual components (Material/Neon/Glass/Paper/Neumorphic/Brutalist/Terminal/Retro/Minimal/Underline) via CSS custom properties. This round conflated two axes under one name, though — see the correction below.
+### `Subscription<T>`
+Base de notificação. `Set<listener>` — deduplicação automática, remoção O(1). `notifies`/`dispose` são `protected` na base — só a própria subclasse chama (ex.: `KeyboardState`/`MouseState`/`Item` chamam `this.notifies(this)` internamente, sem expor notify externamente).
 
-**Round 2 correction (same day): "style" and "theme" are two independent axes, not one.** The author caught that round 1's single `ValueCell<themeName>` was actually switching *which component renders* (Material/Neon/Glass/...) — that's **style**, generically named so it can grow beyond `Input` to `Button`/`Checkbox`/etc. later (every entry in a style is required to share the same props contract, e.g. `FieldProps`). **Theme** is strictly color — a resolved palette, nothing else. Round 1's demo rendered all 10 styles side by side with one shared color; it never modeled "switch which component set is active" as its own thing, because it had merged that concern into the color switch.
+### `SubscriptionController<T> extends Subscription<T>`
+Mesma coisa que `Subscription<T>`, mas reexpõe `notifies`/`dispose` como `public` — para quando o consumidor quer um pub/sub genérico standalone (sem os campos de valor do `Model`) e precisa notificar de fora.
 
-**`src/variant-cell/` — `VariantCell<TName, TValue>`** is the fix, and the concrete library gap the author correctly flagged ("algo pra ter esse controle de temas e estilos" was missing, not just unused). Bare-exported stateful class (no `_Foo`/`FooUtils` split — instantiable/stateful like `ValueCell`/`PathMap`, not a static-utility namespace). Pairs "which name is active" (an internal `ValueCell<TName>`) with "resolve + cache the value for that name" (`derive(name)`, memoized per name so e.g. a palette is computed once per theme name, not on every read). `subscribe` notifies with the **active name**, not the derived value, on purpose — style and theme each get their own `VariantCell` and their own subscription, so switching one never has to know about or recompute the other. This is the second real use of the exact same shape (name-keyed, derived-and-cached, switchable) — proton-desk's original `lib/theme.ts` had hand-rolled `ValueCell<name>` + `Map` cache once; once style needed the identical shape, that was the real second-use-case signal to extract it (see [[feedback-reuse-when-proven]] — this is that principle firing correctly, not a violation of it).
+### `Model<T> extends Subscription<T>`
+Menor primitivo reativo. Usa `Object.is` (cobre `NaN === NaN`, `-0 !== 0`).
+- `set(next)` — substitui e notifica se diferente
+- `silentSet`/`silentUpdate` — muda sem notificar
+- `notifies(value)` — público intencionalmente: permite mutar in-place e notificar manualmente (ver "filosofia de performance reativa" abaixo)
 
-`apps/proton-desk` now has two independent `VariantCell`s: `lib/theme.ts`'s `activeTheme` (name → `TTonalPalette`) and `lib/style.ts`'s `activeStyle` (name → `{ Input: ComponentType<FieldProps> }`). `App.tsx` renders exactly one active style's component fed the active theme's palette — 10 styles × 4 themes switchable independently, confirmed live in a browser session: switching either axis preserves the field's value/valid/invalid state, and the non-switched axis is untouched.
+### `Computed<T> extends Subscription<Computed<T>>`
+Valor derivado lazy — só recomputa quando dependência muda **e** alguém acessa `.value`.
+- `prevValue` — valor antes da última recomputação
+- `dispose()` — cancela todas as assinaturas de dependências
 
-## Import aliases
+### `Variant<K,V>`
+Composição de `Model<K>` + `Computed<V>`. Chave muda → valor derivado recomputa.
 
-`tsconfig.json` defines path aliases resolved by both TS and (via `AnalyzerProject.resolvedAlias()`) the Vite build:
+`ValueCell<T>` e `VariantCell<TName, TValue>` **não existem mais** — removidos junto com o sistema de plugins (`html/plugins/`) que era o único consumidor de `ValueCell`; `VariantCell` (o padrão "nome ativo + valor derivado cacheado, dois eixos independentes") não tem substituto direto hoje — `Theme` (`src/theme/model.ts`) usa dois `Model<T>` simples (`mode`, `style`) em vez disso. Se o padrão de dois eixos independentes for necessário de novo, ele precisa ser reconstruído, não presumido presente.
 
-| Alias | Target | Exists today? |
-|---|---|---|
-| `@ts/*` | `src/*` | yes |
-| `@tsn/*` | `src/natives/*` | yes |
-| `@tsn-array/*`, `@tsn-class/*`, `@tsn-function/*`, `@tsn-object/*`, `@tsn-string/*` | `src/natives/<name>/*` | yes |
-| `@tsn-console/*`, `@tsn-date/*`, `@tsn-json/*`, `@tsn-math/*`, `@tsn-number/*`, `@tsn-regex/*` | `src/natives/<name>/*` | declared, folder mostly absent (`math`/`number` have `types.ts` only so far) |
-| `@tsi/*`, `@tsu/*`, `@tsnode/*` | `src/interfaces`, `src/unknown`, `src/nodes` | declared for future use, no folder yet |
+---
 
-Always import through the alias for the module's own domain rather than a relative path once you're crossing a `src/natives/<x>/` boundary (e.g. `mask/implementations.ts` imports `_String` via `@tsn-string/implementations`, not a `../` path) — within a single module directory (`./types`, `./implementations`), relative imports are the norm.
+## Filosofia de performance reativa — mutar in-place, notificar manualmente
 
-## Native prototype extension pattern (`src/declarations.ts`, `src/global/`)
+Esta lib **não é obrigada a reproduzir a convenção de update imutável do React/Angular**. `notifies()` é público especificamente para que um consumidor possa mutar o objeto que um `Model` já guarda in-place e chamar `.notifies(value)` diretamente, sem clonar para um novo objeto só para passar no `Object.is` do `set()`.
 
-The library can monkey-patch built-in prototypes (`String.prototype.toKebabCase`, `Function.prototype.thisAsParameter`, etc.). The pattern:
-1. `src/<type>/types.ts` declares the function type.
-2. `src/natives/<type>/implementations.ts` implements the real logic as a plain function/static method.
-3. `src/declarations.ts` (marked `// @required` so it's always side-effect-imported) has a `declare global { interface String { ... } }` block describing the augmented shape, then calls `_Global.register(String, { methodName: _String.methodName.thisAsParameter(), ... })`.
-4. `_Global.register` (`src/global/implementations.ts`) does the actual `Object.defineProperty(target.prototype, key, ...)`.
-
-If you add a new global extension, follow all four steps — a type declared in `declare global` without a matching `_Global.register` call (or vice versa) will compile but silently not behave as advertised.
-
-`Function.prototype` currently gets `thisAsParameter`, `rebind`, and `negate` this way. `rebind(context, ...args)` (`_Function.rebind`) creates a new function with `this`/leading args fixed — rebinding a result of `rebind` again accumulates onto the *original* function (`fn.fn`/`fn.args` track it) rather than stacking wrappers. It's real, tested code now — it used to exist only as commented-out dead code, until `natives/object/proxy/` (below) needed it as a real dependency.
-
-## Reactive proxy (`src/natives/object/proxy/`) — `proxyHandler`/`deleteProxy`
-
-Wraps a plain object in a `Proxy` that calls `onChanges`/`onSet`/`onGet` (global and/or per-property, via options) on every mutation, and auto-rebinds every method to the proxy itself (not the raw target) the first time it's read, memoized via `Object.defineProperty` so it only happens once per method per instance. This is what lets `this.x = y` inside *any* method of a proxied instance trigger reactivity, not just methods a consumer manually rebinds.
-
-This was fully dead code until 2026-07-17 — the whole prior implementation lived commented-out inside an orphaned `.test.ts` file, unexported, with README.md still describing it as live API (see `todo.md` history). It was rebuilt because a real sibling package in this monorepo, `packages/react` (`@lotexiu/react`, actively used by another real project, `docker-management`, elsewhere on this machine — see `/mnt/D/repositories/aleph-typescript/README-ReactWrapper.md` for the full design doc), depends on exactly this to let you write React components as classes (`ReactUI`/`ReactUIClient`/`ReactUIServer`) with automatic reactivity instead of manual `setState`. The author's own note: `packages/react` will likely be rewritten too, so don't over-invest in preserving its *exact* current contract — but the design doc confirms the intended behavior this rebuild targets is right (e.g. "no `.bind(this)` needed on any method, not just `render`").
-
-Two real bugs fixed during the rebuild, not just a straight port:
-- **Stale nested-proxy cache on reassignment.** The old `set` trap tried to eagerly create a nested proxy for object-valued properties using the pre-assignment (stale) value, then immediately overwrote it — leaving a cached nested proxy wrapping the wrong object. `packages/react` worked around this by manually calling `deleteProxy(instance, "props")` before every reassignment. Fixed at the root instead: `set` now just invalidates the cached nested-proxy key on any reassignment; `get` lazily (re)creates it correctly against whatever the current value is. `deleteProxy` still exists for explicit manual invalidation, it's just no longer mandatory before reassigning.
-- **`allProxy: true` didn't cascade.** It only decided *whether* to wrap a nested object in its own proxy, not what options that nested proxy got — so nested mutations never reached the top-level `onChanges` unless you manually configured `properties.<key>.options` at every level. Fixed: when a property is proxied *because of* `allProxy` (no explicit per-property `options` given), the nested proxy now inherits `{ allProxy: true, onChanges }` from the parent, so "everything is reactive through one callback" actually holds recursively. A property proxied via a targeted per-property `onChanges` (not `allProxy`) does *not* cascade further down — that was a shallow, intentional listen, not a request for deep reactivity.
-
-Location (`natives/object/proxy/`) was reconsidered and kept: despite the primary consumer being React-flavored, the capability itself ("observe mutations on any plain object") is a generic Object-domain concern, not React-specific — consistent with the rest of `natives/object/`.
-
-## Reactive state performance philosophy — mutate in place, notify manually
-
-**Stated by the author 2026-08-23** (and once before in an earlier session that didn't get written down anywhere — recording it here now so that doesn't happen twice): **this library is not obligated to reproduce React/Angular's immutable-update convention.** `Subscription<T>`/`Model<T>` expose `notifies()` as a *public* method specifically so a consumer can mutate the object a `Model` already holds in place and call `.notifies(value)` directly, instead of cloning into a brand-new object/array just to give `set()`'s `Object.is` check something structurally different to compare. `set()` is the right tool when a value is genuinely being *replaced*; allocating a fresh clone on every mutation purely so `set()` has a new reference to accept is the anti-pattern to avoid — especially on a hot path (e.g. one call per `mousemove`).
-
-Concretely, prefer this:
 ```ts
+// preferir:
 this.buttons.value[button] = true
 this.buttons.notifies(this.buttons.value)
-```
-over this:
-```ts
+
+// evitar (aloca objeto novo em cada chamada sem benefício):
 this.buttons.set({ ...this.buttons.value, [button]: true })
 ```
-The first mutates the same object and fires one notify with no allocation; the second allocates a new object on every single call for no benefit — nothing downstream needs the two references to actually differ. `mouse/model.ts` (`MouseState`) and `keyboard/model.ts` (`KeyboardState`) are the reference example: `move`/`press`/`release` all mutate their `Model`'s held value in place and call `notifies()` directly rather than going through `set()`.
 
-**The one real exception, not a contradiction of the above:** a consumer bridging this into something that *does* gate re-renders on reference identity — most notably React's `useSyncExternalStore`, which skips re-rendering when `getSnapshot()` returns the same reference as last time — needs to produce a fresh reference at *that specific boundary*, not by changing how this library updates its own state. `Computed` already does this for free (it recomputes into a new value on every read once a dependency notifies, so anything *derived* — e.g. `MouseState.combo`/`anyPressed`, both plain arrays/booleans rebuilt from scratch each time — is already safe to bridge as-is); a `Model` holding a mutated-in-place object is not, and whatever eventually adapts `MouseState`/`KeyboardState` into `mouseManager`/`keyboardManager` needs to handle that conversion at the adapter layer.
+**Exceção real:** ao bridgear para algo que gatea re-renders em identidade de referência (ex: `useSyncExternalStore` do React), produzir referência nova **naquele boundary específico**, não mudando como a lib atualiza seu estado interno.
 
-## Testing conventions
+---
 
-- `vitest`, `describe`/`it`/`expect` from `'vitest'` — `globals: false` in `vitest.config.ts`, so always import test globals explicitly, never rely on ambient `describe`/`it`.
-- Import the module under test via its public alias/wrapper (`import { MaskUtils } from '@ts/mask/utils'`), not the internal `_Foo` implementation, matching how a consumer of the published package would use it.
-- `clearMocks: true` is set globally — no need to manually reset mocks between tests.
+## `_String` — utilitário de string nativo
 
-## Component plugin system (`src/value-cell/`, `src/html/plugins/`) — early/spike stage
+### Regras críticas de Unicode
 
-The long-term goal (per the author, not yet fully realized) is a set of framework-agnostic "plugins" that own one narrow piece of component logic (parsing a value, formatting a mask, validating, etc.), so that building a component in Angular/React/Next/whatever means writing only the visual layer and wiring it to these plugins — never re-implementing masking/validation/value-parsing per framework per project. See "Design philosophy" below for the reasoning; this section is just the current shape in code.
+| Tipo | Exemplo | `.length` |
+|---|---|---|
+| ASCII / BMP | `a`, `é`, `中` | 1 |
+| Surrogate pairs | `😀`, `𝄞` | 2 |
+| ZWJ sequences | `👨‍👩‍👧` | 8 |
+| Variation selectors | `❤️` | 3 |
+| Bandeiras | `🇧🇷` | 4 |
 
-Two layers:
-- **`src/value-cell/model.ts` — `ValueCell<T>`.** The one reactive primitive everything else is built on: holds a current value, `set()` it, `subscribe(listener)` to changes (shallow `Object.is` dedup, returns an unsubscribe function). No DOM/browser dependency, no framework awareness. Not a plugin itself — plugins compose it internally instead of each reimplementing "notify on change."
-- **`src/html/plugins/` — plugin contract + concrete plugins.** `types.ts` defines `TPlugin<T>` (`get value()` + `subscribe()` only — deliberately no `set()` in the shared contract, since how a plugin is *written to* varies per plugin and shouldn't be forced into one shape). Plugins are organized one directory per concern: `mask/`, `number/`, `validation/` (built), `others/` (still empty, scaffolded for whatever doesn't fit the type/modifier split below).
+### Estratégia híbrida de performance
 
-Two plugin archetypes, and the distinction matters when adding a new one:
-- **Adapter plugins** wrap an existing `*Utils` module and add nothing but reactive state — e.g. `MaskPlugin` (`src/html/plugins/mask/model.ts`) holds a `ValueCell<string>` and calls `MaskUtils.apply`/`unapply`; `NumberPlugin` (`src/html/plugins/number/model.ts`) calls `NumberUtils.parse` + `MathUtils.clamp`. All the real logic stays in the util, so if that logic changes, the plugin doesn't. **If you can write a plugin's core method as a one-line call into an existing util, that's the whole plugin — don't add logic "just in case."**
-- **Logic plugins** exist because no util covers that concern yet. When a logic plugin's logic grows non-trivial, graduate it into a proper `implementations.ts`/`utils.ts` pair first (normal module convention), then shrink the plugin back down to a thin adapter over it — this already happened once: `NumberPlugin` started as a logic plugin (inline `Number(raw)` parsing), then `natives/number/{implementations,utils}.ts` (`NumberUtils.parse`) and `natives/math/{implementations,utils}.ts` (`MathUtils.clamp`) were carved out and it was reduced to an adapter.
+A detecção de astral chars não vive mais em `_String` — foi centralizada em `_Regex.hasAstralChar()` (`src/natives/regex/`), reusada tanto por `_String` quanto por `Mask`:
 
-**Config that can plausibly change after construction must be runtime-settable, not constructor-only.** Learned the hard way on `MaskPlugin.pattern` (originally constructor-only; fixed to `setPattern()`, which re-derives the formatted value from an internally-tracked raw value rather than needing the caller to retype it) — `NumberPlugin.setLimits()` followed the same shape from the start. Note: reformatting with a structurally different pattern (different digit-group sizes) reflows the digits, it's not a 1:1 separator swap — worth caution for any UI that switches mask shape live, cursor position can jump non-obviously.
+```ts
+// natives/regex/declarations.ts
+UNICODE: { HIGH_SURROGATE: '[\\uD800-\\uDBFF]' } // só high surrogate — se tem um, é astral
 
-**min/max on `NumberPlugin` is clamping (silently correct the value), not validation (flag an error, leave the value alone).** These stay different behaviors on purpose — clamping isn't "cheap validation," it's a distinct concern.
+// natives/regex/implementations.ts
+static hasAstralChar(value: string): boolean { return _Regex.highSurrogateRegex.test(value) }
 
-**`ValidationPlugin` was built, then removed the same day (2026-07-18) — reconsidered by the author.** It started as a generic plugin taking an array of `TValidationRule<T> = (value: T) => string | undefined` rules, with `ValidationUtils` shipping rule *factories* (`required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `cpf`/`cnpj`). The author's call: a centralized generic-rules plugin tends to grow without bound over time, and any given type/value plugin almost always has a more direct, more efficient way to validate its own value than routing through a generic rule-array mechanism — so **validation isn't a plugin at all now**. What survives is `natives/validation/` (`_Validation`/`ValidationUtils`, normal `_Foo`/`FooUtils` shape) with just direct boolean checks: `required`, `pattern`, `isValidCPF`, `isValidCNPJ` — no rule closures, no generic list-of-rules runner. Each plugin that needs to validate something calls the check it needs directly and decides for itself how to react (error state, clamp, whatever fits); `min`/`max`/`minLength`/`maxLength` as *generic* rule factories were dropped since nothing concretely needs them that way — `NumberPlugin`'s min/max already covers that ground as clamping. **This is also still why CPF/CNPJ/phone/etc. don't get their own type plugins:** they're a string shape (mask) plus a format/checksum check, not a different runtime type — only reach for a new *type* plugin when raw text genuinely needs to become a different type (`string -> number`, `string -> Date`), not for every named "kind" of string.
+// natives/string/implementations.ts
+private static readonly SEGMENTER = new Intl.Segmenter(); // instância estática única
+```
 
-**Plugins never import or reference each other as siblings a consumer wires together** — `NumberPlugin` doesn't know `MaskPlugin` exists. Composing several plugins into one working field (e.g. mask + number together) is explicitly *not* the plugin system's job: it's done by hand in the consuming component, or later via an opt-in "recipe" factory that is itself not a plugin. This keeps each plugin trivially testable alone and avoids ever needing a generic "plugin orchestration" mechanism.
+- Sem astral chars (`!_Regex.hasAstralChar(str)`) → caminho rápido com indexação direta (~200x mais rápido que Segmenter em ASCII)
+- Com astral chars → `SEGMENTER.segment(str)` para iterar por grafemas
+- `forEach(str, callback)` chama `callback(char, index, size)` — `size` é a largura do grafema em code units (1 BMP, 2+ surrogate pair/ZWJ). `onChar(chars)` retorna uma função `(str, callback)` com `callback(index, size)` na mesma lógica — ver `TStrForEeachCallback`/`TStrOnCharCallback` em `types.ts`
 
-That said, **one plugin *internally composing* another (not as peers, as an implementation detail) is fine** — e.g. a future `PercentagePlugin` holding a private `NumberPlugin` instance to reuse its parsing rather than reimplementing it, while still exposing its own `TPlugin<number>` surface. This is a different axis from the type-registry idea below: composition is about *implementation reuse*, not about the public "which type is this" contract.
+### Métodos intencionalmente de baixo nível (code units UTF-16)
+`charCodeArray`, `lookupArray`, `lookupArray128` — **não alterar para grafemas**, são de baixo nível por design. Documentar com `@internal` ou JSDoc indicando que operam em UTF-16 code units.
 
-**Two plugin categories, expected to matter once a second type plugin exists:** *type plugins* (`number/`, planned `date/` — see `todo.md`) are mutually exclusive per field — a generic input picks exactly one based on a declared `type`, since one raw string can only be interpreted as one type at a time. *Modifier plugins* (`mask/`, `validation/`) are never exclusive — they compose freely with whichever type plugin is active, no coordination needed. A `type -> factory` lookup for type plugins was discussed but deliberately not built yet — with only one type plugin (`number`) existing, a registry would be pure speculation; `todo.md` lays out building a `DatePlugin` first (the natural second type plugin) and only then the registry, once there are genuinely two to look up. `others/` (scaffolded, empty) is for whatever doesn't cleanly fit either category.
+### Bug de flag `u` corrigido (2026-08-11)
+Regexes com `\p{...}` (property escapes) sem flag `u`/`v` silenciosamente não funcionam — `\p{L}` sem `u` é parseado como literais `p{L}`. Predicados de caractere (`isLetter`, `isLowerCase`, `isUpperCase`, etc.) têm parâmetro `extended: boolean = false`: `false` usa ASCII/charCodeAt (rápido), `true` usa `\p{...}` com flag `u` (opt-in).
 
-Framework bindings (Angular signals, React state, Vue refs, etc.) are just a `plugin.subscribe(v => /* update local reactivity primitive */)` in the component's setup code — the plugin layer doesn't and shouldn't know which framework is consuming it. Two fictional end-to-end examples (Angular signals + `DestroyRef`, React `useSyncExternalStore`) lived in `src/html/plugins/examples/*.md` — `.md` on purpose, since Angular/React aren't dependencies here — and were deleted 2026-07-18 once they'd served their purpose (validating the contract shape; the author confirmed `useSyncExternalStore`'s `subscribe`/`getSnapshot` mapping onto `TPlugin<T>` almost exactly was a good sign, not just a coincidence). Real usage validation is now planned against `apps/proton-desk` instead (see below) rather than fictional snippets.
+### Bug de `this` em chamadas entre static methods (2026-07-17)
+Static methods que chamam um sibling via `this.outroMetodo()` em vez de `ClassName.outroMetodo()` quebram quando o método é extraído como referência bare. **Sempre usar o nome explícito da classe em chamadas internas**, nunca `this`. Afetou `_String`, `_Object`, `_Function`.
 
-This subsystem is genuinely new and unproven — expect it to move. Don't treat the current shape of `TPlugin`/`ValueCell` as locked in the way `Mask`/`ObjectUtils` are; it hasn't survived real usage yet.
+---
 
-### `AsyncCheckPlugin` — the async-validation gap, closed (2026-07-18)
+## `Mask` — máscara de string
 
-`src/html/plugins/async-check/model.ts` — `AsyncCheckPlugin<TInput, TResult>` models the third state a *sync* check never needs: `{status: "idle" | "pending" | "resolved" | "rejected"}` (`resolved` carries `result: TResult`, `rejected` carries `error: unknown`). It reuses the library's own `debounce()` rather than reimplementing it, and discards stale responses via a crescent token — if `request()` fires again before the in-flight check resolves, only the newest response is ever applied. Satisfies `TPlugin<TAsyncCheckState<TResult>>` normally, so `usePluginValue`/`useSyncExternalStore` bindings work unchanged. This is a "logic plugin" in the archetype sense above (no existing util covers debounced-async-with-stale-guarding) — validated against a real (simulated-latency) server check in `apps/proton-desk` (`lib/useUsernameCheck.ts`): pending shows before resolution, rapid typing only checks the final value, a reserved name resolves `false`.
+### Regras padrão
 
-### External value sync and mask caret position — no new library primitives needed
+| Token | Aceita |
+|---|---|
+| `0` | dígitos básicos |
+| `A` | dígitos + letras |
+| `W` | letras |
+| `U` | maiúsculas |
+| `L` | minúsculas |
+| `S` | símbolos |
+| `C` | moeda |
+| `E` | emojis |
+| `X` | qualquer char |
 
-Two more items from `todo.md`'s validated-ideas list turned out to be **pure composition of what already exists**, not gaps:
+Quantificadores: `0{3}`, `0{1,3}`, `0{1,}` ou `0*`, `0?`
+Alternativas: `||` (ex: `(00) 00000-0000||(00) 0000-0000`)
 
-- **External value arriving while the user is mid-edit** (the classic controlled-field bug) is just `InteractionPlugin.value.focused` deciding whether to apply an incoming value immediately or hold it until blur. No plugin needed this built in — `apps/proton-desk/lib/useExternalSync.ts` is the ~15-line hook demonstrating it, validated live: triggering a simulated server push while the field is focused and being typed into does not touch the visible value; blurring flushes the held-back value.
-- **Caret jumping to the end after a masked value reformats** got one real addition, but a narrow, pure one: `MaskUtils.caretPositionAfterFormat(previousDisplay, previousCaret, nextDisplay, mask)` (`src/mask/implementations.ts`). It doesn't walk the compiled pattern itself — it reuses the existing `unapply()` to count how many "raw" (token-matching) characters sit before the caret in the old text, then finds where that same count is reached in the new text, advancing past any literal run so the caret never gets stuck between separators (e.g. right after a `.` rather than right before it, when both map to the same raw count). The DOM half (capturing `selectionStart` on `input`'s native change event, restoring it via `setSelectionRange` after React repaints) is deliberately left to the consumer — `apps/proton-desk/lib/useMaskedCaret.ts` is the reference implementation, validated live: inserting a digit mid-CPF keeps the caret right after the inserted digit instead of snapping to the end.
+### API atual — `Mask` é uma classe totalmente static (sem `new Mask()`)
+`Mask.apply(value, mask)`, `Mask.unapply(value, mask)`, `Mask.valid(value, mask)` — todos static, chamados direto na classe. Não existe `MaskUtils` no módulo ativo hoje (ver nota sobre `.old-mask/` abaixo).
 
-Accessibility (`aria-invalid`/`aria-describedby`) needed no library code either, per the same reasoning as always — DOM semantics are the visual component's job, not the plugin layer's. `apps/proton-desk/lib/accentStyle.ts`'s `ariaProps(field, statusId)` plus `useId()` in each of the 10 input components is the demonstrated pattern.
+Gerenciamento de regras (também static): `Mask.setRule(key, rule)` (substitui o antigo `setToken`), `Mask.resetRulesToDefault()`, `Mask.clearRules()`. `Mask.rules` é um `Computed` com os valores registrados (array), `Mask.ruleKeys` um `Computed` com as chaves — ambos recomputam quando o `Model<Map>` interno de regras muda; mudar regras invalida o cache de patterns compilados automaticamente (`Mask._rules.subscribe(() => Mask.cache.clear())`).
 
-## Design philosophy (read this before making structural judgment calls)
+### Tokens compilados (`src/mask/token/`)
+Um pattern (`mask.split('||')`) compila para uma lista de `TMaskToken` (literal) / `TMaskRuleToken` (regra, com `min`/`max`/`test: RegExp` pré-compilado) — classes reais em `token/model.ts`, não mais a union discriminada `{type: 'mask'|'rule', ...}` de antes. Distinguir com `instanceof`, não `.type`. `TMaskCompiledPattern` guarda `tokens` (ambos) e `ruleTokens` (só as regras, pré-filtrado, usado por `unapply`).
 
-This project has been rewritten from scratch multiple times (which is why git history is shallow relative to how mature the code looks) — every time the author found a shape they didn't like, they started over rather than accumulate cruft on top of a foundation they didn't trust. Treat that as a real signal, not a red flag: structural decisions here are made deliberately and revisited on purpose, not carelessly.
+### Surrogate pairs
+- `apply` — caminho rápido para strings sem astral chars; com astral chars, monta os tokens sobre `[...raw]` (array de code points) em vez de indexar a string crua
+- `valid` — detecta astral chars via `_Regex.hasAstralChar` e avança por `codePointAt`/`String.fromCodePoint` em vez de `value[index]` cego quando precisa
+- `unapply` — `for...of` correto para code points
 
-What the author is optimizing for, in this order of how often it comes up, not strict priority: **performance, readability, and practicality/ease of use** — and the hard part is never picking one, it's keeping all three high at once without one silently degrading the others. When proposing or reviewing a design, check it against all three, not just "does it work."
+### `caretPositionAfterFormat` — não existe no módulo ativo
+Vivia em `MaskUtils.caretPositionAfterFormat(previousDisplay, previousCaret, nextDisplay, mask)`: contava chars "raw" antes do caret no texto antigo e achava onde esse count era atingido no novo texto (parte DOM ficava no consumidor). Essa implementação só existe hoje em `src/.old-mask/` (arquivado, fora do build — ver "Estrutura de módulos"). Se o comportamento ainda for necessário, precisa ser reportado para o novo `Mask` — não assumir que já foi.
 
-The recurring instinct is maximal, disciplined reuse: "everything is a utility, everything can be reused" — but the author is explicit that *when* and *how* to extract/reuse is the actual hard problem, not *whether* to. Don't read "reuse as much as possible" as "abstract early" — it means the opposite in practice here: wait until a concrete second use case exists and the shared shape is obvious, rather than generalizing from one call site. Forcing reuse into the wrong abstraction is treated as worse than short-term duplication.
+---
 
-The author is comfortable with different modules looking structurally different from each other *if there's a real underlying reason* — they are not chasing uniformity for its own sake, and said outright they're not fully sure whether e.g. `Mask` (`_Foo`/`FooUtils` split) and `ValueHistory` (bare exported class) are both "correct" for what they each are, or whether one is just drift. When you notice two modules solving similarly-shaped problems differently, that's worth surfacing as a question, not silently "fixing" toward whichever pattern is more common — the difference might be intentional and the author may not have consciously articulated why yet.
+## `Parser` — parser de escopos
 
-The stated end-goal is much bigger than this package: the author wants a foundation that lets someone build a frontend or backend project — including something as ambitious as a UI with thousands of themes/visual variants — without writing a new mega-complex component per variant or duplicating logic per framework. The plugin system above is the current attempt at the "don't duplicate logic per framework" half of that; theming (a `src/html/managers/theme/` directory already exists, empty, and `colorjs.io` is already a dependency for this reason) is the other half, not yet started as of this writing.
+Parser genérico e configurável. **Não** é um parser de linguagem específica — reconhece apenas delimitadores (gates) e constrói uma árvore de escopos. Semântica fica a cargo de quem usa.
 
-## Keeping this file current
+### `ParserGate`
+- `open`/`close` — strings de 1 ou mais chars
+- `opaque` — conteúdo interno ignorado (strings, comentários)
+- `symmetric` — `open === close`
 
-This file should be updated incrementally, in small edits, as things come up during real work — not as a periodic big rewrite. Specifically: when something in this codebase strikes *you* (the assistant, in a future session) as unusual, inconsistent, or worth more thought — a pattern that seems to fight itself, a decision whose rationale isn't obvious from the code, a place two modules disagree without a clear reason — that is exactly the kind of thing worth a line in this file, even if you're not sure yet whether it's intentional. Ask the author about it in conversation first if it's a live decision; once it's resolved (or once you've noticed it enough times that it's clearly a standing tension worth recording as-is), add it here so the next session doesn't have to rediscover it from scratch.
+### Performance atual
+- Lookup via `Uint8Array[128]` — early exit para ~94% dos chars
+- `multiCharGates` separado para gates de 2+ chars
 
-## Compilation note
+### Refatoração planejada
+Ver `PROMPT-parser-refactor.md` para o prompt completo. Resumo:
+- `_changed`/`_processed` manual → `Model<string>` + `Computed<ParserRoot>`
+- `ParserRoot.text: Model<string>` como fonte única da verdade (flyweight)
+- `ParserNode.content` e `ParserGap.text` — extraídos lazy via `Computed`
+- Adicionar `ParserGap` para intervalos entre nós
+- `children` (typo `childrens` corrigido), `unclosed: boolean` explícito
+- `closeOf` — remover (nunca lido)
+- Referência ao `Parser` inteiro em `ParserNode` → apenas `ParserRoot`
 
-**Resolved 2026-07-19** — `pnpm dev` (`vite build --watch`) used to never pick up a brand-**new** file until restart, because `createEntryFile`/`validateProject` only ran once when `vite.config.ts` was evaluated. Fixed by moving them into a real Vite plugin (`scripts/vite-plugin.ts`'s `analyzerPlugin`, see "Build & source-generation architecture" above): `buildStart` reruns them on every rebuild (covers edits to already-indexed files, which already worked), and a separate `chokidar` watcher (already a devDependency, previously unused) watches `src/` directly for add/unlink and calls `project.refresh()` + regenerates the entry — decoupled from Rollup's own module-graph-based watcher, which can never see a file nothing imports yet.
+---
 
-**If you touch this again, know two non-obvious things that cost real debugging time:** (1) chokidar v4 **dropped glob support entirely** (confirmed in its own README/changelog) — passing a glob string like `src/**/*.ts` to `chokidar.watch()` silently watches nothing; watch the directory itself and filter by extension in the event handler instead. (2) An unconditional `writeFile` on every rebuild becomes a self-triggering infinite loop the moment the written file is itself part of the watched graph (exactly `src/index.ts`'s situation) — `AnalyzerProject.writeFile` now skips the write when content is unchanged specifically to prevent this; don't remove that check.
+## Build e geração de código (ler antes de adicionar arquivos)
 
-**Note:** `scripts/` (the analyzer + its consumer tools) has no `tsconfig.json`/`include` of its own — `tsconfig.json`'s `include` is `src/**/*` only, so `tsc --noEmit -p tsconfig.json` never actually type-checks anything under `scripts/`, and vitest transforms it with esbuild (no type-checking either). The only real verification for a `scripts/` change is running it: `pnpm build` (exercises the analyzer + validator + index-generator via the Vite plugin) and `pnpm run docs` (exercises the docs generator). Don't trust a clean `tsc --noEmit -p tsconfig.json` as proof a `scripts/` edit compiles.
+**`src/index.ts` é código gerado, não escrito à mão.** Nunca editar manualmente — qualquer mudança é sobrescrita no próximo build.
 
-### Analyzer traversal bug fixed, and class members made visible to docs (2026-07-21)
+- Adicionar módulo = criar arquivo(s) em `src/`, exportar símbolos normalmente, rebuild — sem wiring manual
+- `@required` (comentário standalone, não JSDoc) — força import por side-effect no entry gerado (usado por `src/declarations.ts`)
+- `@internal` — exclui do `src/index.ts` e suprime warning do validator
 
-`ProjectFile.processFileStructure`'s `visit()` used to be a full `ts.forEachChild` recursive walk that kept descending into every node's children even after creating a block for it — including straight into function/method bodies. Since a local `const`/nested `function` declaration inside a method body uses the exact same AST node kinds (`VariableStatement`, `FunctionDeclaration`) as a real top-level module declaration, every loop counter, intermediate result, and helper closure declared *inside* any function anywhere in the project (e.g. `keys`/`seen`/`aVal` inside `_Object.diffs`, a couple dozen locals inside `mask/implementations.ts`'s parsing functions) was picked up as its own block. Harmless for the index generator/validator (both only look at `file.exports`, and locals are never exported), but it flooded `docs/modules/*.md` (which walks every block in `file.blocks`) with meaningless noise — `mask.md` alone had ~170 spurious entries before this fix, more than half the file.
+### Arquitetura dos scripts
 
-Fixed by rewriting `visit` as `visitStatements`, which only iterates a statement list directly (`sf.statements` at the top, then one level into a `declare global {}`/`declare module "x" {}` body) and never recurses into a class/function/variable body at all. `context` propagation (`"global"`/`"module"`, used by `index-generator.ts` to detect `@required`-style side-effect files) is preserved exactly, just without the accidental deep walk.
+- `scripts/analyzer/` — `AnalyzerProject`, `ProjectFile`, `AnalyzerBlockCode`. Carrega `tsconfig.json`, constrói `ts.Program`, expõe arquivo/export/JSDoc
+- `scripts/tools/index-generator.ts` — `createEntryFile`
+- `scripts/tools/validator.ts` — `validateProject` (warnings, não falha o build)
+- `scripts/tools/docs-generator.ts` — gera `docs/modules/*.md`, `docs/PROJECT.md`, `docs/API.md`
+- `scripts/vite-plugin.ts` — plugin Vite real que roda index-generation + validation no `buildStart`
 
-Separately, `docs/modules/*.md` used to render a class block (e.g. `MaskUtils`, `ObjectUtils`, `_Object`) as a single opaque heading with only the class's own top-level JSDoc — every static method/property inside it (`MaskUtils.compile`, `ObjectUtils.isNull`, ...) was completely invisible in the generated docs, even though by this point every one of them had real JSDoc (see the doc-completion pass earlier this session). Root cause: the analyzer never modeled class *members* as their own entities at all, only whole classes. Fixed by adding `AnalyzerBlockCode.getMembers(): TBlockMember[]` (`scripts/analyzer/block/model.ts`), which walks a class's method/property members and resolves each one's documentation the same way `getUndocumentedMembers()` (the validator's missing-docs check) already did — own JSDoc first, then through `x = Foo.bar` alias resolution, with one extra hop through object-literal shorthand properties for modules like `_Mask` that are still a plain object rather than a `_Foo` class. `getUndocumentedMembers()` is now a thin filter over `getMembers()` instead of duplicating the resolution logic, and `docs-generator.ts`'s `renderModulePage` calls `block.getMembers()` to list each member as a linked sub-entry under its class heading. The shared JSDoc-extraction logic itself (`extractJsDoc`/`hasDocContent`) was pulled out of `ProjectFile` into `scripts/analyzer/jsdoc.ts` so both `ProjectFile` and `AnalyzerBlockCode` (two different classes, previously each with their own private copy) call the same implementation. `PROJECT.md`/`API.md` deliberately still only list whole blocks, one line each, unchanged — members are detail that belongs on the module page they already link to, matching those two files' existing "index only, no descriptions" design.
+### Armadilhas do watcher (chokidar)
+- **chokidar v4 removeu suporte a globs** — passar `src/**/*.ts` silenciosamente não observa nada. Observar o diretório e filtrar por extensão no handler
+- **`writeFile` incondicional = loop infinito** — `src/index.ts` é o entry point, está no graph do Rollup. Escrever byte-identico bumpa o mtime e re-trigga o build infinitamente. `AnalyzerProject.writeFile` pula a escrita quando o conteúdo não mudou — não remover esse check
 
-This was evaluated as "fix the analyzer" rather than "rip it out for raw TypeScript calls in each tool" (both were on the table) because the actual bugs were narrow and mechanical (a traversal boundary, a missing member-level model) — reimplementing tsconfig parsing, `ts.Program` construction, and the reference graph three times (once per consumer tool) to avoid them would have traded a real, fixable analyzer bug for permanent duplication across `index-generator.ts`/`validator.ts`/`docs-generator.ts`.
+### Validator — convenções enforçadas
+- Basenames válidos: `types`, `types.native`, `implementations`, `utils`, `model`, `declarations`
+- Tipos/interfaces devem começar com `T`
+- Símbolo com `_` público sem `@internal` → warning
+- Export público sem JSDoc → warning
+- Exports diretos na declaração (não reexport) → preferir reexport
 
-The Vite-based build (custom `AnalyzerProject` scanning + entry generation) is still explicitly a temporary/evolving setup, not a finished design — the author intends to improve it further. `todo.md`'s history mentions an even older iteration of the build (`getLibraryEntries`) that no longer exists in the code. Don't treat the current build mechanism as a fixed contract; flag friction with it rather than working around it silently.
+---
 
-### `dist/index.d.ts` was never actually bundled, and `dist` shipped a Node-only module that crashes any browser consumer on import (found + fixed 2026-08-23, first real external-consumer validation)
+## Geração de documentação
 
-Both found while wiring `apps/react-desk` up as a second real-world validation app (see the round-1/round-2 `apps/proton-desk` history above for the first one) — building `apps/react-desk`'s desktop-shell UI against the *published* package (via the normal `workspace:*` → `dist/` path, not `src/` directly) is what surfaced these; neither was visible from inside this package's own dev loop, since `vitest`/`tsc -p` here never actually consume `dist/`.
+`pnpm run docs` gera:
+- `docs/modules/<slug>.md` — uma página por módulo, cada bloco com link direto para a linha de source (`#L<N>` do GitHub). Sem código fonte repetido — só links
+- `docs/PROJECT.md` — índice raiz de todos os blocos (exportados ou não)
+- `docs/API.md` — só superfície pública, minimalista, sem descrições, com link para o repo
 
-**Bug 1 — the "untrimmed rollup" fix documented above (`vite.config.ts`'s `bundleTypes.extractorConfig`) didn't do what its own comment said.** Setting `dtsRollup.publicTrimmedFilePath: undefined` alone doesn't "switch the target to untrimmed" — it only *disables* the one dtsRollup output unplugin-dts had actually enabled (`dtsRollup.enabled: true` + `publicTrimmedFilePath` defaulting to the real `dist/index.d.ts` path), without ever pointing `untrimmedFilePath` anywhere. api-extractor's own diagnostics are set to `logLevel: "none"` by unplugin-dts, so this ran completely silently: API Extractor logged "Declaration files built in ~5.5s" as if it had succeeded, but wrote to no file at all — the plain, non-bundled `insertTypesEntry` barrel (still `export { CaptureManager } from './capture-manager/model'` etc. — relative paths that don't exist anywhere in `dist/`, since only `index.js`/`index.cjs`/`index.d.ts` are emitted) was left standing as the final `dist/index.d.ts`. Confirmed by direct inspection: before the fix, `dist/index.d.ts` was 129 lines of unresolved re-exports; every generic type a consumer imports (`TPlugin<T>`, `Variant<K,V>`, `ThemeStyle<...>`, ...) silently degraded to `any`/`unknown` under `apps/react-desk`'s `tsc -b` (a cascade of `TS18046`/`TS7006` across the whole app, not scattered individual mistakes). Separately, `@microsoft/api-extractor` was never actually a `packages/typescript` dependency at all (it happened to be hoisted at the monorepo root for unrelated tooling, which is why it silently didn't error) — added as a real `devDependency` here so pnpm's peer resolution actually links it into this package. Fix: point `untrimmedFilePath` at the real output path instead of nulling out the only configured rollup target. After both fixes, `dist/index.d.ts` is a real single-file bundle (~1800 lines, zero dangling relative imports) — verified directly, not just "build didn't error."
+**Não adicionar JSDoc proativamente** como subproduto de trabalho não relacionado — o autor quer pensar em uma estratégia de documentação antes de acumular comentários ad-hoc.
 
-**Bug 2 — `src/ts-ast/model.ts` crashed on import in any browser, unconditionally, for every consumer regardless of whether they ever touch `TSAST`.** `const basePath = process.cwd()` sat at *module scope*, not inside a method — so it ran the instant the module was evaluated, not when `TSAST` was instantiated. Since `TSAST` is unconditionally re-exported from the public barrel (`export { TSAST } from './ts-ast/model'` in `src/index.ts`) and the whole package bundles into one file (`sideEffects: true`, needed for `declarations.ts`'s real prototype-patching side effects, defeats tree-shaking for everything else too), importing *anything* from `@lotexiu/typescript` in a browser evaluates `ts-ast/model.ts`'s top level and throws `ReferenceError: process is not defined` before any application code runs — confirmed live: `apps/react-desk` was a blank page with that exact console error until this was fixed. This is exactly the eager-vs-lazy trap already called out above for `CaptureManager` singletons ("keep cached state lazily computed on first access, never eagerly in a field initializer") — `ts-ast/model.ts` just isn't one of those singletons, so it hadn't been audited against that rule. Fix: moved `const basePath = process.cwd()` into `resolve()` (only runs when someone actually calls `new TSAST().resolve()`). `path`/`fs`/`typescript` are still imported at module scope too (Vite externalizes `path`/`fs` for browser builds without erroring on the bare import — only *calling* them crashes, and those calls are already inside `resolve()`), so this one line was the whole fix; `TSAST()`'s constructor is still Node-only if actually instantiated, which is expected — it reads real `.ts` files off disk.
+---
 
-**Not yet investigated:** loading `dist/index.cjs` bare under plain Node (e.g. `tsx -e "import { X } from './dist/index.cjs'"`, no Vite/browser involved) throws a *different* error, `TypeError: _os.platform is not a function`, inside `typescript`'s own `getNodeSystem()` — looks like a separate CJS/UMD interop issue specific to how the `typescript` npm package's own Node-`os` usage got bundled, unrelated to the two fixes above (which target the browser/ESM path `apps/react-desk` actually uses). Ran into this only while trying to debug the above from a quick Node script, didn't chase it further — flagging so a future session doesn't have to rediscover it from scratch if `dist/index.cjs` needs to work standalone in Node.
+## Sistema de plugins — REMOVIDO (`src/html/plugins/` não existe mais)
+
+Existiu um sistema de plugins agnósticos de framework (`MaskPlugin`, `NumberPlugin`, `AsyncCheckPlugin`, e um `ValidationPlugin` já removido antes disso) inteiro descrito aqui — `html/` foi removido por completo na reescrita da branch `clean-code` (junto com `capture-manager/`, `value-cell/`, `natives/validation/`; ver "Branch `clean-code`" no topo do arquivo). O raciocínio de design original (adapter vs. logic plugin, type vs. modifier plugin, plugins nunca referenciam plugins-siblings, validação não é plugin) pode ainda ser válido **se** o sistema for reconstruído — mas não há código nenhum disso ativo hoje. Não presumir que `MaskPlugin`/`ValueCell`/etc. existem sem checar.
+
+---
+
+## Extensão de prototypes nativos
+
+Padrão em `src/declarations.ts` + `src/global/`:
+1. `src/<type>/types.ts` declara o tipo da função
+2. `src/natives/<type>/implementations.ts` implementa a lógica
+3. `src/declarations.ts` tem `declare global { interface Foo { ... } }` + chama `_Global.register(Foo, { methodName: _Fn.methodName.thisAsParameter() })`
+4. `_Global.register` faz o `Object.defineProperty` no prototype
+
+Se adicionar extensão nova: seguir os quatro passos — `declare global` sem `_Global.register` (ou vice-versa) compila mas não funciona em runtime.
+
+---
+
+## Reactive proxy — REMOVIDO (`src/natives/object/proxy/` não existe mais)
+
+Existiu um `Proxy` reativo (`proxyHandler`/`deleteProxy`, com callbacks `onChanges`/`onSet`/`onGet`) descrito aqui em detalhe, incluindo dois bugs corrigidos no rebuild de 2026-07-17 (cache de nested proxy desatualizado em reassignment; `allProxy: true` não cascateando). O módulo inteiro foi removido na reescrita da branch `clean-code` — zero referências restantes em `src/`. Não presumir que existe sem checar.
+
+---
+
+## Temas e paletas de cor
+
+- **`colorjs.io`** — única dependência de runtime (confirmado em `package.json`, `^0.6.1`). Justificada pela complexidade real: conversões entre espaços de cor (`oklch`, `lab`, `display-p3`), gamut mapping, variation selectors, formatos múltiplos. Mantida por Lea Verou (W3C CSS WG). Isolar atrás de adapter se possível
+- **`src/theme/palette/`** — não é mais uma função `buildTonalPalette`. Hoje é uma classe abstrata `Palette` com subclasses `CustomPalette` (mapa de tons a partir de uma seed) e `TonalPalette<T>` — a derivação de tom é reativa de verdade (`seed: Model<T>` + `seedOklch: Computed<Color>`), não um rebuild imperativo. Constantes `TONE_STOPS`/`PALETTES` em `constants.ts`
+- **`src/theme/style/`** — `ThemeStyle<N,S,C>` (nome + `slotColors: Record<string, Palette>` + `components`) e o tipo `SlotColor = {id, value: Model<Color>|Computed<Color>}`. Isso já parece o começo de uma camada de papel semântico (slot → cor reativa) — verificar o uso real antes de assumir escopo ou nomenclatura, não é o vocabulário Material 3 antigo que foi removido de propósito
+- **`themeManager`** (`html/managers/theme/` — light/dark detect + persist + live system-preference tracking) **não existe mais** — removido junto com `html/`. `Theme` hoje (`src/theme/model.ts`) é só `{ mode: Model<TThemeMode>, style: Model<ThemeStyle> }`, sem detecção de SO/persistência embutida
+- **`VariantCell` para style/theme como dois eixos independentes não existe mais** — ver nota em "Módulos reativos"
+
+---
+
+## Dependências
+
+### Runtime
+- `colorjs.io` — ver seção de temas
+
+### DevDependencies — confiança alta (Microsoft/Vercel/comunidade)
+`typescript`, `vite`, `vitest`, `prettier`, `turbo`, `@types/node`, `@microsoft/api-extractor`
+
+### DevDependencies — avaliar/remover com o tempo
+- `concurrently` — substituível por script próprio
+- `chokidar` — avaliar `fs.watch` nativo (Node 22+)
+- `tsx` — Node 22.6+ tem `--experimental-strip-types`
+- `vite-plugin-dts` — avaliar substituição por `tsc` direto
+
+---
+
+## Plano de evolução
+
+```
+Auditoria dos módulos existentes (unicode, surrogate pairs)
+        ↓
+Refatoração do Parser (estrutura + reatividade via Model/Computed)
+        ↓
+Lexer genérico (em cima do Parser)
+        ↓
+AST genérico mínimo
+   ├── Interno: documentação, versionamento, geração de index.ts
+   └── Exportado: parsers, DSLs, validadores customizados
+        ↓
+Publicação
+        ↓
+Possível reescrita de módulos de baixo nível em Rust/WASM
+(distribuição multi-linguagem via runtime WASM)
+```
+
+**Por que Lexer/AST é bloqueante:** o compiler API do TypeScript é ~500ms para projetos pequenos, aloca objetos demais e tem API difícil. O AST próprio resolve geração de documentação, versionamento semântico por diff real e geração do `index.ts` de forma mais rápida e controlada.
+
+**Atualização:** o versionamento semântico por diff real **já foi construído** (`scripts/tools/generate-changes.ts` + `api-snapshot.ts` + `api-diff.ts` + `api-signature.ts`, comandos `pnpm changes`/`pnpm changes:check`) — compara a API pública do HEAD contra um snapshot do branch base materializado via `git worktree` e classifica `patch`/`minor`/`major` por diff real de assinatura, não por commits. Isso rodou **em cima do `AnalyzerProject` existente (compiler API do TS)**, sem esperar o Lexer/AST próprio — ou seja, esse item específico do plano deixou de ser bloqueado pela falta de AST. Lexer/AST/`Parser` refatorado continuam não implementados.
+
+---
+
+## Critérios de qualidade
+
+- **200+ linhas** → arquivo fazendo coisas demais, separar por responsabilidade
+- **ms onde deveria ser µs** → abstração custando mais do que deveria, perfilar
+- **API verbosa, limitada ou que exige conhecimento interno** → errado
+- Os três puxam em direções opostas — equilíbrio é a meta
+
+---
+
+## Decisões técnicas — o que NÃO fazer
+
+- **Não usar `str[i]` sem verificar surrogate pairs** em código que lida com texto de usuário
+- **Não usar `split("")` ou `[...str]`** onde performance importa
+- **Não chamar sibling static methods via `this`** — sempre usar `ClassName.method()`
+- **Não usar `\p{...}` sem flag `u`/`v`** — silenciosamente não funciona
+- **Não usar o compiler API do TypeScript** para análise de código nos scripts — na prática isso já não é seguido à risca: `scripts/analyzer/` (`AnalyzerProject`) usa `ts.Program` desde antes, e os scripts novos de versionamento (`generate-changes`/`api-snapshot`/`api-diff`/`api-signature`, ver "Plano de evolução") continuaram em cima dele. Ler como "não usar diretamente em scripts novos sem passar pelo `AnalyzerProject`", não como "zero uso em todo o projeto" — tensão pré-existente, não introduzida agora
+- **Não copiar strings desnecessariamente** — padrão flyweight: guardar índices, extrair lazy
+- **Não adicionar dependências de runtime** sem justificativa clara
+- **Não ressuscitar especulativamente** código removido intencionalmente (`isEmptyObj`, `ValidationPlugin`, etc.) — só se surgir necessidade concreta. E mesmo com necessidade concreta: checar primeiro se foi remoção definitiva ou "vai ser refeito diferente" (ver "⚠️ Este arquivo pode estar desatualizado" no topo) — trazer de volta na forma antiga quando o autor já queria uma forma nova é tão errado quanto ressuscitar sem necessidade nenhuma
+- **Não adicionar JSDoc proativamente** sem uma estratégia definida
+- **Não manter estado eager em field initializer/constructor** em managers que rodam sob Node em testes — manter lazy no primeiro acesso (`matchMedia`, `localStorage`, `document`)
+
+---
+
+## Bugs notáveis corrigidos — histórico
+
+| Data | Bug | Impacto |
+|---|---|---|
+| 2026-07-17 | `this.sibling()` em static methods | Quebrava API pública ao extrair métodos como referência |
+| 2026-07-17 | `debounce()` usava `Timeout.refresh()` (Node-only) | Quebrava no browser |
+| 2026-07-17 | `step()` off-by-one | Disparava com `amount+1` calls em vez de `amount` |
+| 2026-07-18 | Cache de nested proxy desatualizado | Proxy wrappava objeto errado após reassignment |
+| 2026-07-19 | `writeFile` incondicional = loop de rebuild infinito | Build travava em watch mode |
+| 2026-07-19 | chokidar v4 sem suporte a globs | Novos arquivos não eram detectados |
+| 2026-07-21 | Traversal do analyzer descendo em corpos de função | ~170 entradas espúrias em docs |
+| 2026-08-11 | `\p{...}` sem flag `u` | Predicados de caractere sempre retornavam errado |
+| 2026-08-23 | `dist/index.d.ts` nunca bundled | Tipos degradavam para `any` em consumidores |
+| 2026-08-23 | `process.cwd()` em module scope em `ts-ast/model.ts` | Crash em qualquer browser (ReferenceError) |
+| 2026-08-25 | `_String.capitalize` usava `charAt(0)`/`toUpperCase()` direto | Quebrava quando o primeiro char era um surrogate pair (astral) — corrigido para `codePointAt`/`String.fromCodePoint` |
+| 2026-08-25 | `_String.charCodeArray` retornava `.toString(16)` (hex) | Nome do método promete code unit numérico; consumidor que esperava número quebrava. Corrigido para retornar o `charCodeAt` puro |
+
+---
+
+## Mantendo este arquivo
+
+Atualizar em pequenas edições conforme as coisas surgem — não reescrever em bloco. Quando algo parecer incomum, inconsistente, ou duas coisas disagreeing sem razão clara: registrar aqui (ou perguntar ao autor primeiro se for decisão viva). O objetivo é que sessões futuras não precisem redescobrir o que já foi resolvido.
+
+**No começo de uma conversa nova, depois de um período sem trabalhar no projeto:** não assumir que a "Estrutura de módulos", a presença de testes/docs, ou uma seção "X foi removido" ainda reflete o código — o autor reescreve em escala periodicamente e esse arquivo só é atualizado quando alguém lembra de pedir. Uma checagem rápida (`ls src/`, grep pelo símbolo em questão) antes de agir sobre uma afirmação estrutural evita propagar informação stale — ver "⚠️ Este arquivo pode estar desatualizado" no topo.

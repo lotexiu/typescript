@@ -13,8 +13,6 @@ declare global {
 		capitalize: TFnDeclaration<TUString["capitalize"]>;
 		capitalizeAll: TFnDeclaration<TUString["capitalizeAll"]>;
 		noAccent: TFnDeclaration<TUString["noAccent"]>;
-		firstDifferentIndex: TFnDeclaration<TUString["getFirstDifferentIndex"]>;
-		lastDifferentIndex: TFnDeclaration<TUString["getLastDifferentIndex"]>;
 		charCodeArray: TFnDeclaration<TUString["charCodeArray"]>;
 		isIdentifier: TFnDeclaration<TUString["isIdentifier"]>;
 		isLetter: TFnDeclaration<TUString["isLetter"]>;
@@ -74,8 +72,6 @@ _Global.register(String, {
 	capitalize: _String.capitalize.thisAsParameter(),
 	capitalizeAll: _String.capitalizeAll.thisAsParameter(),
 	noAccent: _String.noAccent.thisAsParameter(),
-	firstDifferentIndex: _String.getFirstDifferentIndex.thisAsParameter(),
-	lastDifferentIndex: _String.getLastDifferentIndex.thisAsParameter(),
 	charCodeArray: _String.charCodeArray.thisAsParameter(),
 	isIdentifier: _String.isIdentifier.thisAsParameter(),
 	isLetter: _String.isLetter.thisAsParameter(),

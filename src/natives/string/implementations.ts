@@ -1,5 +1,6 @@
 import { REGEX_PATTERNS } from "@tsn/regex/declarations";
-import { TStrForEeachCallback, TStrToUnion } from "./types";
+import { TStrForEeachCallback, TStrOnCharCallback } from "./types";
+import { _Regex } from "@tsn/regex/implementations";
 
 const { LETTERS, DIGITS, WHITESPACE, SYMBOLS } = REGEX_PATTERNS
 
@@ -7,6 +8,7 @@ const { LETTERS, DIGITS, WHITESPACE, SYMBOLS } = REGEX_PATTERNS
  * @internal
 */
 class _String {
+	private static readonly SEGMENTER = new Intl.Segmenter();
 	static readonly WHITESPACE_CODE = " ".charCodeAt(0);
 	static readonly ESCAPE_CODE = "\\".charCodeAt(0);
 	static readonly TAB_CODE = "\t".charCodeAt(0);
@@ -35,7 +37,10 @@ class _String {
 	}
 
 	static capitalize<T extends string>(str: T): Capitalize<T> {
-		return str.charAt(0).toUpperCase() + str.slice(1) as Capitalize<T>;
+		const codePoint = str.codePointAt(0);
+		if (codePoint === undefined) return str as Capitalize<T>;
+		const first = String.fromCodePoint(codePoint);
+		return first.toUpperCase() + str.slice(first.length) as Capitalize<T>;
 	}
 
 	static capitalizeAll(str: string, splitStr: string): string {
@@ -53,36 +58,6 @@ class _String {
 		return padChar.repeat(length - str.length) + str;
 	}
 
-	static getFirstDifferentIndex(
-		str1: string,
-		str2: string,
-		defaultValue: number = -1,
-	): number {
-		let index: number = [...str1].findIndex((char, index) => {
-			return str2[index] !== char;
-		});
-		return index === -1 ? defaultValue : index;
-	}
-
-	static getLastDifferentIndex(
-		str1: string,
-		str2: string,
-		defaultValue: number = -1,
-	): number {
-		return _String.getFirstDifferentIndex(
-			[...str1].reverse().join(""),
-			[...str2].reverse().join(""),
-			defaultValue,
-		);
-	}
-
-	static removeCharacters(baseString: string, charsToRemove: string): string {
-		return baseString
-			.split("")
-			.filter((char) => !charsToRemove.includes(char))
-			.join("");
-	}
-
 	static noAccent(str: string): string {
 		return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 	}
@@ -91,7 +66,7 @@ class _String {
 		const len = str.length;
 		const arr = new Array(len);
 		for (let index = 0; index < len; index++) {
-			arr[index] = str.charCodeAt(index).toString(16);
+			arr[index] = str.charCodeAt(index);
 		}
 		return arr;
 	}
@@ -258,22 +233,53 @@ class _String {
 	}
 
 	static forEach(str: string, callback: TStrForEeachCallback) {
-		const len = str.length;
-		for (let index = 0; index < len; index++) {
-			if (callback(str[index], index) === false) break;
+		if (!_Regex.hasAstralChar(str)) {
+			const len = str.length;
+			for (let index = 0; index < len; index++) {
+				if (callback(str[index], index, 1) === false) break;
+			}
+			return;
+		}
+		for (const {segment, index} of _String.SEGMENTER.segment(str)) {
+			if (callback(segment, index, segment.length) === false) break;
 		}
 	}
 
 	static onChar(chars: string) {
-		const lookup = _String.lookupArray(chars)
+		const bmpTargets: string[] = []
+		let astralTargets: Set<string> | undefined
+
+		for (const { segment } of _String.SEGMENTER.segment(chars)) {
+			if (segment.length === 1) {
+				bmpTargets.push(segment)
+			} else {
+				(astralTargets ??= new Set()).add(segment)
+			}
+		}
+
+		const lookup = _String.lookupArray(bmpTargets.join(''))
 		const highestCode = lookup.length - 1
 
-		return function (str: string, callback: (index: number) => void | false) {
-			const len = str.length
-			for (let i = 0; i < len; i++) {
-				const code = str.charCodeAt(i)
-				if (code > highestCode || lookup[code] === 0) continue
-				if (callback(i) === false) break
+		return function (str: string, callback: TStrOnCharCallback) {
+			if (!_Regex.hasAstralChar(str)) {
+				const len = str.length
+				for (let i = 0; i < len; i++) {
+					const code = str.charCodeAt(i)
+					if (code > highestCode || lookup[code] === 0) continue
+					if (callback(i, 1) === false) break
+				}
+				return
+			}
+
+			for (const { segment, index } of _String.SEGMENTER.segment(str)) {
+				const size = segment.length
+				if (size === 1) {
+					const code = segment.charCodeAt(0)
+					if (code > highestCode || lookup[code] === 0) continue
+				} else if (!astralTargets?.has(segment)) {
+					continue
+				}
+				if (callback(index, size) === false) break
 			}
 		}
 	}

@@ -7,9 +7,6 @@ class StringUtils {
 	static readonly capitalizeAll = _String.capitalizeAll;
 	static readonly padRight = _String.padRight;
 	static readonly padLeft = _String.padLeft;
-	static readonly getFirstDifferentIndex = _String.getFirstDifferentIndex;
-	static readonly getLastDifferentIndex = _String.getLastDifferentIndex;
-	static readonly removeCharacters = _String.removeCharacters;
 	static readonly noAccent = _String.noAccent;
 	static readonly charCodeArray = _String.charCodeArray;
 	static readonly isIdentifier = _String.isIdentifier;

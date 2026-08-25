@@ -6,6 +6,10 @@ const DATE = {
 } as const
 
 const REGEX_PATTERNS = {
+	RESERVED: {
+		REGEX_KEYS: '[.*+?^${}()|[\\\]\\\\]',
+		ESCAPE: '\\$&'
+	},
 	DATE: {
 		...DATE,
 		ISO: `${DATE.YEAR}${DATE.SEPARATOR}${DATE.MONTH}\\2${DATE.DAY}`,
@@ -48,6 +52,9 @@ const REGEX_PATTERNS = {
 		PRESENTATION: '\\p{Emoji_Presentation}',
 		EMOJI: '\\p{RGI_Emoji}',
 		ALL: '[^\\p{L}]',
+	},
+	UNICODE: {
+		HIGH_SURROGATE: '[\\uD800-\\uDBFF]',
 	},
 } as const
 
