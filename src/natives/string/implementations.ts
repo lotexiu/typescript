@@ -236,12 +236,12 @@ class _String {
 		if (!_Regex.hasAstralChar(str)) {
 			const len = str.length;
 			for (let index = 0; index < len; index++) {
-				if (callback(str[index], index, 1) === false) break;
+				callback(str[index], index, 1);
 			}
 			return;
 		}
 		for (const {segment, index} of _String.SEGMENTER.segment(str)) {
-			if (callback(segment, index, segment.length) === false) break;
+			callback(segment, index, segment.length);
 		}
 	}
 
@@ -266,7 +266,7 @@ class _String {
 				for (let i = 0; i < len; i++) {
 					const code = str.charCodeAt(i)
 					if (code > highestCode || lookup[code] === 0) continue
-					if (callback(i, 1) === false) break
+					callback(i, 1);
 				}
 				return
 			}
@@ -279,7 +279,7 @@ class _String {
 				} else if (!astralTargets?.has(segment)) {
 					continue
 				}
-				if (callback(index, size) === false) break
+				callback(index, size);
 			}
 		}
 	}

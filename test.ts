@@ -155,10 +155,11 @@ section('regression — trailing mask literal is no longer dropped')
 // ---------------------------------------------------------------------------
 section('regression — valid() handles astral characters (emoji)')
 {
-	check('two emoji, exact match', Mask.valid('\u{1F600}\u{1F600}', 'E{2}'), true)
-	check('one emoji short still invalid', Mask.valid('\u{1F600}', 'E{2}'), false)
-	check('emoji + literal suffix', Mask.valid('\u{1F600}%', 'E%'), true)
+	check('two emoji, exact match', Mask.valid('🐒🐒', 'E{2}'), true)
+	check('one emoji short still invalid', Mask.valid('🐒', 'E{2}'), false)
+	check('emoji + literal suffix', Mask.valid('🐒%', 'E%'), true)
 }
+// throw ''
 
 // ---------------------------------------------------------------------------
 // Regression: forEach() called the callback twice for non-astral strings
