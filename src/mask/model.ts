@@ -161,7 +161,7 @@ class Mask {
 			for (let i = 0; i < chars.length && ruleIndex < ruleTokens.length; i++) {
 				const char = chars[i];
 				const rule = ruleTokens[ruleIndex];
-				if (!rule.test.test(char)) continue;
+				if (!rule.match.value.test(char)) continue;
 
 				raw += char;
 				if (++count >= rule.max) {

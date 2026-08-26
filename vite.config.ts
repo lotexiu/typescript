@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { createRequire } from "node:module";
 import { defineConfig } from "vite";
 import dts from 'vite-plugin-dts';
 import { AnalyzerProject } from "./scripts/analyzer/model";
@@ -6,6 +7,16 @@ import { analyzerPlugin } from "./scripts/vite-plugin";
 
 const entryFile = "src/index.ts"
 const project = new AnalyzerProject(process.cwd());
+
+// typescriptCompilerFolder only swaps API Extractor's *ambient typings* (lib.dom.d.ts etc.),
+// NOT its actual compiler engine — @microsoft/api-extractor pins its own exact `typescript`
+// dependency (5.9.3 as of writing) regardless of this option. The real fix for the TS-version
+// mismatch ("you have encountered a software defect" crashes analyzing circular public types
+// across files) is the root `pnpm.overrides["@microsoft/api-extractor>typescript"]`, which forces
+// that pinned dependency itself to the project's newer TS. This option is kept anyway since
+// aligning ambient typings with the local install is still correct on its own.
+const require = createRequire(import.meta.url);
+const typescriptCompilerFolder = dirname(require.resolve("typescript/package.json"));
 
 export default defineConfig({
 	resolve: {
@@ -46,6 +57,9 @@ export default defineConfig({
 						publicTrimmedFilePath: undefined,
 						untrimmedFilePath: resolve(process.cwd(), "dist/index.d.ts"),
 					},
+				},
+				invokeOptions: {
+					typescriptCompilerFolder,
 				},
 			},
 		}),

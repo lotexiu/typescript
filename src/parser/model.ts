@@ -1,45 +1,17 @@
-class ParserGate {
-	public readonly symetric: boolean
-
-	constructor(
-		public readonly open: string,
-		public readonly close: string,
-		public readonly opaque: boolean = false,
-	) {
-		this.symetric = open === close
-	}
-}
-
-class ParserNode {
-	public end: number
-	public childrens: ParserNode[] = []
-
-	constructor(
-		public readonly parent: ParserNode | ParserRoot,
-		public readonly lexer: Parser,
-		public readonly gate: ParserGate,
-		public readonly start: number,
-	) {
-		this.end = -1
-		if (parent) parent.childrens.push(this)
-	}
-}
-
-class ParserRoot {
-	constructor(
-		readonly childrens: ParserNode[] = [],
-		readonly nodes: ParserNode[] = [],
-	) {}
-}
+import { Model } from "@ts/model/model";
+import { Computed, computed } from "@ts/computed/model";
+import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
 
 class Parser {
-	private _root?: ParserRoot;
-	private _changed: boolean = false
-	private _processed: boolean = false
-	
-	get root() { return this._root }
-	get changed() {return this._changed}
-	get processed() {return this._processed}
+	public readonly text = new Model<string>('')
+
+	private readonly configVersion = new Model(0)
+	private readonly _root: Computed<ParserRoot> = computed(
+		() => this.resolve(),
+		[this.text, this.configVersion],
+	)
+
+	get root(): ParserRoot { return this._root.value }
 
 	private escapeCode: number = NaN
 	private _escape: string = ''
@@ -47,14 +19,20 @@ class Parser {
 	set escape(value: string) {
 		this._escape = value
 		this.escapeCode = value.charCodeAt(0)
-		this._changed = true;
+		this.bumpConfig();
 	}
 
-	private _text: string = ''
-	get text() { return this._text }
-	set text(value: string) {
-		this._text = value
-		this._changed = true;
+	/**
+	 * Opt-in: rastrear os gaps (texto fora de qualquer node) custa ~50% a mais no resolve(),
+	 * porque em código real a maior parte do texto fica fora de gates — não é uma feature marginal.
+	 * Desligado por padrão; quem precisa de gaps liga explicitamente.
+	 */
+	private _trackGaps: boolean = false
+	get trackGaps() { return this._trackGaps }
+	set trackGaps(value: boolean) {
+		if (value === this._trackGaps) return
+		this._trackGaps = value
+		this.bumpConfig();
 	}
 
 	constructor() {
@@ -62,27 +40,26 @@ class Parser {
 	}
 
 	private isGate!: Uint8Array;
-	private closeOf!: (string | null)[];
-	private gatesMap!: ParserGate[];
+	private gatesMap!: (ParserGate | null)[];
 	private multiCharGates!: ParserGate[];
 
+	private bumpConfig() {
+		this.configVersion.set(this.configVersion.value + 1)
+	}
+
 	clearGates() {
-		this._changed = true;
 		this.isGate = new Uint8Array(128)
-		this.closeOf = new Array(128).fill(null)
 		this.gatesMap = new Array(128).fill(null)
 		this.multiCharGates = []
+		this.bumpConfig();
 	}
 
 	addGates(...gates: ParserGate[]) {
-		this._changed = true;
 		for (const gate of gates) {
 			const openCode = gate.open.charCodeAt(0)
 
 			if (gate.open.length === 1) {
-				// Gate de 1 char: entra no Uint8Array e no closeOf
 				this.isGate[openCode] = 1
-				this.closeOf[openCode] = gate.close
 				this.gatesMap[openCode] = gate
 
 				if (!gate.symetric) {
@@ -99,22 +76,39 @@ class Parser {
 				this.multiCharGates.push(gate)
 			}
 		}
+		this.bumpConfig();
 	}
 
-	private isEscaped(index: number): boolean {
+	private isEscaped(text: string, index: number): boolean {
 		let count = 0
 		let i = index - 1
-		while (i >= 0 && this.text[i] === this.escape) { count++; i-- }
+		while (i >= 0 && text[i] === this.escape) { count++; i-- }
 		return count % 2 !== 0
 	}
 
-	resolve() {
-		if (!this.changed && this.processed) return;
+	/** Fecha `scope` em `at` (posição do gate de fechamento, ou EOF) e registra o gap final dele. */
+	private closeScope(scope: ParserNode, root: ParserRoot, at: number, unclosed: boolean) {
+		this.flushGap(scope, root, at)
+		scope.close(at, unclosed)
+	}
 
-		const {text, isGate, gatesMap, multiCharGates, escapeCode} = this
+	/** Registra o gap entre o fim do último filho de `scope` (ou seu início de conteúdo) e `upTo`. */
+	private flushGap(scope: ParserNode | ParserRoot, root: ParserRoot, upTo: number) {
+		if (!this._trackGaps) return
+		const lastChild = scope.children[scope.children.length - 1]
+		const from = lastChild ? lastChild.end : (scope instanceof ParserNode ? scope.contentStart : 0)
+		if (upTo <= from) return
+		const gap = new ParserGap(scope, root, from, upTo)
+		scope.gaps.push(gap)
+		root.allGaps.push(gap)
+	}
+
+	private resolve(): ParserRoot {
+		const { isGate, gatesMap, multiCharGates, escapeCode } = this
+		const text = this.text.value
 		const len = text.length
-		this._root = new ParserRoot()
-		let scope: ParserNode | ParserRoot = this._root;
+		const root = new ParserRoot(text)
+		let scope: ParserNode | ParserRoot = root;
 
 		for (let i = 0; i < len; i++) {
 			const code = text.charCodeAt(i)
@@ -126,7 +120,7 @@ class Parser {
 			if (code === escapeCode) { i++; continue }
 
 			// Verifica se é escape contável (ex: \\' — o ' não está escaped)
-			if (this.isEscaped(i)) continue
+			if (this.isEscaped(text, i)) continue
 
 			// Tenta gates de 2+ chars primeiro (mais específicos)
 			let matchedMulti = false
@@ -134,15 +128,16 @@ class Parser {
 				// Verifica o open
 				if (text.startsWith(gate.open, i)) {
 					if (scope instanceof ParserNode && scope.gate.opaque) { matchedMulti = true; break }
-					scope = new ParserNode(scope, this, gate, i)
-					this._root.nodes.push(scope as ParserNode)
+					this.flushGap(scope, root, i)
+					scope = new ParserNode(scope, root, gate, i)
+					root.nodes.push(scope)
 					i += gate.open.length - 1
 					matchedMulti = true
 					break
 				}
-				// Verifica o close
-				if (scope instanceof ParserNode && text.startsWith(gate.close, i)) {
-					scope.end = i + gate.close.length
+				// Verifica o close — só do gate que abriu o escopo atual, não de qualquer gate registrado
+				if (scope instanceof ParserNode && scope.gate === gate && text.startsWith(gate.close, i)) {
+					this.closeScope(scope, root, i, false)
 					scope = scope.parent
 					i += gate.close.length - 1
 					matchedMulti = true
@@ -157,7 +152,7 @@ class Parser {
 			// Fecha escopo atual
 			if (scope instanceof ParserNode) {
 				if (scope.gate.close === key) {
-					scope.end = i + 1
+					this.closeScope(scope, root, i, false)
 					scope = scope.parent
 					continue
 				}
@@ -168,18 +163,25 @@ class Parser {
 			// Abre novo escopo
 			const gate = gatesMap[code]
 			if (gate !== null) {
-				scope = new ParserNode(scope, this, gate, i)
-				this._root.nodes.push(scope as ParserNode)
+				this.flushGap(scope, root, i)
+				scope = new ParserNode(scope, root, gate, i)
+				root.nodes.push(scope)
 			}
 		}
-		
-		this._changed = false;
-		this._processed = true;
+
+		// EOF com escopos ainda abertos: fecha em cascata como unclosed
+		let cursor: ParserNode | ParserRoot = scope
+		while (cursor instanceof ParserNode) {
+			const parent = cursor.parent
+			this.closeScope(cursor, root, len, true)
+			cursor = parent
+		}
+		this.flushGap(root, root, len)
+
+		return root;
 	}
 }
 
 export {
 	Parser,
-	ParserNode,
-	ParserGate,
 }

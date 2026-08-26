@@ -1,4 +1,3 @@
-import { Item } from "@ts/item/model";
 import { Palette } from "../palette/model";
 
 class ThemeStyle<

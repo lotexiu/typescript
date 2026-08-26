@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",
-    "@microsoft/api-extractor": "^7.58.2",
+    "@microsoft/api-extractor": "^7.59.0",
     "@types/node": "^26.0.0",
     "@vitest/ui": "4.1.9",
     "chokidar": "^4.0.0",
