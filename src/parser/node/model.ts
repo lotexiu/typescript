@@ -7,6 +7,8 @@ class ParserGate {
 		public readonly open: string,
 		public readonly close: string,
 		public readonly opaque: boolean = false,
+		/** false = fecha ao encontrar `close` sem incluí-lo no node (ex: comentário de linha terminado por `\n` — a quebra de linha não é parte do comentário). */
+		public readonly consumeClose: boolean = true,
 	) {
 		this.symetric = open === close
 	}
@@ -58,7 +60,9 @@ class ParserNode {
 	close(closeStart: number, unclosed: boolean) {
 		this.closeStart = closeStart
 		this.unclosed = unclosed
-		this.end = unclosed ? closeStart : closeStart + this.gate.close.length
+		this.end = unclosed ? closeStart
+			: this.gate.consumeClose ? closeStart + this.gate.close.length
+			: closeStart
 	}
 }
 

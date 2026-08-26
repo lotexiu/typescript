@@ -3,12 +3,14 @@
 import './declarations'
 
 // #region Runtime Code
+export { AhoCorasick } from './aho-corasick/model'
 export { Computed, computed } from './computed/model'
 export { DEFAULT_DEBOUNCE_DURATION, DEFAULT_THROTTLE_INTERVAL, DEFAULT_STEP_AMOUNT } from './filters/declarations'
 export { debounce, throttle, step, once } from './filters/implementations'
 export { GlobalUtils } from './global/utils'
 export { Item } from './item/model'
 export { LazyReadonlyValue, lazyReadonlyValue } from './lazy-readonly-value/model'
+export { Lexer } from './lexer/model'
 export { Mask } from './mask/model'
 export { MaskCompiledPattern } from './mask/compiled-pattern/model'
 export { TMaskStaticToken, TMaskRuleToken } from './mask/token/model'
@@ -41,9 +43,11 @@ export { Variant, variant } from './variant/model'
 
 // #region Typings
 export type { TNullable, TNotUndefined, TTypeOfValue, TAs, TUnkown, TSameType } from './types'
+export type { TPattern, TAhoCorasickMatch, TOnPositionHook, TOnMatchHook, TAhoCorasickScanHooks } from './aho-corasick/types'
 export type { TSubscription } from './computed/types'
 export type { TDebounceFn, TThrottleFn, TStepFn, TOnceFn } from './filters/types'
 export type { TargetImpl } from './global/types'
+export type { TToken, TTokenRule, TTokenLiteralRule, TTokenCharClassRule, TTokenDelimitedRule } from './lexer/types'
 export type { TMaskRule } from './mask/types'
 export type { TMaskToken } from './mask/token/model'
 export type { TAwaited, TNoInfer, TNonNullable, TExclude, TExtract } from './natives/types'

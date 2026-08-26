@@ -1,6 +1,6 @@
-import './src/index';
-import { Mask } from './src/index';
-import { StringUtils } from './src/natives/string/utils';
+import '../src/index';
+import { Mask } from '../src/index';
+import { StringUtils } from '../src/natives/string/utils';
 
 let passed = 0
 let failed = 0

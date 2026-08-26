@@ -1,6 +1,13 @@
 import { Model } from "@ts/model/model";
 import { Computed, computed } from "@ts/computed/model";
+import { AhoCorasick } from "@ts/aho-corasick/model";
+import { TPattern } from "@ts/aho-corasick/types";
 import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
+
+type TGatePatternInfo = {
+	gate: ParserGate
+	side: 'open' | 'close' | 'symmetric'
+}
 
 class Parser {
 	public readonly text = new Model<string>('')
@@ -13,12 +20,10 @@ class Parser {
 
 	get root(): ParserRoot { return this._root.value }
 
-	private escapeCode: number = NaN
 	private _escape: string = ''
 	get escape() { return this._escape }
 	set escape(value: string) {
 		this._escape = value
-		this.escapeCode = value.charCodeAt(0)
 		this.bumpConfig();
 	}
 
@@ -39,46 +44,48 @@ class Parser {
 		this.clearGates();
 	}
 
-	private isGate!: Uint8Array;
-	private gatesMap!: (ParserGate | null)[];
-	private multiCharGates!: ParserGate[];
+	private gates: ParserGate[] = []
+	private ahoCorasick!: AhoCorasick;
+	private patternInfo!: TGatePatternInfo[];
 
 	private bumpConfig() {
 		this.configVersion.set(this.configVersion.value + 1)
 	}
 
+	/** Recompila o autômato a partir de `gates` inteiro — só roda em config-time (addGates/clearGates), nunca por mudança de texto. */
+	private compileGates() {
+		const patterns: TPattern[] = []
+		const patternInfo: TGatePatternInfo[] = []
+
+		for (const gate of this.gates) {
+			if (gate.symetric) {
+				patternInfo.push({ gate, side: 'symmetric' })
+				patterns.push({ id: patternInfo.length - 1, value: gate.open })
+			} else {
+				patternInfo.push({ gate, side: 'open' })
+				patterns.push({ id: patternInfo.length - 1, value: gate.open })
+				patternInfo.push({ gate, side: 'close' })
+				patterns.push({ id: patternInfo.length - 1, value: gate.close })
+			}
+		}
+
+		this.patternInfo = patternInfo
+		this.ahoCorasick = AhoCorasick.compile(patterns)
+	}
+
 	clearGates() {
-		this.isGate = new Uint8Array(128)
-		this.gatesMap = new Array(128).fill(null)
-		this.multiCharGates = []
+		this.gates = []
+		this.compileGates();
 		this.bumpConfig();
 	}
 
 	addGates(...gates: ParserGate[]) {
-		for (const gate of gates) {
-			const openCode = gate.open.charCodeAt(0)
-
-			if (gate.open.length === 1) {
-				this.isGate[openCode] = 1
-				this.gatesMap[openCode] = gate
-
-				if (!gate.symetric) {
-					// Close diferente do open: marca o close também no isGate
-					const closeCode = gate.close.charCodeAt(0)
-					this.isGate[closeCode] = 1
-				}
-			} else {
-				// Gate de 2+ chars (ex: /* */): guarda separado
-				// Marca o primeiro char no isGate para o early-check
-				this.isGate[openCode] = 1
-				const closeCode = gate.close.charCodeAt(0)
-				this.isGate[closeCode] = 1
-				this.multiCharGates.push(gate)
-			}
-		}
+		this.gates.push(...gates)
+		this.compileGates();
 		this.bumpConfig();
 	}
 
+	/** Conta backslashes imediatamente antes de `index` — ímpar = escaped. No-op se `escape` não foi configurado (`text[i] === ''` nunca bate). */
 	private isEscaped(text: string, index: number): boolean {
 		let count = 0
 		let i = index - 1
@@ -104,75 +111,43 @@ class Parser {
 	}
 
 	private resolve(): ParserRoot {
-		const { isGate, gatesMap, multiCharGates, escapeCode } = this
 		const text = this.text.value
 		const len = text.length
 		const root = new ParserRoot(text)
 		let scope: ParserNode | ParserRoot = root;
+		const { patternInfo } = this
 
-		for (let i = 0; i < len; i++) {
-			const code = text.charCodeAt(i)
+		this.ahoCorasick.scan(text, {
+			onMatch: (patternId, matchStart) => {
+				if (this.isEscaped(text, matchStart)) return false
 
-			// Early exit: ~94% dos chars saem aqui — 2 operações, sem alocação
-			if (code > 127 || isGate[code] === 0) continue
+				const { gate, side } = patternInfo[patternId]
 
-			// Escape: pula o char seguinte se número ímpar de backslashes
-			if (code === escapeCode) { i++; continue }
+				// Fecha `scope` se `match` for o close (ou o símbolo simétrico) do gate que a abriu — checado antes do opaque.
+				if (scope instanceof ParserNode && side !== 'open' && scope.gate === gate) {
+					this.closeScope(scope, root, matchStart, false)
+					scope = scope.parent
+					return false
+				}
 
-			// Verifica se é escape contável (ex: \\' — o ' não está escaped)
-			if (this.isEscaped(text, i)) continue
+				// Escopo opaco: ignora qualquer outra coisa (open de outro gate, close de gate errado).
+				if (scope instanceof ParserNode && scope.gate.opaque) return false
 
-			// Tenta gates de 2+ chars primeiro (mais específicos)
-			let matchedMulti = false
-			for (const gate of multiCharGates) {
-				// Verifica o open
-				if (text.startsWith(gate.open, i)) {
-					if (scope instanceof ParserNode && scope.gate.opaque) { matchedMulti = true; break }
-					this.flushGap(scope, root, i)
-					scope = new ParserNode(scope, root, gate, i)
+				// Abre novo escopo (open normal ou o próprio símbolo de um gate simétrico ainda não aberto).
+				if (side !== 'close') {
+					this.flushGap(scope, root, matchStart)
+					scope = new ParserNode(scope, root, gate, matchStart)
 					root.nodes.push(scope)
-					i += gate.open.length - 1
-					matchedMulti = true
-					break
 				}
-				// Verifica o close — só do gate que abriu o escopo atual, não de qualquer gate registrado
-				if (scope instanceof ParserNode && scope.gate === gate && text.startsWith(gate.close, i)) {
-					this.closeScope(scope, root, i, false)
-					scope = scope.parent
-					i += gate.close.length - 1
-					matchedMulti = true
-					break
-				}
-			}
-			if (matchedMulti) continue
 
-			// Gate de 1 char
-			const key = text[i]
-
-			// Fecha escopo atual
-			if (scope instanceof ParserNode) {
-				if (scope.gate.close === key) {
-					this.closeScope(scope, root, i, false)
-					scope = scope.parent
-					continue
-				}
-				// Escopo opaco: ignora tudo dentro
-				if (scope.gate.opaque) continue
-			}
-
-			// Abre novo escopo
-			const gate = gatesMap[code]
-			if (gate !== null) {
-				this.flushGap(scope, root, i)
-				scope = new ParserNode(scope, root, gate, i)
-				root.nodes.push(scope)
-			}
-		}
+				return false
+			},
+		})
 
 		// EOF com escopos ainda abertos: fecha em cascata como unclosed
 		let cursor: ParserNode | ParserRoot = scope
 		while (cursor instanceof ParserNode) {
-			const parent = cursor.parent
+			const parent: ParserNode | ParserRoot = cursor.parent
 			this.closeScope(cursor, root, len, true)
 			cursor = parent
 		}
