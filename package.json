@@ -28,6 +28,8 @@
     "test:ui": "vitest --ui",
     "clean": "rm -rf dist",
     "docs": "tsx scripts/tools/docs-generator.ts",
+    "docs:ast": "tsx scripts/doc/generate.ts",
+    "ast:example": "tsx scripts/ast-example.ts",
     "ch": "tsx test/main.ts",
     "changes": "tsx scripts/tools/generate-changes.ts",
     "changes:check": "tsx scripts/tools/generate-changes.ts --check"

@@ -4,6 +4,9 @@ import './declarations'
 
 // #region Runtime Code
 export { AhoCorasick } from './aho-corasick/model'
+export { Grammar } from './ast/grammar/model'
+export { GrammarUtils } from './ast/grammar/utils'
+export { AstNode, AstRoot } from './ast/node/model'
 export { Computed, computed } from './computed/model'
 export { DEFAULT_DEBOUNCE_DURATION, DEFAULT_THROTTLE_INTERVAL, DEFAULT_STEP_AMOUNT } from './filters/declarations'
 export { debounce, throttle, step, once } from './filters/implementations'
@@ -44,6 +47,8 @@ export { Variant, variant } from './variant/model'
 // #region Typings
 export type { TNullable, TNotUndefined, TTypeOfValue, TAs, TUnkown, TSameType } from './types'
 export type { TPattern, TAhoCorasickMatch, TOnPositionHook, TOnMatchHook, TAhoCorasickScanHooks } from './aho-corasick/types'
+export type { TCapture, TMatchResult, TGrammarCtx, TMatcher } from './ast/grammar/types'
+export type { TAstVisitor } from './ast/node/types'
 export type { TSubscription } from './computed/types'
 export type { TDebounceFn, TThrottleFn, TStepFn, TOnceFn } from './filters/types'
 export type { TargetImpl } from './global/types'

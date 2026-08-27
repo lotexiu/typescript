@@ -116,11 +116,13 @@ Sempre importar via alias ao cruzar boundaries de `src/natives/<x>/`. Dentro de 
 |---|---|
 | `types.ts` | Exports de tipo puro (prefixo `T`). Sem código runtime. |
 | `types.native.ts` | Re-derivações de builtins TS — só em `natives/object` |
-| `implementations.ts` | A lógica real. Classe `_Foo` com `static` methods, tagged `@internal` |
-| `utils.ts` | Wrapper público: classe `FooUtils` com statics que delegam para `_Foo` |
+| `implementations.ts` | A lógica real. Classe `_Foo` com `static` methods, tagged `@internal` — **modo antigo**, ver nota abaixo |
+| `utils.ts` | Classe `FooUtils` de statics. **Modo novo (preferir):** a lógica direto aqui, sem `_Foo` nem `implementations.ts`. Modo antigo: só o wrapper público que delega para `_Foo`. |
 | `model.ts` / `declarations.ts` | Classes com estado, singletons, constantes |
 
 **Regra do split `_Foo`/`FooUtils`:** aplica-se a **classes de utilitários estáticos** (sem `new`, só static methods). **Não** aplica-se a **classes instanciáveis com estado** (`ValueHistory`, `Item`, `KeyboardState`, `MouseState`) — essas são exportadas diretamente. Ao adicionar um módulo novo: "é um namespace de static methods ou uma coisa instanciável com estado próprio?"
+
+**Atualização 2026-08-27 — o split `_Foo` + `FooUtils` está sendo aposentado para módulos novos.** O autor considera `_Foo` redundante: um único `utils.ts` com `class FooUtils { static ... }` (statics diretos, chamadas entre irmãos sempre via `FooUtils.x` nunca `this`, superfície controlada por `@internal`/JSDoc) substitui `implementations.ts` + `utils.ts`. Free functions exportadas soltas também saem — vira tudo static da classe, um único export. Primeiro exemplo: `src/ast/grammar/utils.ts` (`GrammarUtils`). Módulos antigos com `implementations.ts` separado são drift pré-existente, não migrar especulativamente. (O basename fica `utils` no plural — cogitou-se `util` singular e desistiu-se.)
 
 **Caso cinzento a observar: `Mask`.** Depois da reescrita em `mask/model.ts`, `Mask` é totalmente static (sem `new Mask()`, cache + `Model<Map>` de regras como estado de classe) mas não segue nem `_Foo`/`FooUtils` nem o padrão de instanciável-com-estado — é exportada direto como `Mask` (igual `model.ts`/`declarations.ts` da tabela acima: "singleton"). Não é necessariamente um erro, mas é uma terceira forma que a regra atual não cobre explicitamente — vale perguntar ao autor se isso deveria virar uma terceira categoria nomeada, em vez de inventar por conta própria.
 
