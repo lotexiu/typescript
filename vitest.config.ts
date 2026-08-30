@@ -1,11 +1,9 @@
 import { defineConfig } from 'vitest/config';
-import { AnalyzerProject } from './scripts/analyzer/model';
-
-const project = new AnalyzerProject(process.cwd());
+import { tsconfigAliases } from './scripts/doc/tsconfig-alias';
 
 export default defineConfig({
 	resolve: {
-		alias: project.resolvedAlias(),
+		alias: tsconfigAliases(process.cwd()),
 	},
 	test: {
 		environment: 'node',

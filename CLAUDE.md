@@ -26,7 +26,7 @@ O que é mais volátil (checar antes de confiar): a árvore de "Estrutura de mó
 
 **"Removido" tem dois sentidos possíveis, e não dá pra saber qual de fora:** às vezes é definitivo — o conceito foi descartado, não volta. Às vezes é intencional-pra-refazer-diferente — o conceito continua válido, só a implementação vai mudar de forma quando for reconstruído. As notas de "X foi removido" espalhadas por este arquivo (sistema de plugins, reactive proxy, `ValueCell`/`VariantCell`, etc.) registram **que sumiu e quando**, não qual dos dois casos é — isso só o autor sabe com certeza. Não assumir nenhum dos lados: nem que vai voltar igual, nem que morreu de vez. Se a resposta importar pra uma decisão (ex.: vale a pena reconstruir algo parecido agora?), perguntar em vez de supor.
 
-Estado registrado nesta revisão (2026-08-25, branch `clean-code`, commits `temp`): módulos inteiros do `master` foram removidos — `html/` (managers de tema + sistema de plugins inteiro: `MaskPlugin`, `NumberPlugin`, `AsyncCheckPlugin`, `ValidationPlugin`, registry), `capture-manager/`, `palette/` (top-level, virou `theme/palette/`), `rule-factory/`, `value-cell/`, `variant-cell/`, `natives/object/proxy/`, `natives/validation/`, `spy/`, `time/`, `path-map/`. Confirmado via grep: zero referências remanescentes a esses caminhos em `src/`, e `src/index.ts` (gerado) não tenta exportar nada deles. **Não há testes nem docs de nível de módulo neste momento, de propósito** — os únicos `*.test.ts` do repo cobrem os scripts de build/docs/versionamento (`scripts/tools/*.test.ts`); `Mask`, `_String`, `Parser`, etc. não têm suite própria até o autor decidir que é a hora de recriá-las. Não trazer nada disso de volta especulativamente (mesma regra de "Decisões técnicas" para código removido de propósito) — e não estranhar a ausência de testes/docs como se fosse descuido.
+Estado registrado nesta revisão (2026-08-25, branch `clean-code`, commits `temp`): módulos inteiros do `master` foram removidos — `html/` (managers de tema + sistema de plugins inteiro: `MaskPlugin`, `NumberPlugin`, `AsyncCheckPlugin`, `ValidationPlugin`, registry), `capture-manager/`, `palette/` (top-level, virou `theme/palette/`), `rule-factory/`, `value-cell/`, `variant-cell/`, `natives/object/proxy/`, `natives/validation/`, `spy/`, `time/`, `path-map/`. Confirmado via grep: zero referências remanescentes a esses caminhos em `src/`, e `src/index.ts` (gerado) não tenta exportar nada deles. **Não há testes nem docs de nível de módulo neste momento, de propósito** — e **desde 2026-08 não há `*.test.ts` nenhum no repo**: as suites de `scripts/tools/` foram deletadas junto com os próprios scripts (ver "Removido em 2026-08" em Comandos). `Mask`, `_String`, `Parser`, etc. nunca tiveram suite própria. Não trazer nada disso de volta especulativamente (mesma regra de "Decisões técnicas" para código removido de propósito) — e não estranhar a ausência de testes/docs como se fosse descuido.
 
 ---
 
@@ -76,21 +76,19 @@ src/
 ```bash
 pnpm build          # pnpm clean && vite build → dist/ (ESM + UMD/CJS + bundled .d.ts)
 pnpm clean          # rm -rf dist
-pnpm test           # vitest run (single pass)
+pnpm test           # vitest run --passWithNoTests (não há suites hoje, de propósito)
 pnpm test:watch     # vitest watch mode
 pnpm test:ui        # vitest UI
-pnpm run docs       # tsx scripts/tools/docs-generator.ts → docs/modules/*.md, docs/PROJECT.md, docs/API.md
-pnpm changes        # tsx scripts/tools/generate-changes.ts — gera changes file por diff real de API (git worktree do branch base vs HEAD)
-pnpm changes:check  # mesma coisa, mas falha se o changes file não bater com o estado atual (uso pensado pra CI)
+pnpm docs:ast       # tsx scripts/doc/generate.ts → docs/EXTRACTED.md (extração sintática via Lexer/Grammar da própria lib)
 ```
 
-Não há mais `pnpm dev`/`pnpm debug` no `package.json` atual — pra watch mode, rodar `vite build --watch` direto (o plugin de análise ainda reage a `config.build.watch`, ver "Armadilhas do watcher" abaixo).
+**Removido em 2026-08** (branch `clean-code`): `scripts/analyzer/` (todo o `AnalyzerProject` sobre `ts.Program`), `scripts/tools/` inteiro (`index-generator`, `validator`, `docs-generator`, `api-snapshot`/`api-diff`/`api-signature`/`generate-changes`) e o workflow `pr-analysis.yml`. Sobrou `scripts/doc/` (AST próprio) + `scripts/vite-plugin.ts`. Não há mais `pnpm run docs`, `pnpm changes`, `pnpm changes:check`, `pnpm ast:example`. Versionamento semântico por diff de API foi descartado — bump/tag voltaram a ser manuais (`docs/guide/release.md`).
 
-Não há teste de nível de módulo hoje pra exemplificar (`src/.test/` não existe mais) — os únicos `*.test.ts` do repo estão em `scripts/tools/` e cobrem os scripts de build/docs/versionamento, não `Mask`/`_String`/`Parser`. Rodar um deles: `pnpm test scripts/tools/api-diff.test.ts`.
+Não há mais `pnpm dev`/`pnpm debug` — pra watch mode, rodar `vite build --watch` direto (`scripts/vite-plugin.ts` reage a `config.build.watch`, ver "Armadilhas do watcher" abaixo).
 
-**Sempre `pnpm run docs` com `run` explícito** — `pnpm docs` sem `run` invoca o comando builtin do pnpm (equivalente a `npm docs`, abre a homepage do pacote no browser) em vez do script local de mesmo nome — comportamento do pnpm, não óbvio.
+**Não há nenhum `*.test.ts` no repo hoje, de propósito** — as suites dos scripts foram deletadas junto com os scripts; `Mask`/`_String`/`Parser` nunca tiveram suite própria. `pnpm test` passa vazio (`--passWithNoTests`).
 
-Scripts em `scripts/` **não são type-checked pelo `tsc -p tsconfig.json`** (include é só `src/**/*`). A única verificação real de um script é rodá-lo: `pnpm build` (exercita analyzer + validator + index-generator) e `pnpm run docs`.
+Scripts em `scripts/` **não são type-checked pelo `tsc -p tsconfig.json`** (include é só `src/**/*`). A única verificação real é rodá-los: `pnpm build` (exercita `scripts/doc/index-gen.ts` via `scripts/vite-plugin.ts`) e `pnpm docs:ast`.
 
 ---
 
@@ -292,35 +290,27 @@ Ver `PROMPT-parser-refactor.md` para o prompt completo. Resumo:
 
 - Adicionar módulo = criar arquivo(s) em `src/`, exportar símbolos normalmente, rebuild — sem wiring manual
 - `@required` (comentário standalone, não JSDoc) — força import por side-effect no entry gerado (usado por `src/declarations.ts`)
-- `@internal` — exclui do `src/index.ts` e suprime warning do validator
+- `@internal` — exclui do `src/index.ts`
 
-### Arquitetura dos scripts
+### Arquitetura dos scripts (pós-remoção do analyzer, 2026-08)
 
-- `scripts/analyzer/` — `AnalyzerProject`, `ProjectFile`, `AnalyzerBlockCode`. Carrega `tsconfig.json`, constrói `ts.Program`, expõe arquivo/export/JSDoc
-- `scripts/tools/index-generator.ts` — `createEntryFile`
-- `scripts/tools/validator.ts` — `validateProject` (warnings, não falha o build)
-- `scripts/tools/docs-generator.ts` — gera `docs/modules/*.md`, `docs/PROJECT.md`, `docs/API.md`
-- `scripts/vite-plugin.ts` — plugin Vite real que roda index-generation + validation no `buildStart`
+Tudo roda sobre o `Lexer`/`Grammar` da própria lib (`src/lexer`, `src/ast`) — zero compiler API do TS.
+
+- `scripts/doc/extract.ts` — `extractSource`/`extractFile`/`walkSourceFiles`: extração puramente sintática de um `.ts` (declarações top-level, `export { }`, `declare global`, `@required`)
+- `scripts/doc/index-gen.ts` — `buildIndex`/`writeIndex`: gera `src/index.ts`. Rodável direto (`tsx scripts/doc/index-gen.ts`)
+- `scripts/doc/generate.ts` — `pnpm docs:ast` → `docs/EXTRACTED.md`
+- `scripts/doc/tsconfig-alias.ts` — lê `paths` do `tsconfig.json` → alias de Vite/Vitest (substituiu `AnalyzerProject.resolvedAlias()`)
+- `scripts/vite-plugin.ts` — `indexGenPlugin`: no `buildStart` roda `scripts/doc/index-gen.ts` num processo `tsx` separado (o loader de config do Vite não resolve os aliases `@ts/*`) + chokidar em `src/` pra pegar arquivo novo no watch
 
 ### Armadilhas do watcher (chokidar)
 - **chokidar v4 removeu suporte a globs** — passar `src/**/*.ts` silenciosamente não observa nada. Observar o diretório e filtrar por extensão no handler
-- **`writeFile` incondicional = loop infinito** — `src/index.ts` é o entry point, está no graph do Rollup. Escrever byte-identico bumpa o mtime e re-trigga o build infinitamente. `AnalyzerProject.writeFile` pula a escrita quando o conteúdo não mudou — não remover esse check
-
-### Validator — convenções enforçadas
-- Basenames válidos: `types`, `types.native`, `implementations`, `utils`, `model`, `declarations`
-- Tipos/interfaces devem começar com `T`
-- Símbolo com `_` público sem `@internal` → warning
-- Export público sem JSDoc → warning
-- Exports diretos na declaração (não reexport) → preferir reexport
+- **`writeFile` incondicional = loop infinito** — `src/index.ts` é o entry point, está no graph do Rollup. Escrever byte-identico bumpa o mtime e re-trigga o build infinitamente. `scripts/doc/write-if-changed.ts` pula a escrita quando o conteúdo não mudou — não remover esse check
 
 ---
 
 ## Geração de documentação
 
-`pnpm run docs` gera:
-- `docs/modules/<slug>.md` — uma página por módulo, cada bloco com link direto para a linha de source (`#L<N>` do GitHub). Sem código fonte repetido — só links
-- `docs/PROJECT.md` — índice raiz de todos os blocos (exportados ou não)
-- `docs/API.md` — só superfície pública, minimalista, sem descrições, com link para o repo
+`pnpm docs:ast` gera `docs/EXTRACTED.md` — uma seção por arquivo, cada declaração top-level com kind, flag exported/local, linha e o JSDoc parseado. Extração sintática pura, sem type-checker. (O gerador antigo `docs-generator.ts` — `docs/modules/*.md` + `PROJECT.md` + `API.md`, sobre o compiler API — foi removido.)
 
 **Não adicionar JSDoc proativamente** como subproduto de trabalho não relacionado — o autor quer pensar em uma estratégia de documentação antes de acumular comentários ad-hoc.
 
@@ -397,7 +387,7 @@ Possível reescrita de módulos de baixo nível em Rust/WASM
 
 **Por que Lexer/AST é bloqueante:** o compiler API do TypeScript é ~500ms para projetos pequenos, aloca objetos demais e tem API difícil. O AST próprio resolve geração de documentação, versionamento semântico por diff real e geração do `index.ts` de forma mais rápida e controlada.
 
-**Atualização:** o versionamento semântico por diff real **já foi construído** (`scripts/tools/generate-changes.ts` + `api-snapshot.ts` + `api-diff.ts` + `api-signature.ts`, comandos `pnpm changes`/`pnpm changes:check`) — compara a API pública do HEAD contra um snapshot do branch base materializado via `git worktree` e classifica `patch`/`minor`/`major` por diff real de assinatura, não por commits. Isso rodou **em cima do `AnalyzerProject` existente (compiler API do TS)**, sem esperar o Lexer/AST próprio — ou seja, esse item específico do plano deixou de ser bloqueado pela falta de AST. Lexer/AST/`Parser` refatorado continuam não implementados.
+**Atualização 2026-08:** a geração do `index.ts` **migrou para o AST próprio** (`scripts/doc/index-gen.ts` sobre `extract.ts`) e todo o código que dependia do compiler API foi **removido** — `scripts/analyzer/`, `scripts/tools/` inteiro (incl. o versionamento semântico por diff de API que chegou a existir sobre o `AnalyzerProject`) e o workflow `pr-analysis.yml`. `docs/EXTRACTED.md` (via `pnpm docs:ast`) é a única geração de doc hoje. Versionamento voltou a ser manual. `Parser` refatorado / AST mais completo continuam não implementados.
 
 ---
 
@@ -416,7 +406,7 @@ Possível reescrita de módulos de baixo nível em Rust/WASM
 - **Não usar `split("")` ou `[...str]`** onde performance importa
 - **Não chamar sibling static methods via `this`** — sempre usar `ClassName.method()`
 - **Não usar `\p{...}` sem flag `u`/`v`** — silenciosamente não funciona
-- **Não usar o compiler API do TypeScript** para análise de código nos scripts — na prática isso já não é seguido à risca: `scripts/analyzer/` (`AnalyzerProject`) usa `ts.Program` desde antes, e os scripts novos de versionamento (`generate-changes`/`api-snapshot`/`api-diff`/`api-signature`, ver "Plano de evolução") continuaram em cima dele. Ler como "não usar diretamente em scripts novos sem passar pelo `AnalyzerProject`", não como "zero uso em todo o projeto" — tensão pré-existente, não introduzida agora
+- **Não usar o compiler API do TypeScript** para análise de código nos scripts — agora é regra limpa: `scripts/analyzer/` e todo `scripts/tools/` que dependiam de `ts.Program` foram removidos (2026-08). O que sobrou (`scripts/doc/`) roda sobre o `Lexer`/`Grammar` da própria lib. Não reintroduzir `import ts from "typescript"` em script novo — se o AST próprio não dá conta, é sinal pra estender o AST, não pra voltar ao compiler API
 - **Não copiar strings desnecessariamente** — padrão flyweight: guardar índices, extrair lazy
 - **Não adicionar dependências de runtime** sem justificativa clara
 - **Não ressuscitar especulativamente** código removido intencionalmente (`isEmptyObj`, `ValidationPlugin`, etc.) — só se surgir necessidade concreta. E mesmo com necessidade concreta: checar primeiro se foi remoção definitiva ou "vai ser refeito diferente" (ver "⚠️ Este arquivo pode estar desatualizado" no topo) — trazer de volta na forma antiga quando o autor já queria uma forma nova é tão errado quanto ressuscitar sem necessidade nenhuma

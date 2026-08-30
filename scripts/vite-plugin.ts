@@ -1,36 +1,37 @@
 import path from "path";
+import { execFileSync } from "child_process";
 import type { Plugin } from "vite";
 import chokidar from "chokidar";
-import { AnalyzerProject } from "./analyzer/model";
-import { createEntryFile } from "./tools/index-generator";
-import { validateProject } from "./tools/validator";
 
 /**
- * Wires the analyzer + index-generator + validator into the Vite build as a
- * real plugin instead of the old top-level `createEntryFile(...)` /
- * `validateProject(...)` calls that ran once at `vite.config.ts` eval time.
+ * Regenera o entry file (`src/index.ts`) no build, a partir da extração puramente sintática
+ * de `scripts/doc/` (Lexer + Grammar da própria lib) — sem instanciar o compiler API do
+ * TypeScript.
  *
- * `buildStart` covers the case Rollup's own watcher already handles well:
- * an *existing* (already-imported) file changing. It does NOT fire for a
- * brand-new file nobody imports yet — that file can never enter Rollup's
- * watched graph on its own, which is exactly the "new file not picked up
- * until restart" gap documented in CLAUDE.md. A separate `chokidar` watcher
- * (already a devDependency, previously unused) watches `src/` directly for
- * add/unlink — structural changes only, not edits — and re-runs the
- * analyzer + regenerates the entry on those. Rewriting the entry file then
- * lands back inside Rollup's own watched graph (it's the entry point),
- * which is what triggers the follow-up rebuild.
+ * O gerador roda num processo `tsx` separado, não importado aqui: `scripts/doc/index-gen.ts`
+ * puxa `src/lexer` / `src/ast`, que só resolvem com os aliases `@ts/*` do `tsconfig.json` —
+ * e o carregador de config do Vite (esbuild + Node) não aplica esses aliases. `tsx` aplica.
+ *
+ * `buildStart` cobre o caso que o watcher do Rollup já resolve bem: um arquivo *existente*
+ * (já importado) mudando. Ele NÃO dispara para um arquivo novo que ninguém importa ainda —
+ * um watcher `chokidar` separado observa `src/` para add/unlink e regenera nesses eventos.
+ * Reescrever o entry devolve a mudança para o grafo observado do Rollup (ele É o entry
+ * point), o que dispara o rebuild seguinte.
  */
-export function analyzerPlugin(project: AnalyzerProject, entry: string): Plugin {
+export function indexGenPlugin(projectDir: string, entry: string): Plugin {
+	const script = path.join(projectDir, "scripts/doc/index-gen.ts");
+
 	function regenerate(): void {
-		createEntryFile(project, entry);
-		validateProject(project, entry);
+		execFileSync(process.execPath, ["--import", "tsx", script, entry], {
+			cwd: projectDir,
+			stdio: "inherit",
+		});
 	}
 
 	let watcherStarted = false;
 
 	return {
-		name: "analyzer-plugin",
+		name: "index-gen-plugin",
 		buildStart() {
 			regenerate();
 		},
@@ -39,14 +40,13 @@ export function analyzerPlugin(project: AnalyzerProject, entry: string): Plugin 
 			if (watcherStarted) return;
 			watcherStarted = true;
 
-			// chokidar v4 dropped glob support (watches directories/files literally),
-			// so this watches `src/` recursively and filters by extension itself.
-			const srcDir = path.join(project.dir, "src");
+			// chokidar v4 não tem suporte a globs (observa diretórios/arquivos literalmente),
+			// então observa `src/` recursivamente e filtra por extensão no handler.
+			const srcDir = path.join(projectDir, "src");
 			const watcher = chokidar.watch(srcDir, { ignoreInitial: true });
 
 			const handleStructuralChange = (changedPath: string) => {
 				if (!changedPath.endsWith(".ts") && !changedPath.endsWith(".tsx")) return;
-				project.refresh();
 				regenerate();
 			};
 

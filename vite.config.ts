@@ -2,11 +2,10 @@ import { dirname, resolve } from "node:path";
 import { createRequire } from "node:module";
 import { defineConfig } from "vite";
 import dts from 'vite-plugin-dts';
-import { AnalyzerProject } from "./scripts/analyzer/model";
-import { analyzerPlugin } from "./scripts/vite-plugin";
+import { indexGenPlugin } from "./scripts/vite-plugin";
+import { tsconfigAliases } from "./scripts/doc/tsconfig-alias";
 
 const entryFile = "src/index.ts"
-const project = new AnalyzerProject(process.cwd());
 
 // typescriptCompilerFolder only swaps API Extractor's *ambient typings* (lib.dom.d.ts etc.),
 // NOT its actual compiler engine — @microsoft/api-extractor pins its own exact `typescript`
@@ -20,10 +19,10 @@ const typescriptCompilerFolder = dirname(require.resolve("typescript/package.jso
 
 export default defineConfig({
 	resolve: {
-		alias: project.resolvedAlias()
+		alias: tsconfigAliases(process.cwd())
 	},
 	plugins: [
-		analyzerPlugin(project, entryFile),
+		indexGenPlugin(process.cwd(), entryFile),
 		dts({
 			outDirs: 'dist',
 			insertTypesEntry: true,

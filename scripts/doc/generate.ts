@@ -1,18 +1,10 @@
-import fs from "fs"
 import path from "path"
 import { extractFile, walkSourceFiles, TFileDoc, TDeclaration } from "./extract"
+import { writeIfChanged } from "./write-if-changed"
 
 const ROOT = process.cwd()
 const SRC_DIR = path.join(ROOT, "src")
 const OUT_FILE = path.join(ROOT, "docs/EXTRACTED.md")
-
-/** Escreve só quando o conteúdo muda — mesmo motivo de `AnalyzerProject.writeFile`. */
-function writeIfChanged(filePath: string, content: string): boolean {
-	if (fs.existsSync(filePath) && fs.readFileSync(filePath, "utf-8") === content) return false
-	fs.mkdirSync(path.dirname(filePath), { recursive: true })
-	fs.writeFileSync(filePath, content)
-	return true
-}
 
 function renderDeclaration(declaration: TDeclaration): string {
 	const lines: string[] = []

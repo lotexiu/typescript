@@ -26,6 +26,14 @@ type TDeclaration = {
 type TFileDoc = {
 	path: string
 	declarations: TDeclaration[]
+	/**
+	 * Arquivo com efeito colateral no import: tem um bloco `declare global`/`declare module`
+	 * ou um comentário `@required`. O gerador de index emite `import './arquivo'` para ele em
+	 * vez de re-exportar símbolos.
+	 */
+	sideEffect: boolean
+	/** Nomes na ordem em que aparecem nas cláusulas `export { … }` do arquivo (document order). */
+	exportOrder: string[]
 }
 
 const DECL_KEYWORDS = new Set([
@@ -50,12 +58,55 @@ const declarationTail = (ctx: TGrammarCtx, pos: number): TMatchResult => {
 			if (OPENERS.has(token.value)) depth++
 			else if (CLOSERS.has(token.value)) { if (depth > 0) depth-- }
 			else if (token.value === ";" && depth === 0) return { ok: true, next: i + 1, captures: [] }
+		} else if (depth === 0 && token.kind === "jsdoc" && i > pos) {
+			// Um JSDoc de nível 0 depois da declaração pertence à próxima — não engolir.
+			return { ok: true, next: i, captures: [] }
 		} else if (
 			depth === 0 && token.kind === "keyword" && DECL_KEYWORDS.has(token.value) &&
 			// Só para se a keyword abre uma linha nova — evita cortar em `as const`, `x satisfies type`, etc.
 			i > pos && ctx.root.source.slice(ctx.tokens[i - 1].end, token.start).includes("\n")
 		) {
 			return { ok: true, next: i, captures: [] }
+		}
+		i++
+	}
+	return { ok: true, next: i, captures: [] }
+}
+
+/**
+ * Casa um bloco de augmentation ambiente — `declare global { … }` ou
+ * `declare module "x" { … }` — e consome o corpo `{ … }` balanceado inteiro sem produzir
+ * capturas. Serve para (1) marcar que o arquivo tem efeito colateral (precisa de
+ * `import './arquivo'` no index) e (2) impedir que as declarações internas
+ * (`interface String { … }` dentro de `declare global`) vazem como se fossem declarações
+ * top-level do arquivo.
+ */
+const sideEffectBlock = (ctx: TGrammarCtx, pos: number): TMatchResult => {
+	const tokens = ctx.tokens
+	let i = pos
+	if (!(tokens[i]?.kind === "keyword" && tokens[i].value === "declare")) return { ok: false }
+	i++
+
+	const head = tokens[i]
+	if (!head || head.kind !== "identifier" || (head.value !== "global" && head.value !== "module")) {
+		return { ok: false }
+	}
+	i++
+
+	if (head.value === "module") {
+		if (tokens[i]?.kind !== "string") return { ok: false }
+		i++
+	}
+
+	if (!(tokens[i]?.kind === "punctuation" && tokens[i].value === "{")) return { ok: false }
+
+	let depth = 0
+	while (i < tokens.length) {
+		const token = tokens[i]
+		if (token.kind === "punctuation" && token.value === "{") depth++
+		else if (token.kind === "punctuation" && token.value === "}") {
+			depth--
+			if (depth === 0) return { ok: true, next: i + 1, captures: [] }
 		}
 		i++
 	}
@@ -79,6 +130,7 @@ function buildGrammar(): Grammar {
 	)
 
 	return new Grammar()
+		.rule("SideEffect", node("SideEffect", sideEffectBlock))
 		.rule("ExportClause", node("ExportClause", seq(
 			kw("export"),
 			opt(kw("type")),
@@ -93,7 +145,25 @@ function buildGrammar(): Grammar {
 			field("name", tok("identifier")),
 			declarationTail,
 		)))
-		.rule("File", many(choice(ref("ExportClause"), ref("Declaration"), anyToken())))
+		// `const { a, b, c: d } = X` — cada nome ligado vira uma declaração `const` (padrão
+		// usado por `implementations.ts` que desestrutura de um `_Foo` interno e re-exporta).
+		.rule("Destructure", node("Destructure", seq(
+			opt(field("doc", tok("jsdoc"))),
+			many(modifier),
+			field("kind", choice(kw("const"), kw("let"), kw("var"))),
+			punct("{"),
+			many(seq(
+				notAhead(punct("}")),
+				choice(
+					seq(tok("identifier"), punct(":"), field("name", tok("identifier"))),
+					field("name", tok("identifier")),
+				),
+				opt(punct(",")),
+			)),
+			punct("}"),
+			declarationTail,
+		)))
+		.rule("File", many(choice(ref("SideEffect"), ref("ExportClause"), ref("Destructure"), ref("Declaration"), anyToken())))
 		.start("File")
 }
 
@@ -134,43 +204,73 @@ function extractSource(source: string, relativePath: string): TFileDoc {
 
 	const root = GRAMMAR.parse(lexer.tokens, source, lexer.triviaKinds)
 
+	const sideEffect =
+		root.nodes.some((astNode) => astNode.kind === "SideEffect") ||
+		lexer.tokens.some(
+			(token) =>
+				(token.kind === "comment" || token.kind === "lineComment" || token.kind === "jsdoc") &&
+				token.value.includes("@required"),
+		)
+
+	const exportOrder: string[] = []
 	const reexported = new Set<string>()
 	root.walk((astNode) => {
 		if (astNode.kind !== "ExportClause") return
-		for (const nameNode of astNode.fieldList("name")) reexported.add(nameNode.text)
+		for (const nameNode of astNode.fieldList("name")) {
+			if (!reexported.has(nameNode.text)) exportOrder.push(nameNode.text)
+			reexported.add(nameNode.text)
+		}
 		return false
 	})
 
 	const declarations: TDeclaration[] = []
 	root.walk((astNode) => {
-		if (astNode.kind !== "Declaration") return
+		if (astNode.kind !== "Declaration" && astNode.kind !== "Destructure") return
 		const kindNode = astNode.field("kind")
-		const nameNode = astNode.field("name")
-		if (!kindNode || !nameNode) return
+		const nameNodes = astNode.fieldList("name")
+		if (!kindNode || nameNodes.length === 0) return
 		const docNode = astNode.field("doc")
 		const inlineExport = astNode.fieldList("modifier").some((m) => m.text === "export")
-		declarations.push({
-			name: nameNode.text,
-			kind: kindNode.text,
-			exported: inlineExport || reexported.has(nameNode.text),
-			line: lineAt(source, kindNode.start),
-			doc: docNode ? parseJsDoc(docNode.text) : undefined,
-		})
+		const doc = docNode ? parseJsDoc(docNode.text) : undefined
+		const line = lineAt(source, kindNode.start)
+		for (const nameNode of nameNodes) {
+			declarations.push({
+				name: nameNode.text,
+				kind: kindNode.text,
+				exported: inlineExport || reexported.has(nameNode.text),
+				line,
+				doc,
+			})
+		}
 		return false
 	})
 
-	return { path: relativePath, declarations }
+	return { path: relativePath, declarations, sideEffect, exportOrder }
 }
 
-/** Coleta todo `src/**​/*.ts` relevante (sem `.test.ts`, `index.ts`, nem diretórios dot-prefixados). */
+/**
+ * Coleta todo `src/**​/*.ts` relevante (sem `.test.ts`, `index.ts`, nem diretórios
+ * dot-prefixados). Ordem: em cada diretório, arquivos antes de subdiretórios, ambos em
+ * ordem alfabética, descendo em profundidade — a mesma ordem que o `ts.sys.readDirectory`
+ * produz, para o `src/index.ts` gerado sair estável e igual ao histórico.
+ */
 function walkSourceFiles(srcDir: string): string[] {
-	return fs.readdirSync(srcDir, { recursive: true, withFileTypes: true })
-		.filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
-		.map((entry) => path.join(entry.parentPath, entry.name))
-		.filter((file) => !file.endsWith(".test.ts"))
-		.filter((file) => path.basename(file) !== "index.ts")
-		.filter((file) => !/(^|[\\/])\./.test(path.relative(srcDir, file)))
-		.sort()
+	const skipDir = (name: string) => name.startsWith(".") || name === "node_modules"
+	const out: string[] = []
+
+	const walk = (dir: string) => {
+		const entries = fs.readdirSync(dir, { withFileTypes: true })
+		const files = entries
+			.filter((e) => e.isFile() && e.name.endsWith(".ts") && !e.name.endsWith(".test.ts") && e.name !== "index.ts")
+			.map((e) => e.name)
+			.sort()
+		const dirs = entries.filter((e) => e.isDirectory() && !skipDir(e.name)).map((e) => e.name).sort()
+		for (const file of files) out.push(path.join(dir, file))
+		for (const sub of dirs) walk(path.join(dir, sub))
+	}
+
+	walk(srcDir)
+	return out
 }
 
 export {

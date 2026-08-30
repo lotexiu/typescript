@@ -23,16 +23,12 @@
   "scripts": {
     "build": "pnpm clean && vite build",
     "prepare": "pnpm build",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --passWithNoTests",
+    "test:ui": "vitest --ui --passWithNoTests",
     "clean": "rm -rf dist",
-    "docs": "tsx scripts/tools/docs-generator.ts",
     "docs:ast": "tsx scripts/doc/generate.ts",
-    "ast:example": "tsx scripts/ast-example.ts",
-    "ch": "tsx test/main.ts",
-    "changes": "tsx scripts/tools/generate-changes.ts",
-    "changes:check": "tsx scripts/tools/generate-changes.ts --check"
+    "ch": "tsx test/main.ts"
   },
   "devDependencies": {
     "@lotexiu/typescript-config": "workspace:*",

@@ -4,7 +4,7 @@ import { Parser } from "@ts/parser/model";
 import { ParserGate } from "@ts/parser/node/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { TPattern } from "@ts/aho-corasick/types";
-import { TToken, TTokenCharClassRule, TTokenLiteralRule, TTokenRule } from "./types";
+import { TToken, TTokenCharClassRule, TTokenDelimitedRule, TTokenLiteralRule, TTokenRule } from "./types";
 
 /** `value` só faz o slice no 1º acesso — sem closure por token (custava mais que o resto do scan inteiro, ver benchmark). */
 class Token implements TToken {
@@ -117,7 +117,7 @@ class Lexer {
 			const node = nodes[nodeIndex]
 			const gap = gaps[gapIndex]
 			if (node && (!gap || node.start < gap.start)) {
-				const rule = this.ruleByGate.get(node.gate)!
+				const rule = this.ruleByGate.get(node.gate)! as TTokenDelimitedRule;
 				const kind = rule.subtype?.(text, node.start, node.end) ?? rule.kind
 				tokens.push(new Token(kind, node.start, node.end, text))
 				nodeIndex++
