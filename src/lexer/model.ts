@@ -36,6 +36,13 @@ class Lexer {
 
 	get tokens(): TToken[] { return this._tokens.value }
 
+	/** `kind`s marcados `trivia: true` nas regras registradas — pra passar direto como `skipKinds` de `Grammar.parse`. */
+	get triviaKinds(): Set<string> {
+		const kinds = new Set<string>()
+		for (const rule of this.rules) if (rule.trivia) kinds.add(rule.kind)
+		return kinds
+	}
+
 	private rules: TTokenRule[] = []
 	private ruleByGate = new Map<ParserGate, TTokenRule>()
 	private ahoCorasick!: AhoCorasick
@@ -111,7 +118,8 @@ class Lexer {
 			const gap = gaps[gapIndex]
 			if (node && (!gap || node.start < gap.start)) {
 				const rule = this.ruleByGate.get(node.gate)!
-				tokens.push(new Token(rule.kind, node.start, node.end, text))
+				const kind = rule.subtype?.(text, node.start, node.end) ?? rule.kind
+				tokens.push(new Token(kind, node.start, node.end, text))
 				nodeIndex++
 			} else {
 				this.tokenizeGap(text, gap.start, gap.end, charClassRules, tokens)

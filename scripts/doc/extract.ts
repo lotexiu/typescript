@@ -1,7 +1,6 @@
 import fs from "fs"
 import path from "path"
 import { Lexer } from "../../src/lexer/model"
-import { TToken } from "../../src/lexer/types"
 import { Grammar } from "../../src/ast/grammar/model"
 import { GrammarUtils } from "../../src/ast/grammar/utils"
 import { TGrammarCtx, TMatchResult } from "../../src/ast/grammar/types"
@@ -100,21 +99,6 @@ function buildGrammar(): Grammar {
 
 const GRAMMAR = buildGrammar()
 
-/** Reclassifica `/** *​/` como `jsdoc` e descarta trivia que a gramática não usa. */
-function normalizeTokens(raw: TToken[]): TToken[] {
-	const out: TToken[] = []
-	for (const token of raw) {
-		const plain = { kind: token.kind, start: token.start, end: token.end, value: token.value }
-		if (plain.kind === "comment") {
-			if (plain.value.startsWith("/**") && plain.value !== "/**/") out.push({ ...plain, kind: "jsdoc" })
-			continue
-		}
-		if (plain.kind === "space" || plain.kind === "newline" || plain.kind === "lineComment") continue
-		out.push(plain)
-	}
-	return out
-}
-
 /** `/** ... *​/` → descrição + tags. */
 function parseJsDoc(raw: string): TDoc {
 	const body = raw.replace(/^\/\*\*/, "").replace(/\*\/$/, "")
@@ -148,7 +132,7 @@ function extractSource(source: string, relativePath: string): TFileDoc {
 	lexer.addRules(...tsTokenRules())
 	lexer.text.set(source)
 
-	const root = GRAMMAR.parse(normalizeTokens(lexer.tokens), source)
+	const root = GRAMMAR.parse(lexer.tokens, source, lexer.triviaKinds)
 
 	const reexported = new Set<string>()
 	root.walk((astNode) => {
@@ -198,6 +182,5 @@ export {
 	extractSource,
 	walkSourceFiles,
 	parseJsDoc,
-	normalizeTokens,
 	GRAMMAR,
 }

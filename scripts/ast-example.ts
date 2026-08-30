@@ -96,17 +96,17 @@ lexer.addRules(
 	{ kind: "ident", type: "charClass", test: (c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122) },
 	{ kind: "number", type: "charClass", test: (c) => c >= 48 && c <= 57 },
 	{ kind: "punct", type: "literal", values: [":", ","] },
-	{ kind: "space", type: "charClass", test: (c) => c === 32 || c === 10 || c === 9 },
+	{ kind: "space", type: "charClass", test: (c) => c === 32 || c === 10 || c === 9, trivia: true },
 )
 
 const sourceText = `name: "Ana", age: 30, city: "Lisboa"`
 lexer.text.set(sourceText)
 
-// `lexer.tokens` é o array plano. Filtramos "space" — a Grammar não tem noção de trivia
-// (candidato a melhoria: Lexer/Grammar poderem marcar kinds a ignorar).
-const tokens = lexer.tokens.filter((t) => t.kind !== "space")
-
-const root2 = grammar.parse(tokens, sourceText)
+// `lexer.tokens` continua com todos os tokens (inclusive "space") — quem quiser o array
+// cru pra outro fim (ex: reconstruir a fonte) ainda tem. `trivia: true` na regra só marca
+// a intenção; `lexer.triviaKinds` vira o `skipKinds` que `Grammar.parse` usa pra ignorar
+// esses kinds ao casar as regras, sem precisar filtrar `tokens` na mão.
+const root2 = grammar.parse(lexer.tokens, sourceText, lexer.triviaKinds)
 
 console.log("\n── Parte 2: via Lexer ──")
 for (const pair of root2.children) {
@@ -130,13 +130,9 @@ const kinds: string[] = []
 root2.walk((n) => { kinds.push(n.kind) })
 console.log("walk (todos kinds)  :", kinds.join(" "))
 
-// Nº da linha de um nó — hoje é manual (candidato a helper `node.line` ou `root.lineAt`).
-function lineAt(source: string, offset: number): number {
-	let line = 1
-	for (let i = 0; i < offset; i++) if (source.charCodeAt(i) === 10) line++
-	return line
-}
-console.log("linha do 1º Pair    :", lineAt(sourceText, firstPair.start))
+// Nº da linha de um nó — `root.lineAt(offset)`: sem `source` no parâmetro (o root já é dono dele),
+// índice de starts de linha cacheado no próprio root (não por nó), busca binária por chamada.
+console.log("linha do 1º Pair    :", root2.lineAt(firstPair.start))
 
 // ───────────────────────────────────────────────────────────────────────────────
 // PARTE 4 — recursão (ref) + fields repetidos (fieldList)
@@ -148,7 +144,7 @@ const listLexer = new Lexer()
 listLexer.addRules(
 	{ kind: "number", type: "charClass", test: (c) => c >= 48 && c <= 57 },
 	{ kind: "punct", type: "literal", values: ["[", "]", ","] },
-	{ kind: "space", type: "charClass", test: (c) => c === 32 },
+	{ kind: "space", type: "charClass", test: (c) => c === 32, trivia: true },
 )
 listLexer.text.set(`[1, [2, 3], 4]`)
 
@@ -165,8 +161,9 @@ const listGrammar = new Grammar()
 	.start("List")
 
 const listRoot = listGrammar.parse(
-	listLexer.tokens.filter((t) => t.kind !== "space"),
+	listLexer.tokens,
 	listLexer.text.value,
+	listLexer.triviaKinds,
 )
 
 console.log("\n── Parte 4: recursão ──")

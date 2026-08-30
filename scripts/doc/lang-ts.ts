@@ -40,16 +40,19 @@ function isDigit(code: number): boolean {
 /** Cria o conjunto de regras (nova instância a cada chamada — sem estado compartilhado). */
 function tsTokenRules(): TTokenRule[] {
 	return [
-		{ kind: "comment", type: "delimited", open: "/*", close: "*/" },
-		{ kind: "lineComment", type: "delimited", open: "//", close: "\n", consumeClose: false },
+		{
+			kind: "comment", type: "delimited", open: "/*", close: "*/", trivia: true,
+			subtype: (source, start, end) => (end - start > 4 && source.slice(start, start + 3) === "/**") ? "jsdoc" : undefined,
+		},
+		{ kind: "lineComment", type: "delimited", open: "//", close: "\n", consumeClose: false, trivia: true },
 		{ kind: "string", type: "delimited", open: '"', close: '"' },
 		{ kind: "string", type: "delimited", open: "'", close: "'" },
 		{ kind: "keyword", type: "literal", values: KEYWORDS },
 		{ kind: "punctuation", type: "literal", values: PUNCTUATION },
 		{ kind: "identifier", type: "charClass", test: isIdentStart, continueTest: isIdentContinue },
 		{ kind: "number", type: "charClass", test: (c) => c >= 48 && c <= 57, continueTest: isDigit },
-		{ kind: "newline", type: "charClass", test: (c) => c === 10 || c === 13 },
-		{ kind: "space", type: "charClass", test: (c) => c === 32 || c === 9 || c === 11 || c === 12 },
+		{ kind: "newline", type: "charClass", test: (c) => c === 10 || c === 13, trivia: true },
+		{ kind: "space", type: "charClass", test: (c) => c === 32 || c === 9 || c === 11 || c === 12, trivia: true },
 	]
 }
 

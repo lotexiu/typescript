@@ -63,12 +63,33 @@ class AstRoot {
 	readonly children: AstNode[] = []
 	/** Todos os nós compostos da árvore, de qualquer profundidade — ordem de criação. */
 	readonly nodes: AstNode[] = []
+	/** Offset de início de cada linha (1 entrada por linha, 0-indexado); construído sob demanda no 1º `lineAt`. */
+	private _lineStarts?: number[]
 
 	constructor(readonly source: string) {}
 
 	/** Percorre toda a árvore em pré-ordem; retornar `false` no visitor poda os filhos. */
 	walk(visitor: TAstVisitor): void {
 		for (const child of this.children) child.walk(visitor)
+	}
+
+	private get lineStarts(): number[] {
+		if (this._lineStarts) return this._lineStarts
+		const starts = [0]
+		for (let i = 0; i < this.source.length; i++) if (this.source.charCodeAt(i) === 10) starts.push(i + 1)
+		return this._lineStarts = starts
+	}
+
+	/** Linha 1-indexada em `offset` (ex: `root.lineAt(node.start)`) — índice de starts de linha cacheado no root, busca binária por chamada. */
+	lineAt(offset: number): number {
+		const starts = this.lineStarts
+		let lo = 0, hi = starts.length - 1
+		while (lo < hi) {
+			const mid = (lo + hi + 1) >> 1
+			if (starts[mid] <= offset) lo = mid
+			else hi = mid - 1
+		}
+		return lo + 1
 	}
 }
 

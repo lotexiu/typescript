@@ -37,11 +37,16 @@ class Grammar {
 		}
 	}
 
-	/** Roda a regra-start sobre `tokens` e devolve a árvore. Nós de topo viram `root.children`. */
-	parse(tokens: TToken[], source: string): AstRoot {
+	/**
+	 * Roda a regra-start sobre `tokens` e devolve a árvore. Nós de topo viram `root.children`.
+	 * `skipKinds` (ex: `Lexer.triviaKinds`) remove esses `kind`s de `tokens` antes de parsear —
+	 * equivalente a `tokens.filter(...)` na chamada, só que embutido.
+	 */
+	parse(tokens: TToken[], source: string, skipKinds?: ReadonlySet<string>): AstRoot {
 		if (!this.startRule) throw new Error("Grammar: nenhuma regra-start definida")
+		const effectiveTokens = skipKinds && skipKinds.size ? tokens.filter((token) => !skipKinds.has(token.kind)) : tokens
 		const root = new AstRoot(source)
-		const ctx: TGrammarCtx = { tokens, root, grammar: this, memo: new Map(), furthest: 0 }
+		const ctx: TGrammarCtx = { tokens: effectiveTokens, root, grammar: this, memo: new Map(), furthest: 0 }
 
 		const result: TMatchResult = this.matcher(this.startRule)(ctx, 0)
 		if (result.ok) {
