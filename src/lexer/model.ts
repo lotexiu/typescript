@@ -5,6 +5,7 @@ import { ParserGate } from "@ts/parser/node/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { TPattern } from "@ts/aho-corasick/types";
 import { TToken, TTokenCharClassRule, TTokenDelimitedRule, TTokenLiteralRule, TTokenRule } from "./types";
+import { LEXER_BASIC_RULES } from "./declarations";
 
 /** `value` só faz o slice no 1º acesso — sem closure por token (custava mais que o resto do scan inteiro, ver benchmark). */
 class Token implements TToken {
@@ -23,6 +24,8 @@ class Token implements TToken {
 }
 
 class Lexer {
+	static readonly basicRules = LEXER_BASIC_RULES
+
 	private readonly parser = new Parser()
 	get text() { return this.parser.text }
 	get escape() { return this.parser.escape }

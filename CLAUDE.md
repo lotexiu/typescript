@@ -284,6 +284,15 @@ Ver `PROMPT-parser-refactor.md` para o prompt completo. Resumo:
 
 ---
 
+## `Lexer`/`Grammar` (`src/lexer/`, `src/ast/grammar/`) — ideias de evolução (backlog, não implementar sem pedir)
+
+Registrado em 2026-08-31 depois de uma sessão de aprendizado do módulo (`src/.test/grammar.ts`) — o autor pretende construir algo mais completo em cima disso e quer decidir a forma com calma antes de mexer. **Não implementar nada disso especulativamente** (mesma regra de "Decisões técnicas") — só serve pra não perder a ideia.
+
+- **Toggle explícito pra incluir `"unknown"` no trivia** (nome provisório: `lexer.triviaUnknown` ou similar). Hoje `"unknown"` é o fallback hardcoded do `Lexer` pra qualquer char sem regra (`tokenizeGap`, `src/lexer/model.ts:184-187`) — não é uma regra registrada, então nunca aparece em `Lexer.triviaKinds` (`model.ts:40-44`, que só itera `this.rules`). Ideia: um jeito explícito de opt-in pra incluir `"unknown"` no `skipKinds` de `Grammar.parse` sem montar o `Set` na mão — junto com reservar `"unknown"` como `kind` proibido em `addRules` (erro se alguém tentar registrar uma regra com esse nome), pra não colidir com o fallback do próprio lexer. Motivação: tratar todo `"unknown"` como trivia é útil às vezes, mas perigoso por padrão — ele agrupa qualquer conteúdo real ainda não classificado (identificadores, pontuação, etc.), não só formatação; descartar do stream sem querer pode criar falsa adjacência entre tokens que na verdade estão longe um do outro no source.
+- **Expor `ctx.furthest` (ou o `ctx` inteiro) no retorno de `Grammar.parse`.** Já é rastreado internamente (`GrammarUtils.fail`, `src/ast/grammar/utils.ts:25-28` — posição de token mais distante em que algum matcher falhou) mas morre junto com o `ctx` porque `parse` (`src/ast/grammar/model.ts:45-60`) só devolve a `AstRoot`. É a base natural pra diagnóstico de erro sintático estilo "unexpected token at position N" (o que compilers/IDEs fazem pra sinalizar erro). Cobriria só erro *sintático* — erro semântico (tipo incompatível, etc.) exigiria um type checker em cima da AST, escopo bem maior que o parser de gramática sozinho.
+
+---
+
 ## Build e geração de código (ler antes de adicionar arquivos)
 
 **`src/index.ts` é código gerado, não escrito à mão.** Nunca editar manualmente — qualquer mudança é sobrescrita no próximo build.

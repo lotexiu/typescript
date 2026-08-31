@@ -13,7 +13,7 @@ type TTokenTrivia = {
 type TTokenLiteralRule = TTokenTrivia & {
 	kind: string
 	type: 'literal'
-	values: string[]
+	values: readonly string[]
 }
 
 type TTokenCharClassRule = TTokenTrivia & {

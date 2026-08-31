@@ -1,5 +1,5 @@
 import { _Global } from "./global/implementations";
-import { _String } from "@tsn-string/implementations";
+import { _String } from "@tsn-string/utils";
 import { _Object } from "@tsn-object/implementations";
 import { TFn, TFnDeclaration } from "@tsn-function/types";
 import { _Function } from "@tsn-function/implementations";
