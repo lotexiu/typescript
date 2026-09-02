@@ -1,129 +1,140 @@
-import { TPattern, TAhoCorasickMatch, TAhoCorasickScanHooks } from "./types";
+import { ASCII_ALPHABET_SIZE } from "./declarations";
+import { TAhoCorasickMatch, TAhoCorasickScanHooks } from "./types";
 
-/** Range coberto pela tabela flat (ASCII) — igual ao fast-path do `Parser` (`Uint8Array[128]`); code >=128 sempre volta pra raiz. */
-const ALPHABET_SIZE = 128
-
-type TTrieNode = {
-	readonly children: Map<number, TTrieNode>
-	readonly id: number
-	fail: number
-	readonly output: number[]
+class TrieNode {
+	readonly children = new Map<number, TrieNode>();
+	fail: TrieNode | null = null;
+	readonly outputs: number[] = [];
+	id = 0;
 }
 
 class AhoCorasick {
 	private constructor(
-		private readonly goto: Int32Array,
-		private readonly output: ReadonlyArray<readonly number[]>,
-		/** Indexado por `patternId` (0..n-1, atribuído por quem chama `compile`) — array, não `Map`, pra lookup O(1) sem hashing no hot path de `scan()`. */
-		private readonly patternLengths: Int32Array,
+		private readonly columnOf: Int32Array,
+		private readonly width: number,
+		private readonly next: Int32Array,
+		private readonly outputs: readonly (readonly number[])[],
+		private readonly lengths: readonly number[],
 	) {}
 
-	/**
-	 * Compila `patterns` num DFA totalmente materializado — goto function completa (`Int32Array`,
-	 * `estado * 128 + code`), sem fail-chasing em `scan()`. Baseline por code unit (ASCII); astral
-	 * chars e code points >=128 ficam pra uma extensão futura, se necessário.
-	 */
-	static compile(patterns: TPattern[]): AhoCorasick {
-		const root: TTrieNode = { children: new Map(), id: 0, fail: 0, output: [] }
-		const nodes: TTrieNode[] = [root]
-		const maxPatternId = patterns.reduce((max, pattern) => Math.max(max, pattern.id), -1)
-		const patternLengths = new Int32Array(maxPatternId + 1)
-
-		for (const pattern of patterns) {
-			let node = root
-			for (let i = 0; i < pattern.value.length; i++) {
-				const code = pattern.value.charCodeAt(i)
-				let child = node.children.get(code)
-				if (!child) {
-					child = { children: new Map(), id: nodes.length, fail: 0, output: [] }
-					nodes.push(child)
-					node.children.set(code, child)
-				}
-				node = child
-			}
-			node.output.push(pattern.id)
-			patternLengths[pattern.id] = pattern.value.length
-		}
-
-		// BFS: failure links dos filhos da raiz apontam direto pra raiz; os demais sobem a cadeia de fail do pai.
-		const queue: TTrieNode[] = [...root.children.values()]
-		for (const child of queue) child.fail = root.id
-
-		let queueIndex = 0
-		while (queueIndex < queue.length) {
-			const node = queue[queueIndex++]
-			for (const [code, child] of node.children) {
-				let fail = nodes[node.fail]
-				while (fail !== root && !fail.children.has(code)) fail = nodes[fail.fail]
-				const failChild = fail.children.get(code)
-				child.fail = failChild ? failChild.id : root.id
-				if (nodes[child.fail].output.length) child.output.push(...nodes[child.fail].output)
-				queue.push(child)
-			}
-		}
-
-		// Materializa a goto function inteira — em ordem BFS, goto[node.fail] já está resolvido quando node é processado.
-		const goto = new Int32Array(nodes.length * ALPHABET_SIZE)
-		const output: number[][] = nodes.map((node) => node.output)
-
-		for (const node of [root, ...queue]) {
-			const base = node.id * ALPHABET_SIZE
-			for (let code = 0; code < ALPHABET_SIZE; code++) {
-				const child = node.children.get(code)
-				goto[base + code] = child ? child.id
-					: node === root ? root.id
-					: goto[node.fail * ALPHABET_SIZE + code]
-			}
-		}
-
-		return new AhoCorasick(goto, output, patternLengths)
+	static compile(...patterns: string[]): AhoCorasick {
+		const root = AhoCorasick.buildTrie(patterns);
+		AhoCorasick.linkFailures(root);
+		return AhoCorasick.flatten(root, patterns);
 	}
 
-	/**
-	 * Percorre `text` uma única vez (opcionalmente restrito a `[start, end)`, sem slice — pra quem
-	 * já tem sub-regiões conhecidas, ex: os gaps do `Parser`), reportando candidatos via
-	 * `hooks.onMatch` e retornando os aceitos. Dono exclusivo do traversal — consumidores (Parser,
-	 * Lexer) não fazem seu próprio loop sobre `text`.
-	 *
-	 * `hooks.onPosition` roda antes da tentativa de match em cada posição — retornar um número
-	 * pula essa quantidade de chars e reseta o autômato pra raiz (ex: escape de char).
-	 * `hooks.onMatch` roda por candidato encontrado — retornar `false` rejeita (ex: close do gate
-	 * errado, dentro de escopo opaco); qualquer outro retorno aceita e o match entra no array final.
-	 */
-	scan(text: string, hooks: TAhoCorasickScanHooks = {}, start: number = 0, end: number = text.length): TAhoCorasickMatch[] {
-		const { onPosition, onMatch } = hooks
-		const { goto, output, patternLengths } = this
-		const matches: TAhoCorasickMatch[] = []
-		let state = 0
+	private static buildTrie(patterns: string[]): TrieNode {
+		const root = new TrieNode();
 
-		let i = start
-		while (i < end) {
-			const code = text.charCodeAt(i)
+		patterns.forEach((pattern, patternId) => {
+			let node = root;
+			for (let i = 0; i < pattern.length; i++) {
+				const code = pattern.charCodeAt(i);
+				let child = node.children.get(code);
+				if (!child) {
+					child = new TrieNode();
+					node.children.set(code, child);
+				}
+				node = child;
+			}
+			node.outputs.push(patternId);
+		});
+
+		return root;
+	}
+
+	private static linkFailures(root: TrieNode): void {
+		const queue: TrieNode[] = [];
+
+		for (const child of root.children.values()) {
+			child.fail = root;
+			queue.push(child);
+		}
+
+		for (let head = 0; head < queue.length; head++) {
+			const node = queue[head];
+			for (const [code, child] of node.children) {
+				let fallback = node.fail!;
+				while (fallback !== root && !fallback.children.has(code)) {
+					fallback = fallback.fail!;
+				}
+				child.fail = fallback.children.get(code) ?? root;
+				child.outputs.push(...child.fail.outputs);
+				queue.push(child);
+			}
+		}
+	}
+
+	private static flatten(root: TrieNode, patterns: string[]): AhoCorasick {
+		const nodes: TrieNode[] = [root];
+		for (let head = 0; head < nodes.length; head++) {
+			const node = nodes[head];
+			node.id = head;
+			for (const child of node.children.values()) nodes.push(child);
+		}
+
+		const usedCodes = new Set<number>();
+		for (const node of nodes) for (const code of node.children.keys()) usedCodes.add(code);
+		const columns = [...usedCodes].sort((a, b) => a - b);
+		const width = columns.length;
+		const columnOf = new Int32Array(ASCII_ALPHABET_SIZE).fill(-1);
+		columns.forEach((code, column) => {
+			columnOf[code] = column;
+		});
+
+		const next = new Int32Array(nodes.length * width);
+		for (const node of nodes) {
+			for (let column = 0; column < width; column++) {
+				const child = node.children.get(columns[column]);
+				if (child) {
+					next[node.id * width + column] = child.id;
+				} else if (node === root) {
+					next[column] = 0;
+				} else {
+					next[node.id * width + column] = next[node.fail!.id * width + column];
+				}
+			}
+		}
+
+		const outputs = nodes.map((node) => node.outputs);
+		const lengths = patterns.map((pattern) => pattern.length);
+		return new AhoCorasick(columnOf, width, next, outputs, lengths);
+	}
+
+	scan(text: string, hooks: TAhoCorasickScanHooks = {}, start: number = 0, end: number = text.length): TAhoCorasickMatch[] {
+		const { onPosition, onMatch } = hooks;
+		const { columnOf, width, next, outputs, lengths } = this;
+		const matches: TAhoCorasickMatch[] = [];
+		let state = 0;
+
+		for (let i = start; i < end; i++) {
+			const code = text.charCodeAt(i);
 
 			if (onPosition) {
-				const skip = onPosition(i, code)
-				if (skip) { i += skip; state = 0; continue }
-			}
-
-			state = code < ALPHABET_SIZE ? goto[state * ALPHABET_SIZE + code] : 0
-
-			const patternIds = output[state]
-			if (patternIds.length) {
-				const matchEnd = i + 1
-				for (const patternId of patternIds) {
-					const matchStart = matchEnd - patternLengths[patternId]
-					if (onMatch && onMatch(patternId, matchStart, matchEnd) === false) continue
-					matches.push({ patternId, start: matchStart, end: matchEnd })
+				const skip = onPosition(i, code);
+				if (skip) {
+					i += skip - 1;
+					state = 0;
+					continue;
 				}
 			}
 
-			i++
+			const column = code < ASCII_ALPHABET_SIZE ? columnOf[code] : -1;
+			state = column < 0 ? 0 : next[state * width + column];
+
+			const ending = outputs[state];
+			if (ending.length) {
+				const matchEnd = i + 1;
+				for (const patternId of ending) {
+					const matchStart = matchEnd - lengths[patternId];
+					if (onMatch && onMatch(patternId, matchStart, matchEnd) === false) continue;
+					matches.push({ patternId, start: matchStart, end: matchEnd });
+				}
+			}
 		}
 
-		return matches
+		return matches;
 	}
 }
 
-export {
-	AhoCorasick,
-}
+export { AhoCorasick };

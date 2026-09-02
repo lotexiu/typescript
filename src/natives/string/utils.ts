@@ -314,4 +314,5 @@ type TUString = typeof StringUtils;
 
 export {
 	StringUtils,
+	TUString,
 }

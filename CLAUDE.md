@@ -407,6 +407,23 @@ Possível reescrita de módulos de baixo nível em Rust/WASM
 - **API verbosa, limitada ou que exige conhecimento interno** → errado
 - Os três puxam em direções opostas — equilíbrio é a meta
 
+### Legibilidade para quem não acompanhou o código
+
+O autor lê código de baixo nível devagar, não "de bater o olho" — otimizar para isso, não para
+densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` (2026-09-01):
+
+- **Preferir várias funções pequenas de responsabilidade única a poucas funções grandes.** Uma
+  função longa com 3 fases misturadas é mais difícil de acompanhar que 3 funções nomeadas
+  chamadas em sequência, mesmo que o total de linhas cresça um pouco. Ex.: `compile()` virou
+  `buildTrie` → `linkFailures` → `flatten`, cada uma isolada.
+- **Sem número mágico solto.** Um literal no meio do código sem estar amarrado a um nome (ou, na
+  falta disso, um comentário) que explique sua existência é confuso para quem não veio das
+  versões anteriores — pode levar muito tempo pra entender por que aquele valor está ali.
+  Extrair para constante nomeada. Ex.: o `128` do range ASCII virou `ASCII_ALPHABET_SIZE`.
+- **Constantes e coisas estáticas vão preferencialmente em `declarations.ts`** do módulo — é a
+  convenção do autor com arquivos desse nome. Marcar `@internal` se for detalhe de implementação
+  que não deve vazar pro `src/index.ts` gerado.
+
 ---
 
 ## Decisões técnicas — o que NÃO fazer

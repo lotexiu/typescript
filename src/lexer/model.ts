@@ -3,7 +3,6 @@ import { Computed, computed } from "@ts/computed/model";
 import { Parser } from "@ts/parser/model";
 import { ParserGate } from "@ts/parser/node/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
-import { TPattern } from "@ts/aho-corasick/types";
 import { TToken, TTokenCharClassRule, TTokenDelimitedRule, TTokenLiteralRule, TTokenRule } from "./types";
 import { LEXER_BASIC_RULES } from "./declarations";
 
@@ -66,19 +65,19 @@ class Lexer {
 
 	/** Recompila o autômato a partir das regras `literal` — `charClass` e `delimited` não entram aqui. */
 	private compileLiteralRules() {
-		const patterns: TPattern[] = []
+		const patterns: string[] = []
 		const ruleByPatternId: TTokenLiteralRule[] = []
 
 		for (const rule of this.rules) {
 			if (rule.type !== 'literal') continue
 			for (const value of rule.values) {
 				ruleByPatternId.push(rule)
-				patterns.push({ id: ruleByPatternId.length - 1, value })
+				patterns.push(value)
 			}
 		}
 
 		this.ruleByPatternId = ruleByPatternId
-		this.ahoCorasick = AhoCorasick.compile(patterns)
+		this.ahoCorasick = AhoCorasick.compile(...patterns)
 	}
 
 	addRules(...rules: TTokenRule[]) {

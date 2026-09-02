@@ -1,7 +1,6 @@
 import { Model } from "@ts/model/model";
 import { Computed, computed } from "@ts/computed/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
-import { TPattern } from "@ts/aho-corasick/types";
 import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
 
 type TGatePatternInfo = {
@@ -54,23 +53,23 @@ class Parser {
 
 	/** Recompila o autômato a partir de `gates` inteiro — só roda em config-time (addGates/clearGates), nunca por mudança de texto. */
 	private compileGates() {
-		const patterns: TPattern[] = []
+		const patterns: string[] = []
 		const patternInfo: TGatePatternInfo[] = []
 
 		for (const gate of this.gates) {
 			if (gate.symetric) {
 				patternInfo.push({ gate, side: 'symmetric' })
-				patterns.push({ id: patternInfo.length - 1, value: gate.open })
+				patterns.push(gate.open)
 			} else {
 				patternInfo.push({ gate, side: 'open' })
-				patterns.push({ id: patternInfo.length - 1, value: gate.open })
+				patterns.push(gate.open)
 				patternInfo.push({ gate, side: 'close' })
-				patterns.push({ id: patternInfo.length - 1, value: gate.close })
+				patterns.push(gate.close)
 			}
 		}
 
 		this.patternInfo = patternInfo
-		this.ahoCorasick = AhoCorasick.compile(patterns)
+		this.ahoCorasick = AhoCorasick.compile(...patterns)
 	}
 
 	clearGates() {
