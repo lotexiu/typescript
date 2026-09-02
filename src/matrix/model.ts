@@ -1,12 +1,10 @@
 import { computed } from "@ts/computed/model";
 import { model } from "@ts/model/model";
 import { Subscription } from "@ts/subscription/model";
-
-type TMatrixBuffer<T> = { [index: number]: T };
-type TMatrixBufferCtor<T> = new (length: number) => TMatrixBuffer<T>;
+import { TMatrixBuffer, TMatrixBufferCtor } from "./types";
 
 class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
-	readonly dimensions = model<number[]>([256, 256]);
+	readonly dimensions = model<number[]>([128, 128]);
 	readonly dataClass = model<TMatrixBufferCtor<T>>(Array);
 
 	readonly size = computed(
@@ -32,6 +30,17 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 
 	get data(): TMatrixBuffer<T> {
 		return this._data.value;
+	}
+
+	constructor(
+		dimensions?: number[],
+		dataClass?: TMatrixBufferCtor<T>,
+		filledValue?: T,
+	) {
+		super();
+		if (dimensions) this.dimensions.set(dimensions)
+		if (dataClass) this.dataClass.set(dataClass)
+		if (filledValue) this.data.fill(filledValue);
 	}
 
 	private flatIndex(indexes: number[]): number {

@@ -24,6 +24,7 @@ const tsLang = {
 		literal: ["true", "false", "null", "undefined"],
 		handlers: ["try", "catch", "finally"],
 		assign: ["=", "+=", "-=", "*=", "/=", "%=", "**=", "<<=", ">>=", ">>>=", "&=", "^=", "|=", "&&=", "||=", "??="],
+		ponctuation: [",", ".", "?", ":", ";", "*"],
 	},
 } as const
 
