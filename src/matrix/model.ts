@@ -40,7 +40,7 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 		super();
 		if (dimensions) this.dimensions.set(dimensions)
 		if (dataClass) this.dataClass.set(dataClass)
-		if (filledValue) this.data.fill(filledValue);
+		if (filledValue != undefined) this.data.fill(filledValue);
 	}
 
 	private flatIndex(indexes: number[]): number {
@@ -59,6 +59,14 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 	set(value: T, ...indexes: number[]): void {
 		this.data[this.flatIndex(indexes)] = value;
 		this.notifies(this.data);
+	}
+
+	toString(){
+		let text = ''
+		this.dimensions.value.forEach((dim, i) => {
+			text += `${this.data.slice(i * dim)}\n`
+		})
+		return text
 	}
 }
 

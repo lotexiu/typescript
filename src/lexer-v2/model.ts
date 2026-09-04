@@ -42,14 +42,13 @@ class Lexer {
 	}, [this.rules]);
 
 	readonly ahoCorasick = computed(() => {
-		// return AhoCorasick.compile(...this.tokens.value.map((v)=>v.value));
-		return AhoCorasick.compile('/**','/*','*/');
+		return AhoCorasick.compile(...this.tokens.value.map((v)=>v.value));
 	}, [this.tokens]);
 
 	constructor() {}
 
 	test() {
-		this.ahoCorasick.value.scan('/** */')
+		this.ahoCorasick.value
 		// this.ahoCorasick.value.scan(text, {
 		// 	onMatch: (id, start) => {
 		// 		console.log(this.tokens.value[id], start);
