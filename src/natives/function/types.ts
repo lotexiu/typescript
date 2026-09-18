@@ -67,6 +67,26 @@ type TConstructorParameters<T> = T extends TAbstractConstructor<any, infer P> ? 
 /** Extracts a constructor type's instance type — thin alias over the built-in `InstanceType`. */
 type TInstanceType<T extends abstract new (...args: any) => any> = InstanceType<T>;
 
+/** The wrapped function `debounce()` returns — callable like `T`, plus `clear()` to cancel a pending call. */
+type TDebounceFn<T extends TFn> = T & {
+	clear: () => void;
+};
+
+/** The wrapped function `throttle()` returns — callable like `T`, plus `clear()` to reset its interval tracking. */
+type TThrottleFn<T extends TFn> = T & {
+	clear: () => void;
+};
+
+/** The wrapped function `step()` returns — callable like `T`, plus `clear()` to reset its call counter. */
+type TStepFn<T extends TFn> = T & {
+	clear: () => void;
+};
+
+/** The wrapped function `once()` returns — callable like `T`, plus `clear()` to allow it to run again. */
+type TOnceFn<T extends TFn> = T & {
+	clear: () => void;
+};
+
 export {
 	TFn,
 	TFnDeclaration,
@@ -81,4 +101,8 @@ export {
 	TConstructorInfo,
 	TConstructorParameters,
 	TReplaceConstructor,
+	TDebounceFn,
+	TThrottleFn,
+	TStepFn,
+	TOnceFn,
 };

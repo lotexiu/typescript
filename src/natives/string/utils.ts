@@ -1,45 +1,54 @@
-import { REGEX_PATTERNS } from "@tsn/regex/declarations";
-import { TStrForEeachCallback, TStrOnCharCallback } from "./types";
-import { RegexUtils } from "@tsn/regex/utils";
+import { REGEX_PATTERNS } from '@tsn/regex/declarations';
+import { TStrForEeachCallback, TStrOnCharCallback } from './types';
+import { RegexUtils } from '@tsn/regex/utils';
 
-const { LETTERS, DIGITS, WHITESPACE, SYMBOLS } = REGEX_PATTERNS
+const { LETTERS, DIGITS, WHITESPACE, SYMBOLS } = REGEX_PATTERNS;
 
 class StringUtils {
 	static readonly #SEGMENTER = new Intl.Segmenter();
 
-	static readonly WHITESPACE_CODE = " ".charCodeAt(0);
-	static readonly ESCAPE_CODE = "\\".charCodeAt(0);
-	static readonly TAB_CODE = "\t".charCodeAt(0);
-	static readonly NEWLINE_CODE = "\n".charCodeAt(0);
-	static readonly VERTICAL_TAB_CODE = "\v".charCodeAt(0);
-	static readonly FORM_FEED_CODE = "\f".charCodeAt(0);
-	static readonly CARRIAGE_RETURN_CODE = "\r".charCodeAt(0);
-	static readonly FORMAT_CODE_DISTANCE = [StringUtils.TAB_CODE, StringUtils.CARRIAGE_RETURN_CODE] as const;
-	static readonly DIGIT_CODE_DISTANCE = ["0".charCodeAt(0), "9".charCodeAt(0)] as const;
-	static readonly HEXADECIMAL_WORD_CODE_DISTANCE = ["a".charCodeAt(0), "f".charCodeAt(0)] as const;
+	static readonly WHITESPACE_CODE = ' '.charCodeAt(0);
+	static readonly ESCAPE_CODE = '\\'.charCodeAt(0);
+	static readonly TAB_CODE = '\t'.charCodeAt(0);
+	static readonly NEWLINE_CODE = '\n'.charCodeAt(0);
+	static readonly VERTICAL_TAB_CODE = '\v'.charCodeAt(0);
+	static readonly FORM_FEED_CODE = '\f'.charCodeAt(0);
+	static readonly CARRIAGE_RETURN_CODE = '\r'.charCodeAt(0);
+	static readonly FORMAT_CODE_DISTANCE = [
+		StringUtils.TAB_CODE,
+		StringUtils.CARRIAGE_RETURN_CODE,
+	] as const;
+	static readonly DIGIT_CODE_DISTANCE = ['0'.charCodeAt(0), '9'.charCodeAt(0)] as const;
+	static readonly HEXADECIMAL_WORD_CODE_DISTANCE = ['a'.charCodeAt(0), 'f'.charCodeAt(0)] as const;
 	static readonly ASCII_ALPHABET_SIZE = 128;
-	
-	static readonly #CAMEL_TO_KEBAB = new RegExp(`${LETTERS.EXTENDED.UPPERCASE}+(?![a-z])|${LETTERS.EXTENDED.UPPERCASE}`, "gu")
+
+	static readonly #CAMEL_TO_KEBAB = new RegExp(
+		`${LETTERS.EXTENDED.UPPERCASE}+(?![a-z])|${LETTERS.EXTENDED.UPPERCASE}`,
+		'gu'
+	);
 	static readonly #IS_LETTER_BASIC = new RegExp(`^${LETTERS.BASIC.ALL}$`);
-	static readonly #IS_LETTER_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.ALL}$`, "u");
+	static readonly #IS_LETTER_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.ALL}$`, 'u');
 	static readonly #IS_LOWERCASE_BASIC = new RegExp(`^${LETTERS.BASIC.LOWERCASE}$`);
-	static readonly #IS_LOWERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.LOWERCASE}$`, "u");
+	static readonly #IS_LOWERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.LOWERCASE}$`, 'u');
 	static readonly #IS_UPPERCASE_BASIC = new RegExp(`^${LETTERS.BASIC.UPPERCASE}$`);
-	static readonly #IS_UPPERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.UPPERCASE}$`, "u");
-	static readonly #IS_DIGIT_EXTENDED = new RegExp(`^${DIGITS.EXTENDED}$`, "u");
-	static readonly #IS_WHITESPACE_EXTENDED = new RegExp(`^${WHITESPACE.EXTENDED}$`, "u");
-	static readonly #IS_FORMATTING_EXTENDED = new RegExp(`^[${WHITESPACE.EXTENDED}\\t\\n\\v\\f\\r]$`, "u");
-	static readonly #IS_PUNCTUATION_EXTENDED = new RegExp(`^${SYMBOLS.PUNCTUATION.EXTENDED}$`, "u");
+	static readonly #IS_UPPERCASE_EXTENDED = new RegExp(`^${LETTERS.EXTENDED.UPPERCASE}$`, 'u');
+	static readonly #IS_DIGIT_EXTENDED = new RegExp(`^${DIGITS.EXTENDED}$`, 'u');
+	static readonly #IS_WHITESPACE_EXTENDED = new RegExp(`^${WHITESPACE.EXTENDED}$`, 'u');
+	static readonly #IS_FORMATTING_EXTENDED = new RegExp(
+		`^[${WHITESPACE.EXTENDED}\\t\\n\\v\\f\\r]$`,
+		'u'
+	);
+	static readonly #IS_PUNCTUATION_EXTENDED = new RegExp(`^${SYMBOLS.PUNCTUATION.EXTENDED}$`, 'u');
 
 	static toKebabCase(str: string): string {
-		return str.replace(StringUtils.#CAMEL_TO_KEBAB, ($, ofs) => (ofs ? "-" : "") + $.toLowerCase());
+		return str.replace(StringUtils.#CAMEL_TO_KEBAB, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
 	}
 
 	static capitalize<T extends string>(str: T): Capitalize<T> {
 		const codePoint = str.codePointAt(0);
 		if (codePoint === undefined) return str as Capitalize<T>;
 		const first = String.fromCodePoint(codePoint);
-		return first.toUpperCase() + str.slice(first.length) as Capitalize<T>;
+		return (first.toUpperCase() + str.slice(first.length)) as Capitalize<T>;
 	}
 
 	static capitalizeAll(str: string, splitStr: string): string {
@@ -58,7 +67,7 @@ class StringUtils {
 	}
 
 	static noAccent(str: string): string {
-		return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 	}
 
 	static charCodeArray(str: string): Array<string> {
@@ -80,21 +89,21 @@ class StringUtils {
 	}
 
 	static isLetter(char: string, extended: boolean = false): boolean {
-		return extended
-			? StringUtils.#IS_LETTER_EXTENDED.test(char)
-			: StringUtils.#IS_LETTER_BASIC.test(char);
+		return extended ?
+				StringUtils.#IS_LETTER_EXTENDED.test(char)
+			:	StringUtils.#IS_LETTER_BASIC.test(char);
 	}
 
 	static isLowerCase(char: string, extended: boolean = false): boolean {
-		return extended
-			? StringUtils.#IS_LOWERCASE_EXTENDED.test(char)
-			: StringUtils.#IS_LOWERCASE_BASIC.test(char);
+		return extended ?
+				StringUtils.#IS_LOWERCASE_EXTENDED.test(char)
+			:	StringUtils.#IS_LOWERCASE_BASIC.test(char);
 	}
 
 	static isUpperCase(char: string, extended: boolean = false): boolean {
-		return extended
-			? StringUtils.#IS_UPPERCASE_EXTENDED.test(char)
-			: StringUtils.#IS_UPPERCASE_BASIC.test(char);
+		return extended ?
+				StringUtils.#IS_UPPERCASE_EXTENDED.test(char)
+			:	StringUtils.#IS_UPPERCASE_BASIC.test(char);
 	}
 
 	static isDigit(str: string, index?: number, extended: boolean = false): boolean {
@@ -107,12 +116,15 @@ class StringUtils {
 		}
 		if (index !== undefined) {
 			const code = str.charCodeAt(index);
-			return StringUtils.DIGIT_CODE_DISTANCE[0] <= code && code <= StringUtils.DIGIT_CODE_DISTANCE[1];
+			return (
+				StringUtils.DIGIT_CODE_DISTANCE[0] <= code && code <= StringUtils.DIGIT_CODE_DISTANCE[1]
+			);
 		}
 		const len = str.length;
 		for (let i = 0; i < len; i++) {
 			const code = str.charCodeAt(i);
-			if (StringUtils.DIGIT_CODE_DISTANCE[0] > code || code > StringUtils.DIGIT_CODE_DISTANCE[1]) return false;
+			if (StringUtils.DIGIT_CODE_DISTANCE[0] > code || code > StringUtils.DIGIT_CODE_DISTANCE[1])
+				return false;
 		}
 		return true;
 	}
@@ -127,8 +139,11 @@ class StringUtils {
 		const lower = str.toLowerCase();
 		for (let index = 0; index < len; index++) {
 			const code = lower.charCodeAt(index);
-			const notWordHex = StringUtils.HEXADECIMAL_WORD_CODE_DISTANCE[0] > code || code > StringUtils.HEXADECIMAL_WORD_CODE_DISTANCE[1]
-			const notDigitHex = StringUtils.DIGIT_CODE_DISTANCE[0] > code || code > StringUtils.DIGIT_CODE_DISTANCE[1]
+			const notWordHex =
+				StringUtils.HEXADECIMAL_WORD_CODE_DISTANCE[0] > code ||
+				code > StringUtils.HEXADECIMAL_WORD_CODE_DISTANCE[1];
+			const notDigitHex =
+				StringUtils.DIGIT_CODE_DISTANCE[0] > code || code > StringUtils.DIGIT_CODE_DISTANCE[1];
 			if (notWordHex && notDigitHex) return false;
 		}
 		return true;
@@ -137,18 +152,21 @@ class StringUtils {
 	static isFormatting(char: string, extended: boolean = false): boolean {
 		if (extended) return StringUtils.#IS_FORMATTING_EXTENDED.test(char);
 		const code = char.charCodeAt(0);
-		return code === StringUtils.WHITESPACE_CODE || (code >= StringUtils.FORMAT_CODE_DISTANCE[0] && code <= StringUtils.FORMAT_CODE_DISTANCE[1]);
+		return (
+			code === StringUtils.WHITESPACE_CODE ||
+			(code >= StringUtils.FORMAT_CODE_DISTANCE[0] && code <= StringUtils.FORMAT_CODE_DISTANCE[1])
+		);
 	}
 
 	static isWhitespace(char: string, extended: boolean = false): boolean {
 		if (extended) return StringUtils.#IS_WHITESPACE_EXTENDED.test(char);
-		const code = char.charCodeAt(0)
+		const code = char.charCodeAt(0);
 		return (
 			StringUtils.WHITESPACE_CODE === code ||
 			StringUtils.NEWLINE_CODE === code ||
 			StringUtils.CARRIAGE_RETURN_CODE === code ||
 			StringUtils.TAB_CODE === code
-		)
+		);
 	}
 
 	static isLineBreak(char: string): boolean {
@@ -174,9 +192,12 @@ class StringUtils {
 
 	static isMathOperator(char: string): boolean {
 		switch (char) {
-			case '+': case '-':
-			case '*': case '/':
-			case '%': case '^':
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+			case '%':
+			case '^':
 				return true;
 			default:
 				return false;
@@ -185,8 +206,10 @@ class StringUtils {
 
 	static isRelationalOperator(char: string): boolean {
 		switch (char) {
-			case '>': case '<':
-			case '=': case '!':
+			case '>':
+			case '<':
+			case '=':
+			case '!':
 				return true;
 			default:
 				return false;
@@ -195,8 +218,10 @@ class StringUtils {
 
 	static isBitwireOperator(char: string): boolean {
 		switch (char) {
-			case '&': case '|':
-			case '^': case '~':
+			case '&':
+			case '|':
+			case '^':
+			case '~':
 				return true;
 			default:
 				return false;
@@ -206,17 +231,27 @@ class StringUtils {
 	static isPunctuation(char: string, extended: boolean = false): boolean {
 		if (extended) return StringUtils.#IS_PUNCTUATION_EXTENDED.test(char);
 		switch (char) {
-			case '.': case ',':
-			case ';': case ':':
-			case '?': case '!':
-			case '(': case ')':
-			case '[': case ']':
-			case '{': case '}':
-			case '"': case "'":
+			case '.':
+			case ',':
+			case ';':
+			case ':':
+			case '?':
+			case '!':
+			case '(':
+			case ')':
+			case '[':
+			case ']':
+			case '{':
+			case '}':
+			case '"':
+			case "'":
 			case '`':
-			case '-': case '_':
-			case '/': case '\\':
-			case '@': case '#':
+			case '-':
+			case '_':
+			case '/':
+			case '\\':
+			case '@':
+			case '#':
 				return true;
 			default:
 				return false;
@@ -230,10 +265,10 @@ class StringUtils {
 			!StringUtils.isWhitespace(char, extended) &&
 			!StringUtils.isLineBreak(char) &&
 			!StringUtils.isTab(char)
-		)
+		);
 	}
 
-	static isEscape(char: string): char is "\\" {
+	static isEscape(char: string): char is '\\' {
 		return char.charCodeAt(0) == StringUtils.ESCAPE_CODE;
 	}
 
@@ -245,73 +280,101 @@ class StringUtils {
 			}
 			return;
 		}
-		for (const {segment, index} of StringUtils.#SEGMENTER.segment(str)) {
+		for (const { segment, index } of StringUtils.#SEGMENTER.segment(str)) {
 			callback(segment, index, segment.length);
 		}
 	}
 
 	static onChar(chars: string) {
-		const bmpTargets: string[] = []
-		let astralTargets: Set<string> | undefined
+		const bmpTargets: string[] = [];
+		let astralTargets: Set<string> | undefined;
 
 		for (const { segment } of StringUtils.#SEGMENTER.segment(chars)) {
 			if (segment.length === 1) {
-				bmpTargets.push(segment)
+				bmpTargets.push(segment);
 			} else {
-				(astralTargets ??= new Set()).add(segment)
+				(astralTargets ??= new Set()).add(segment);
 			}
 		}
 
-		const lookup = StringUtils.lookupArray(bmpTargets.join(''))
-		const highestCode = lookup.length - 1
+		const lookup = StringUtils.lookupArray(bmpTargets.join(''));
+		const highestCode = lookup.length - 1;
 
 		return function (str: string, callback: TStrOnCharCallback) {
 			if (!RegexUtils.hasAstralChar(str)) {
-				const len = str.length
+				const len = str.length;
 				for (let i = 0; i < len; i++) {
-					const code = str.charCodeAt(i)
-					if (code > highestCode || lookup[code] === 0) continue
+					const code = str.charCodeAt(i);
+					if (code > highestCode || lookup[code] === 0) continue;
 					callback(i, 1);
 				}
-				return
+				return;
 			}
 
 			for (const { segment, index } of StringUtils.#SEGMENTER.segment(str)) {
-				const size = segment.length
+				const size = segment.length;
 				if (size === 1) {
-					const code = segment.charCodeAt(0)
-					if (code > highestCode || lookup[code] === 0) continue
+					const code = segment.charCodeAt(0);
+					if (code > highestCode || lookup[code] === 0) continue;
 				} else if (!astralTargets?.has(segment)) {
-					continue
+					continue;
 				}
 				callback(index, size);
 			}
-		}
+		};
 	}
 
 	static lookupArray(chars: string) {
-		let highestCode = 0
-		const cLen = chars.length
+		let highestCode = 0;
+		const cLen = chars.length;
 		for (let i = 0; i < cLen; i++) {
-			const code = chars.charCodeAt(i)
-			if (code > highestCode) highestCode = code
+			const code = chars.charCodeAt(i);
+			if (code > highestCode) highestCode = code;
 		}
-		const lookup = new Uint8Array(highestCode + 1)
-		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1
-		return lookup
+		const lookup = new Uint8Array(highestCode + 1);
+		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1;
+		return lookup;
 	}
 
 	static lookupArray128(chars: string) {
-		const lookup = new Uint8Array(128)
-		const cLen = chars.length
-		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1
-		return lookup
+		const lookup = new Uint8Array(128);
+		const cLen = chars.length;
+		for (let i = 0; i < cLen; i++) lookup[chars.charCodeAt(i)] = 1;
+		return lookup;
 	}
-};
+
+	static slugify(text: string): string {
+		return text
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9 -]/g, '')
+			.replace(/\s+/g, '-')
+			.replace(/-+/g, '-');
+	}
+
+	static truncate(text: string, length: number, preserveWords = true): string {
+		if (text.length <= length) return text;
+		if (!preserveWords) return `${text.slice(0, length)}...`;
+
+		const truncated = text.slice(0, length);
+		const lastSpace = truncated.lastIndexOf(' ');
+		return `${truncated.slice(0, lastSpace > 0 ? lastSpace : length)}...`;
+	}
+
+	static capitalizeWords(text: string): string {
+		return text.replace(/\b\w/g, (char) => char.toUpperCase());
+	}
+
+	static toSnakeCase(text: string): string {
+		return text
+			.replace(/([a-z])([A-Z])/g, '$1_$2')
+			.replace(/[\s-]+/g, '_')
+			.toLowerCase();
+	}
+}
 
 type TUString = typeof StringUtils;
 
-export {
-	StringUtils,
-	TUString,
-}
+export { StringUtils, TUString };

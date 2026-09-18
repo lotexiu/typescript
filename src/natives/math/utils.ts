@@ -1,14 +1,7 @@
 import { isNullOrUndefined } from '@tsn-object/utils';
-import { MATH_ERROR_LOCALE } from './locale';
-import { LocaleUtils } from '@ts/locale/utils';
-import { LocaleError } from '@ts/locale/error';
+import { NumberUtils } from '@tsn-number/utils';
 
 class MathUtils {
-	static readonly #FRACTION_EXPONENT_REGEX = /(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/;
-
-	static assertFinite(value: number): asserts value is number {
-		if (!isFinite(value)) throw new LocaleError(MATH_ERROR_LOCALE, 'infinity');
-	}
 
 	static clamp(value: number, min?: number, max?: number): number {
 		let result = value;
@@ -17,60 +10,34 @@ class MathUtils {
 		return result;
 	}
 
-	static hasDecimals(value: number): boolean {
-		return MathUtils.getDecimals(value) > 0;
-	}
-
-	static getDecimals(value: number): number {
-		MathUtils.assertFinite(value);
-		return value % 1;
-	}
-
 	static inRange(value: number, min: number, max: number, inclusive = true): boolean {
 		return inclusive ? value >= min && value <= max : value > min && value < max;
 	}
 
-	static decimalsLength(value: number): number {
-		MathUtils.assertFinite(value);
-		const match = value.toString().match(MathUtils.#FRACTION_EXPONENT_REGEX);
-		if (!match) return 0;
-
-		const fractionDigits = match[1] ? match[1].length : 0;
-		const exponent = match[2] ? parseInt(match[2], 10) : 0;
-
-		return Math.max(0, fractionDigits - exponent);
-	}
-
 	static round(value: number, decimals: number): number {
-		MathUtils.assertFinite(value);
+		NumberUtils.assertFinite(value);
 		const factor = 10 ** decimals;
 		return Math.round((value + Number.EPSILON) * factor) / factor;
 	}
 
-	static scaleToInt(...values: number[]): number {
-		return 10 ** Math.max(...values.map((v) => MathUtils.decimalsLength(v)));
-	}
-
 	static sum(...values: number[]): number {
-		const scaleToInt = MathUtils.scaleToInt(...values);
-		return values.reduce((acc, val) => acc + val * scaleToInt) / scaleToInt;
+		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
+		return values.reduce((acc, val) => acc + val * scale) / scale;
 	}
 
 	static subtract(...values: number[]): number {
-		const scaleToInt = MathUtils.scaleToInt(...values);
-		return values.reduce((acc, val) => acc - val * scaleToInt) / scaleToInt;
+		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
+		return values.reduce((acc, val) => acc - val * scale) / scale;
 	}
 
 	static multiply(...values: number[]): number {
-		const scaleToInt = MathUtils.scaleToInt(...values);
-		return values.reduce((acc, val) => acc * (val * scaleToInt)) / scaleToInt ** values.length;
+		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
+		return values.reduce((acc, val) => acc * (val * scale)) / scale ** values.length;
 	}
 
 	static divide(...values: number[]): number {
-		const scaleToInt = MathUtils.scaleToInt(...values);
-		return (
-			values.reduce((acc, val) => acc / (val * scaleToInt)) * scaleToInt ** (values.length - 1)
-		);
+		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
+		return values.reduce((acc, val) => acc / (val * scale)) * scale ** (values.length - 1);
 	}
 
 	static median(...values: number[]): number {
@@ -80,7 +47,7 @@ class MathUtils {
 		return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 	}
 
-	static avarage(...values: number[]): number {
+	static average(...values: number[]): number {
 		return MathUtils.divide(MathUtils.sum(...values), values.length);
 	}
 

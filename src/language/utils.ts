@@ -1,27 +1,7 @@
-import { AhoCorasick } from "@ts/aho-corasick/model"
-import { ParserGate, ParserNode, ParserRoot } from "@ts/parser/node/model"
-import { SCOPE_KIND_PREFIX } from "./declarations"
-import type { TCharClassSpec, TLangToken, TLanguageSpec } from "./types"
-
-/** Gate compilado + o `kind` que os tokens daquele gate carregam. */
-type TGateInfo = {
-	kind: string
-	opaque: boolean
-	scopeName?: string
-	subtype?: (source: string, start: number, end: number) => string | undefined
-}
-
-/** Autômato de literais + o `kind` (nome da família) de cada patternId. */
-type TLiteralAutomaton = { automaton: AhoCorasick; kindOf: readonly string[] }
-
-/** Tudo que `streamOf`/`flatten` precisam da linguagem compilada, num objeto só. */
-type TScanContext = {
-	source: string
-	infoByGate: Map<ParserGate, TGateInfo>
-	literals: TLiteralAutomaton
-	charClasses: [name: string, spec: TCharClassSpec][]
-	trivia: ReadonlySet<string>
-}
+import { AhoCorasick } from "@ts/aho-corasick/model";
+import { ParserGate, ParserNode, ParserRoot } from "@ts/parser/node/model";
+import { SCOPE_KIND_PREFIX } from "./declarations";
+import type { TGateInfo, TLangToken, TLanguageSpec, TLiteralAutomaton, TScanContext } from "./types";
 
 /**
  * Helpers estáticos da `Language` — compilação da espec e tokenização de um escopo. Todas as

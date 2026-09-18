@@ -1,10 +1,98 @@
-import { TAbstractConstructor } from "@tsn-function/types";
+import { TAbstractConstructor, TConstructor } from "@tsn-function/types";
 
-class ClassUtils {
-	/** Type-safe `instanceof` check — narrows `obj` to `T` when it's an instance of `constructor`. */
-	static instanceOf<T>(obj: any, constructor: TAbstractConstructor<T>): obj is T {
-		return obj instanceof constructor;
-	}
+export class ClassUtils {
+  static getPrototypeChain(target: object | TConstructor): object[] {
+    const chain: object[] = [];
+    let current = typeof target === 'function' ? target.prototype : Object.getPrototypeOf(target);
+
+    while (current && current !== Object.prototype) {
+      chain.push(current);
+      current = Object.getPrototypeOf(current);
+    }
+    return chain;
+  }
+
+  static getMethodNames(target: object | TConstructor): string[] {
+    const methods = new Set<string>();
+    const chain = ClassUtils.getPrototypeChain(target);
+
+    for (const proto of chain) {
+      const names = Object.getOwnPropertyNames(proto);
+      for (const name of names) {
+        if (name === 'constructor') continue;
+        const descriptor = Object.getOwnPropertyDescriptor(proto, name);
+        if (descriptor && typeof descriptor.value === 'function') {
+          methods.add(name);
+        }
+      }
+    }
+    return Array.from(methods);
+  }
+
+  static getAccessors(target: object | TConstructor): { getters: string[]; setters: string[] } {
+    const getters = new Set<string>();
+    const setters = new Set<string>();
+    const chain = ClassUtils.getPrototypeChain(target);
+
+    for (const proto of chain) {
+      const descriptors = Object.getOwnPropertyDescriptors(proto);
+      for (const [key, descriptor] of Object.entries(descriptors)) {
+        if (key === 'constructor') continue;
+        if (typeof descriptor.get === 'function') getters.add(key);
+        if (typeof descriptor.set === 'function') setters.add(key);
+      }
+    }
+
+    return {
+      getters: Array.from(getters),
+      setters: Array.from(setters),
+    };
+  }
+
+  static isSubclassOf<T extends TAbstractConstructor>(
+    target: TAbstractConstructor,
+    superClass: T
+  ): boolean {
+    let current = target;
+    while (current) {
+      if (current === superClass) return true;
+      current = Object.getPrototypeOf(current);
+    }
+    return false;
+  }
+
+  static instantiateUninitialized<T extends object>(ctor: TConstructor<T>): T {
+    return Object.create(ctor.prototype) as T;
+  }
+
+  static cloneInstance<T extends object>(instance: T): T {
+    const proto = Object.getPrototypeOf(instance);
+    const copy = Object.create(proto);
+    return Object.assign(copy, instance);
+  }
+
+  static applyMixins(derivedCtor: TConstructor, baseCtors: TConstructor[]): void {
+    baseCtors.forEach((baseCtor) => {
+      Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+        if (name !== 'constructor') {
+          Object.defineProperty(
+            derivedCtor.prototype,
+            name,
+            Object.getOwnPropertyDescriptor(baseCtor.prototype, name) || Object.create(null)
+          );
+        }
+      });
+    });
+  }
+
+  static autoBind<T extends object>(instance: T): T {
+    const methods = ClassUtils.getMethodNames(instance);
+    for (const method of methods) {
+      const fn = (instance as any)[method];
+      if (typeof fn === 'function') {
+        (instance as any)[method] = fn.bind(instance);
+      }
+    }
+    return instance;
+  }
 }
-
-export { ClassUtils };

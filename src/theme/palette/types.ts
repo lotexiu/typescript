@@ -1,4 +1,4 @@
-import { TONE_STOPS } from "./constants";
+import { TONE_STOPS } from "./declarations";
 
 type TToneStops = typeof TONE_STOPS
 type TToneStop = TToneStops[number]

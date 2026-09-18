@@ -1,10 +1,12 @@
-import { TAbstractConstructor, TFn } from "@tsn-function/types";
-import { TargetImpl } from "./types";
-
+import { TAbstractConstructor } from '@tsn-function/types';
+import { TargetImpl } from './types';
 
 class GlobalUtils {
 	/** Defines every key of `extension` as a property directly on `target.prototype`. */
-	static register<Target extends TAbstractConstructor>(target: Target, extension: TargetImpl<Target>) {
+	static register<Target extends TAbstractConstructor>(
+		target: Target,
+		extension: TargetImpl<Target>
+	) {
 		try {
 			Object.entries(extension).forEach(([key, value]) => {
 				Object.defineProperty(target.prototype, key, {
@@ -14,13 +16,9 @@ class GlobalUtils {
 				});
 			});
 		} catch (error) {
-			throw new Error(
-				`Error registering global implementation for ${target.name}: ${error}`,
-			);
+			throw new Error(`Error registering global implementation for ${target.name}: ${error}`);
 		}
 	}
-};
-
-export {
-	GlobalUtils
 }
+
+export { GlobalUtils };

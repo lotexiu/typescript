@@ -30,10 +30,6 @@ class ObjectUtils {
 		return Object.assign(obj, updates) as TAs<T, U>;
 	}
 
-	static entries<T extends {}>(value: T): TEntriesReturn<T>[] {
-		return Object.entries(value) as TEntriesReturn<T>[];
-	}
-
 	static isNullOrUndefined<T>(value: TNullable<T>): value is TNullable {
 		return value == null || value == undefined;
 	}

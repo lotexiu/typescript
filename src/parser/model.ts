@@ -2,11 +2,7 @@ import { Model } from "@ts/model/model";
 import { Computed, computed } from "@ts/computed/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
-
-type TGatePatternInfo = {
-	gate: ParserGate
-	side: 'open' | 'close' | 'symmetric'
-}
+import { TGatePatternInfo } from "./types";
 
 class Parser {
 	public readonly text = new Model<string>('')

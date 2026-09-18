@@ -2,7 +2,7 @@ import { Computed, computed } from "@ts/computed/model";
 import { Model, model } from "@ts/model/model";
 import Color, { ColorTypes } from "colorjs.io";
 import { ColorSpace } from "colorjs.io/fn";
-import { TONE_STOPS } from "./constants";
+import { TONE_STOPS } from "./declarations";
 import { TToneStop, TToneStops } from "./types";
 
 abstract class Palette {
