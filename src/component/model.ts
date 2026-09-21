@@ -1,38 +1,31 @@
+import { FunctionUtils } from '@tsn-function/utils';
 import { TChanges, TComponentKey, TComponentValue } from './types';
 
 abstract class Component {
-	protected abstract onChange(changes: TChanges<this>): void;
+  protected abstract onChange(changes: TChanges<this>): void
 
-	constructor() {
-		let pendingChanges: TChanges<any> = {};
-		let scheduled = false;
+  constructor() {
+    let pendingChanges: TChanges<any> = {}
+    const scheduleUpdate = FunctionUtils.scheduleOnce(() => {
+      const snapshot = pendingChanges
+      pendingChanges = {}
+      this.onChange(snapshot)
+    })
 
-		const flush = () => {
-			scheduled = false;
-			const snapshot = pendingChanges;
-			pendingChanges = {};
-			this.onChange(snapshot);
-		};
+    return new Proxy(this, {
+      set(target, prop: TComponentKey, value: TComponentValue) {
+        const oldValue = target[prop]
 
-		return new Proxy(this, {
-			set(target, prop: TComponentKey, value: TComponentValue) {
-				const oldValue = target[prop];
+        if (oldValue !== value) {
+          target[prop] = value
+          pendingChanges[prop] = { oldValue, value }
+          scheduleUpdate()
+        }
 
-				if (oldValue !== value) {
-					target[prop] = value;
-
-					pendingChanges[prop] = { oldValue, value };
-
-					if (!scheduled) {
-						scheduled = true;
-						queueMicrotask(flush);
-					}
-				}
-
-				return true;
-			},
-		});
-	}
+        return true
+      },
+    })
+  }
 }
 
 export { Component };

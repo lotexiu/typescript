@@ -1,6 +1,7 @@
 import { Computed, computed } from "@ts/computed/model";
 import { Model, model } from "@ts/model/model";
 import { Subscription } from "@ts/subscription/model";
+import { FunctionUtils } from "@tsn-function/utils";
 import { TKeyCode } from "./types";
 
 
@@ -11,7 +12,7 @@ class KeyboardState extends Subscription<KeyboardState> {
 
 	constructor() {
 		super()
-		this.keys.subscribe(() => this.notifies(this))
+		this.keys.subscribe(FunctionUtils.scheduleOnce(() => this.notifies(this)))
 	}
 
 	press(code: TKeyCode): void {

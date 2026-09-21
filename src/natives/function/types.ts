@@ -87,6 +87,13 @@ type TOnceFn<T extends TFn> = T & {
 	clear: () => void;
 };
 
+/** The wrapped function `scheduleOnce()` returns — `clear()` cancels a pending call, `flush()` runs it immediately (if pending) instead of waiting for the microtask. */
+type TScheduleOnceFn = {
+	(): void;
+	clear: () => void;
+	flush: () => void;
+};
+
 export {
 	TFn,
 	TFnDeclaration,
@@ -105,4 +112,5 @@ export {
 	TThrottleFn,
 	TStepFn,
 	TOnceFn,
+	TScheduleOnceFn,
 };

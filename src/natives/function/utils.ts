@@ -1,5 +1,14 @@
 import { Timeout } from '@tsn-class/declarations';
-import { TDebounceFn, TFn, TFnDeclaration, TOnceFn, TParameters, TStepFn, TThrottleFn } from './types';
+import {
+	TDebounceFn,
+	TFn,
+	TFnDeclaration,
+	TOnceFn,
+	TParameters,
+	TScheduleOnceFn,
+	TStepFn,
+	TThrottleFn,
+} from './types';
 
 class FunctionUtils {
 	/** Wraps `fn` so its `this` is passed as an explicit leading parameter instead of the calling context. */
@@ -120,6 +129,30 @@ class FunctionUtils {
 			}
 			return (...nextArgs: any[]) => curried.apply(this, args.concat(nextArgs));
 		};
+	}
+
+	/** Coalesces calls within the same microtask into a single `fn()` run. `clear()` cancels a pending run, `flush()` runs it immediately instead of waiting for the microtask. */
+	static scheduleOnce(fn: () => void): TScheduleOnceFn {
+		let scheduled = false;
+		const handler = () => {
+			if (!scheduled) {
+				scheduled = true;
+				queueMicrotask(() => {
+					if (!scheduled) return;
+					scheduled = false;
+					fn();
+				});
+			}
+		};
+		handler.clear = () => {
+			scheduled = false;
+		};
+		handler.flush = () => {
+			if (!scheduled) return;
+			scheduled = false;
+			fn();
+		};
+		return handler as TScheduleOnceFn;
 	}
 }
 

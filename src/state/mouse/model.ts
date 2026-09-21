@@ -1,6 +1,7 @@
 import { Computed, computed } from "@ts/computed/model";
 import { Model, model } from "@ts/model/model";
 import { Subscription } from "@ts/subscription/model";
+import { FunctionUtils } from "@tsn-function/utils";
 import { TButtons, TMousePosition } from "./types";
 
 class MouseState<Buttons extends PropertyKey> extends Subscription<MouseState<Buttons>> {
@@ -12,8 +13,9 @@ class MouseState<Buttons extends PropertyKey> extends Subscription<MouseState<Bu
 
 	constructor() {
 		super()
-		this.position.subscribe(() => this.notifies(this))
-		this.buttons.subscribe(() => this.notifies(this))
+		const scheduleNotify = FunctionUtils.scheduleOnce(() => this.notifies(this))
+		this.position.subscribe(scheduleNotify)
+		this.buttons.subscribe(scheduleNotify)
 	}
 
 	move(x: number, y: number): void {
