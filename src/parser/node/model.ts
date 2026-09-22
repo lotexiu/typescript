@@ -1,4 +1,4 @@
-import { LazyReadonlyValue, lazyReadonlyValue } from "@ts/lazy-readonly-value/model";
+import { readonlyValue, ReadonlyValue } from "@ts/readonly-value/model";
 
 class ParserGate {
 	public readonly symetric: boolean
@@ -22,7 +22,7 @@ class ParserGate {
 }
 
 class ParserGap {
-	private _text?: LazyReadonlyValue<string>
+	private _text?: ReadonlyValue<string>
 
 	constructor(
 		public readonly parent: ParserNode | ParserRoot,
@@ -32,8 +32,8 @@ class ParserGap {
 	) {}
 
 	/** Cria o wrapper lazy só no primeiro acesso — evita alocar closure para gaps nunca lidos. */
-	get text(): LazyReadonlyValue<string> {
-		return this._text ??= lazyReadonlyValue(() => this.root.text.slice(this.start, this.end))
+	get text(): ReadonlyValue<string> {
+		return this._text ??= readonlyValue(() => this.root.text.slice(this.start, this.end))
 	}
 }
 
@@ -42,7 +42,7 @@ class ParserNode {
 	public unclosed: boolean = false
 	public readonly children: ParserNode[] = []
 	public readonly gaps: ParserGap[] = []
-	private _content?: LazyReadonlyValue<string>
+	private _content?: ReadonlyValue<string>
 
 	/** Índice onde o gate de fechamento começa (ou EOF, se unclosed) — fim do conteúdo. */
 	private closeStart: number = -1
@@ -59,8 +59,8 @@ class ParserNode {
 	get contentStart() { return this.start + this.gate.open.length }
 
 	/** Cria o wrapper lazy só no primeiro acesso — evita alocar closure para nodes nunca lidos. */
-	get content(): LazyReadonlyValue<string> {
-		return this._content ??= lazyReadonlyValue(() => this.root.text.slice(this.contentStart, this.closeStart))
+	get content(): ReadonlyValue<string> {
+		return this._content ??= readonlyValue(() => this.root.text.slice(this.contentStart, this.closeStart))
 	}
 
 	/** @internal chamado pelo resolve() do Parser ao fechar o nó (normal ou por EOF). */

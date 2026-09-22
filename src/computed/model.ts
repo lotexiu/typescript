@@ -1,26 +1,19 @@
-import { TValueUnsubscribe } from "@ts/subscription/types";
-import { Subscription } from "../subscription/model";
-import { TSubscription } from "./types";
+import { TSubscription, TValueUnsubscribe } from '@ts/subscription/types';
+import { Subscription } from '../subscription/model';
 
 class Computed<T> extends Subscription<Computed<T>> {
-	readonly #unsubscribes: TValueUnsubscribe[];
-	readonly #compute: () => T
-	readonly #dependencies: TSubscription[]
+	#dependencies: TSubscription[];
+	#unsubscribes!: TValueUnsubscribe[];
+	readonly #compute: () => T;
 	#changed = true;
-	#value?: T
-	#prevValue?: T
+	#value?: T;
+	#prevValue?: T;
 
-	constructor(
-		compute: () => T,
-		dependencies: TSubscription[]
-	) {
-		super()
-		this.#compute = compute
-		this.#dependencies = dependencies
-		this.#unsubscribes = dependencies.map(dep => dep.subscribe(() => {
-			this.#changed = true
-			this.notifies(this)
-		}));
+	constructor(compute: () => T, dependencies: TSubscription[]) {
+		super();
+		this.#compute = compute;
+		this.#dependencies = dependencies;
+		this.#watch();
 	}
 
 	#tryUpdate() {
@@ -31,26 +24,42 @@ class Computed<T> extends Subscription<Computed<T>> {
 	}
 
 	get prevValue() {
-		this.#tryUpdate()
-		return this.#prevValue
+		this.#tryUpdate();
+		return this.#prevValue;
 	}
 
 	get value() {
-		this.#tryUpdate()
-		return this.#value!
+		this.#tryUpdate();
+		return this.#value!;
 	}
 
 	dispose(): void {
-		this.#unsubscribes.forEach(unsubscribe => unsubscribe());
+		this.#unsubscribe();
 		super.dispose();
+	}
+
+	#unsubscribe() {
+		this.#unsubscribes.forEach((unsubscribe) => unsubscribe());
+	}
+
+	#watch() {
+		this.#unsubscribes = this.#dependencies.map((dep) =>
+			dep.subscribe(() => {
+				this.#changed = true;
+				this.notifies(this);
+			})
+		);
+	}
+
+	static setDependencies(computed: Computed<any>, args: any[]) {
+		computed.#dependencies = args;
+		computed.#unsubscribe();
+		computed.#watch();
 	}
 }
 
 function computed<T>(compute: () => T, dependencies: TSubscription[]) {
-	return new Computed(compute, dependencies)
+	return new Computed(compute, dependencies);
 }
 
-export {
-	Computed,
-	computed,
-}
+export { Computed, computed };

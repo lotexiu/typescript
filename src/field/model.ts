@@ -1,10 +1,12 @@
-import { Subscription } from "../subscription/model";
-import { Model } from "../model/model";
-import { TFieldGet, TFieldSet } from "./types";
+import { Subscription } from '../subscription/model';
+import { Model } from '../model/model';
+import { TFieldGet, TFieldSet } from './types';
+import { TSubscription } from '@ts/subscription/types';
 
 class ReadField<S, V> extends Subscription<ReadField<S, V>> {
-	protected source: Model<S>;
-	protected get: TFieldGet<S, V>;
+	protected readonly source: Model<S>;
+	protected readonly get: TFieldGet<S, V>;
+	protected readonly dependencies: TSubscription[];
 
 	#changed = true;
 	#value?: V;
@@ -16,14 +18,22 @@ class ReadField<S, V> extends Subscription<ReadField<S, V>> {
 		return this.#value!;
 	}
 
-	constructor(source: Model<S>, get: TFieldGet<S, V>) {
+	constructor(source: Model<S>, get: TFieldGet<S, V>, dependencies: TSubscription[] = []) {
 		super();
 		this.source = source;
 		this.get = get;
+		this.dependencies = dependencies;
 
 		this.source.subscribe(() => {
 			this.#changed = true;
 			this.notifies(this);
+		});
+
+		dependencies.forEach((dependency) => {
+			dependency.subscribe(() => {
+				this.#changed = true;
+				this.notifies(this);
+			});
 		});
 	}
 }
@@ -31,8 +41,13 @@ class ReadField<S, V> extends Subscription<ReadField<S, V>> {
 class Field<S, V> extends ReadField<S, V> {
 	protected _set: TFieldSet<S, V>;
 
-	constructor(source: Model<S>, get: TFieldGet<S, V>, set: TFieldSet<S, V>) {
-		super(source, get);
+	constructor(
+		source: Model<S>,
+		get: TFieldGet<S, V>,
+		set: TFieldSet<S, V>,
+		dependencies: TSubscription[] = []
+	) {
+		super(source, get, dependencies);
 		this._set = set;
 	}
 
@@ -48,12 +63,12 @@ class Field<S, V> extends ReadField<S, V> {
 	}
 }
 
-function readField<S, V>(source: Model<S>, get: TFieldGet<S, V>): ReadField<S, V> {
-	return new ReadField(source, get);
+function readField<S, V>(source: Model<S>, get: TFieldGet<S, V>, dependencies: TSubscription[]): ReadField<S, V> {
+	return new ReadField(source, get, dependencies);
 }
 
-function field<S, V>(source: Model<S>, get: TFieldGet<S, V>, set: TFieldSet<S, V>): Field<S, V> {
-	return new Field(source, get, set);
+function field<S, V>(source: Model<S>, get: TFieldGet<S, V>, set: TFieldSet<S, V>, dependencies: TSubscription[]): Field<S, V> {
+	return new Field(source, get, set, dependencies);
 }
 
 export { ReadField, readField, Field, field };

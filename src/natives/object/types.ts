@@ -90,7 +90,6 @@ type TDiff<A, B> =
 			}
 		:	['CHANGED', A, B]
 	:	never;
-
 export type {
 	TNonObject,
 	TObject,

@@ -1,41 +1,31 @@
-import { Computed, computed } from "@ts/computed/model";
-import { Model, model } from "@ts/model/model";
-import { Subscription } from "@ts/subscription/model";
-import { FunctionUtils } from "@tsn-function/utils";
-import { TKeyCode } from "./types";
+import { readField } from '@ts/field/model';
+import { model } from '@ts/model/model';
 
+class KeyboardState<KeyCode> {
+	keys = model(new Set<KeyCode>());
+	combo = readField(this.keys, () => Array.from(this.keys.value).sort());
+	anyPressed = readField(this.keys, (keys) => keys.size > 0);
 
-class KeyboardState extends Subscription<KeyboardState> {
-	keys: Model<Partial<Record<TKeyCode, boolean>>> = model({})
-	combo: Computed<TKeyCode[]> = computed(() => Object.keys(this.keys.value).sort() as TKeyCode[], [this.keys])
-	anyPressed: Computed<boolean> = computed(() => this.combo.value.length > 0, [this.combo])
-
-	constructor() {
-		super()
-		this.keys.subscribe(FunctionUtils.scheduleOnce(() => this.notifies(this)))
+	press(code: KeyCode): void {
+		if (this.keys.value.has(code)) return;
+		this.keys.value.add(code);
+		this.keys.notifies(this.keys.value);
 	}
 
-	press(code: TKeyCode): void {
-		if (this.keys.value[code]) return
-		this.keys.value[code] = true
-		this.keys.notifies(this.keys.value)
+	release(code: KeyCode): void {
+		if (!this.keys.value.has(code)) return;
+		this.keys.value.delete(code);
+		this.keys.notifies(this.keys.value);
 	}
 
-	release(code: TKeyCode): void {
-		if (!this.keys.value[code]) return
-		delete this.keys.value[code]
-		this.keys.notifies(this.keys.value)
-	}
-
-	isPressed(code: TKeyCode): boolean {
-		return Boolean(this.keys.value[code])
+	isPressed(code: KeyCode): boolean {
+		return this.keys.value.has(code);
 	}
 
 	reset(): void {
-		this.keys.set({})
+		this.keys.value.clear();
+		this.keys.notifies(this.keys.value);
 	}
 }
 
-export {
-	KeyboardState
-}
+export { KeyboardState };

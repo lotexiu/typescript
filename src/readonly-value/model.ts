@@ -1,4 +1,4 @@
-class LazyReadonlyValue<const T> {
+class ReadonlyValue<const T> {
 	#compute?: ()=>T
 
 	#value?: T
@@ -15,11 +15,11 @@ class LazyReadonlyValue<const T> {
 	}
 }
 
-function lazyReadonlyValue<const T>(compute: ()=>T) {
-	return new LazyReadonlyValue(compute)
+function readonlyValue<const T>(compute: ()=>T) {
+	return new ReadonlyValue(compute)
 }
 
 export {
-	LazyReadonlyValue,
-	lazyReadonlyValue
+	ReadonlyValue,
+	readonlyValue
 }

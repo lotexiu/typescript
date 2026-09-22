@@ -1,6 +1,7 @@
 {
   "extends": "@lotexiu/typescript-config/base.json",
   "compilerOptions": {
+    "experimentalDecorators": true,
     "rootDir": "./src",
     "outDir": "./dist",
 		"types": [
