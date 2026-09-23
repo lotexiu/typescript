@@ -63,11 +63,20 @@ class Field<S, V> extends ReadField<S, V> {
 	}
 }
 
-function readField<S, V>(source: Model<S>, get: TFieldGet<S, V>, dependencies: TSubscription[]): ReadField<S, V> {
+function readField<S, V>(
+	source: Model<S>,
+	get: TFieldGet<S, V>,
+	dependencies: TSubscription[] = []
+): ReadField<S, V> {
 	return new ReadField(source, get, dependencies);
 }
 
-function field<S, V>(source: Model<S>, get: TFieldGet<S, V>, set: TFieldSet<S, V>, dependencies: TSubscription[] = []): Field<S, V> {
+function field<S, V>(
+	source: Model<S>,
+	get: TFieldGet<S, V>,
+	set: TFieldSet<S, V>,
+	dependencies: TSubscription[] = []
+): Field<S, V> {
 	return new Field(source, get, set, dependencies);
 }
 

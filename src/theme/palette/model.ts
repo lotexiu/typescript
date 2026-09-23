@@ -4,10 +4,11 @@ import Color, { ColorTypes } from "colorjs.io";
 import { ColorSpace } from "colorjs.io/fn";
 import { TONE_STOPS } from "./declarations";
 import { TToneStop, TToneStops } from "./types";
+import { read } from "fs";
 
 abstract class Palette {
-	protected tones: Map<TToneStop, Color> = new Map()
-	name: Model<string>
+	protected readonly tones: Map<TToneStop, Color> = new Map()
+	readonly name: Model<string>
 
 	constructor(name: string){
 		this.name = model(name)
@@ -61,8 +62,8 @@ class CustomPalette extends Palette {
 }
 
 class TonalPalette<T extends ColorTypes = string> extends Palette {
-	seed: Model<T>
-	protected seedOklch: Computed<Color>
+	readonly seed: Model<T>
+	protected readonly seedOklch: Computed<Color>
 	protected changed: boolean = true
 	
 	constructor(

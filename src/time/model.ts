@@ -51,9 +51,9 @@ class Time {
 		(date, value) => date.setDate(date.getDate() + value - date.getDay()),
 	);
 
-	firstDay = computed(() => new Date(this.year.value, this.month.value, 1).getDay(), [this.year, this.month]);
-	totalDays = computed(() => new Date(this.year.value, this.month.value + 1, 0).getDate(), [this.year, this.month]);
-	totalWeeks = computed(() => Math.ceil(this.totalDays.value / 7), [this.totalDays]);
+	readonly firstDay = computed(() => new Date(this.year.value, this.month.value, 1).getDay(), [this.year, this.month]);
+	readonly totalDays = computed(() => new Date(this.year.value, this.month.value + 1, 0).getDate(), [this.year, this.month]);
+	readonly totalWeeks = computed(() => Math.ceil(this.totalDays.value / 7), [this.totalDays]);
 
 	constructor(date?: Date) {
 		if (date) this.#date.set(date);

@@ -1,15 +1,15 @@
 import { RegexUtils } from "@tsn/regex/utils";
 import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "../token/model";
-import { lazyReadonlyValue } from "@ts/lazy-readonly-value/model";
+import { readonlyValue } from "@ts/readonly-value/model";
 
 class MaskCompiledPattern {
-	validWithMask = lazyReadonlyValue(()=>{
+	validWithMask = readonlyValue(()=>{
 		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken 
 			? `${token.value}{${token.min},${token.max}}` 
 			: `${RegexUtils.escapeReservedKeys(token.value)}`
 		).join('')+'$', this.flags)
 	})
-	validWithoutMask = lazyReadonlyValue(()=>{
+	validWithoutMask = readonlyValue(()=>{
 		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken 
 			? `${token.value}{${token.min},${token.max}}` : ``
 		).join('')+'$', this.flags)

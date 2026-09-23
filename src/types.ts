@@ -3,6 +3,10 @@ const _typeof = typeof "";
 /** The literal union of every possible result of the `typeof` operator (`"string"`, `"number"`, etc). */
 type TTypeOfValue = typeof _typeof;
 
+type TNil = null | undefined;
+
+type TEmpty = TNil | '' | 0 | false;
+
 /** `Type` widened with `undefined`/`null` (and `void`, unless `NoVoid` is `true`). */
 type TNullable<
 	Type = null,
@@ -29,6 +33,8 @@ type TSameType<A,B> =
 		: false
 
 export type {
+	TNil,
+	TEmpty,
 	TNullable,
 	TNotUndefined,
 	TTypeOfValue,

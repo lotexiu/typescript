@@ -1,7 +1,7 @@
-import { computed } from "@ts/computed/model";
-import { model } from "@ts/model/model";
-import { Subscription } from "@ts/subscription/model";
-import { TMatrixBuffer, TMatrixBufferCtor } from "./types";
+import { computed } from '@ts/computed/model';
+import { model } from '@ts/model/model';
+import { Subscription } from '@ts/subscription/model';
+import { TMatrixBuffer, TMatrixBufferCtor } from './types';
 
 class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 	readonly dimensions = model<number[]>([128, 128]);
@@ -9,7 +9,7 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 
 	readonly size = computed(
 		() => this.dimensions.value.reduce((total, dim) => total * dim, 1),
-		[this.dimensions],
+		[this.dimensions]
 	);
 
 	readonly #strides = computed(() => {
@@ -25,21 +25,17 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 
 	readonly #data = computed(
 		() => new this.dataClass.value(this.size.value),
-		[this.size, this.dataClass],
+		[this.size, this.dataClass]
 	);
 
 	get data(): TMatrixBuffer<T> {
 		return this.#data.value;
 	}
 
-	constructor(
-		dimensions?: number[],
-		dataClass?: TMatrixBufferCtor<T>,
-		filledValue?: T,
-	) {
+	constructor(dimensions?: number[], dataClass?: TMatrixBufferCtor<T>, filledValue?: T) {
 		super();
-		if (dimensions) this.dimensions.set(dimensions)
-		if (dataClass) this.dataClass.set(dataClass)
+		if (dimensions) this.dimensions.set(dimensions);
+		if (dataClass) this.dataClass.set(dataClass);
 		if (filledValue != undefined) this.data.fill(filledValue);
 	}
 
@@ -96,9 +92,9 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 			this.section(...rowIndex).forEach((value) => {
 				cells.push(String(value).padStart(cellWidth));
 			});
-			lines[row] = cells.join(" ");
+			lines[row] = cells.join(' ');
 		}
-		return lines.join("\n");
+		return lines.join('\n');
 	}
 }
 

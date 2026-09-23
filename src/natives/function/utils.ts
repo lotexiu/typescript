@@ -3,6 +3,7 @@ import {
 	TDebounceFn,
 	TFn,
 	TFnDeclaration,
+	TMemoizeFn,
 	TOnceFn,
 	TParameters,
 	TScheduleOnceFn,
@@ -12,10 +13,10 @@ import {
 
 class FunctionUtils {
 	/** Wraps `fn` so its `this` is passed as an explicit leading parameter instead of the calling context. */
-	static thisAsParameter<T extends TFn>(fn: T): TFnDeclaration<T> {
+	static thisAsParameter(fn: TFn): TFn {
 		return function (this: any, ...args: any[]): any {
 			return fn.call(null, this, ...args);
-		} as any;
+		};
 	}
 
 	static rebind<Applied extends any[], Rest extends any[], Return>(
@@ -27,14 +28,14 @@ class FunctionUtils {
 			return rebinded.children.call(thisArg, ...args, ...nextArgs);
 		}
 		rebinded.origin = fn.origin ?? fn;
-		rebinded.children = fn as TFn;
-		return rebinded as any;
+		rebinded.children = fn;
+		return rebinded;
 	}
 
 	/** Delays calling `fn` until `delay` ms have passed with no further calls — each call reschedules with the latest arguments. */
-	static debounce<T extends TFn>(fn: T, delay: number = 50): TDebounceFn<T> {
+	static debounce<Args extends any[]>(fn: TFn<Args>, delay: number = 50): TDebounceFn<Args> {
 		let timeoutId: Timeout | undefined;
-		function handler(this: any, ...args: TParameters<T>) {
+		function handler(this: any, ...args: Args) {
 			if (timeoutId !== undefined) clearTimeout(timeoutId);
 			timeoutId = setTimeout(() => {
 				timeoutId = undefined;
@@ -45,25 +46,28 @@ class FunctionUtils {
 			if (timeoutId !== undefined) clearTimeout(timeoutId);
 			timeoutId = undefined;
 		};
-		return handler as any;
+		return handler;
 	}
 
-	static leadingDebounce<T extends TFn>(fn: T, delay: number): T {
+	static leadingDebounce<Args extends any[]>(fn: TFn<Args>, delay: number): TFn<Args, void> {
 		let timeoutId: Timeout | undefined;
-		return function (this: any, ...args: TParameters<T>) {
+		return function handler(this: any, ...args: Args) {
 			const callNow = timeoutId === undefined;
 			if (timeoutId !== undefined) clearTimeout(timeoutId);
 			timeoutId = setTimeout(() => {
 				timeoutId = undefined;
 			}, delay);
 			if (callNow) fn.apply(this, args);
-		} as any;
+		};
 	}
 
 	/** Calls `fn` immediately, then ignores further calls until `interval` ms have passed. */
-	static throttle<T extends TFn>(fn: T, interval: number = 50): TThrottleFn<T> {
+	static throttle<Args extends any[]>(
+		fn: TFn<Args, void>,
+		interval: number = 50
+	): TThrottleFn<Args> {
 		let lastTime = 0;
-		function handler(this: any, ...args: any[]) {
+		function handler(this: any, ...args: Args) {
 			const now = Date.now();
 			if (now - lastTime >= interval) {
 				fn.apply(this, args);
@@ -73,13 +77,17 @@ class FunctionUtils {
 		handler.clear = () => {
 			lastTime = 0;
 		};
-		return handler as any;
+		return handler;
 	}
 
 	/** Calls `fn` every `amount` calls (resetting the counter afterwards unless `autoClear` is `false`). */
-	static step<T extends TFn>(fn: T, amount: number = 10, autoClear: boolean = true): TStepFn<T> {
+	static step<Args extends any[]>(
+		fn: TFn<Args, void>,
+		amount: number = 10,
+		autoClear: boolean = true
+	): TStepFn<Args> {
 		let counter = 0;
-		function handler(this: any, ...args: any[]) {
+		function handler(this: any, ...args: Args) {
 			counter++;
 			if (counter >= amount) {
 				fn.apply(this, args);
@@ -89,13 +97,13 @@ class FunctionUtils {
 		handler.clear = () => {
 			counter = 0;
 		};
-		return handler as any;
+		return handler;
 	}
 
 	/** Calls `fn` at most once — every call after the first is a no-op until `clear()` resets it. */
-	static once<T extends TFn>(fn: T): TOnceFn<T> {
+	static once<Args extends any[]>(fn: TFn<[...Args], void>): TOnceFn<Args> {
 		let runned = false;
-		function handler(this: any, ...args: any[]) {
+		function handler(this: any, ...args: Args) {
 			if (runned) return;
 			fn.apply(this, args);
 			runned = true;
@@ -103,23 +111,23 @@ class FunctionUtils {
 		handler.clear = () => {
 			runned = false;
 		};
-		return handler as any;
+		return handler;
 	}
 
-	static memoize<T extends TFn>(
-		fn: T,
-		keyResolver?: (...args: TParameters<T>) => string
-	): T & { cache: Map<string, any> } {
+	static memoize<Args extends any[], Return>(
+		fn: TFn<Args, Return>,
+		keyResolver?: (...args: Args) => string
+	): TMemoizeFn<Args, Return> {
 		const cache = new Map<string, any>();
-		const memoized = function (this: any, ...args: TParameters<T>) {
+		function handler(this: any, ...args: Args) {
 			const key = keyResolver ? keyResolver(...args) : JSON.stringify(args);
 			if (cache.has(key)) return cache.get(key);
 			const result = fn.apply(this, args);
 			cache.set(key, result);
 			return result;
-		};
-		memoized.cache = cache;
-		return memoized as any;
+		}
+		handler.cache = cache;
+		return handler;
 	}
 
 	static curry(fn: TFn): TFn {
@@ -134,7 +142,7 @@ class FunctionUtils {
 	/** Coalesces calls within the same microtask into a single `fn()` run. `clear()` cancels a pending run, `flush()` runs it immediately instead of waiting for the microtask. */
 	static scheduleOnce(fn: () => void): TScheduleOnceFn {
 		let scheduled = false;
-		const handler = () => {
+		function handler() {
 			if (!scheduled) {
 				scheduled = true;
 				queueMicrotask(() => {
@@ -143,7 +151,7 @@ class FunctionUtils {
 					fn();
 				});
 			}
-		};
+		}
 		handler.clear = () => {
 			scheduled = false;
 		};
@@ -152,7 +160,7 @@ class FunctionUtils {
 			scheduled = false;
 			fn();
 		};
-		return handler as TScheduleOnceFn;
+		return handler;
 	}
 }
 

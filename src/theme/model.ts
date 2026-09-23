@@ -3,8 +3,8 @@ import { ThemeStyle } from './style/model';
 import { TThemeMode } from './types';
 
 class Theme {
-	mode: Model<TThemeMode>;
-	style: Model<ThemeStyle>;
+	readonly mode: Model<TThemeMode>;
+	readonly style: Model<ThemeStyle>;
 
 	constructor(initialStyle: ThemeStyle, initialMode: TThemeMode = 'dark') {
 		this.mode = model(initialMode);

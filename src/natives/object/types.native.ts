@@ -43,9 +43,9 @@ type TOmit<T, K extends keyof any> = Omit<T, K>;
 type TPartial<T> = Partial<T>;
 
 export type {
-	TRequired as TRequired,
-	TReadonly as TReadonly,
-	TPick as TPick,
-	TOmit as TOmit,
-	TPartial as TPartial,
+	TRequired,
+	TReadonly,
+	TPick,
+	TOmit,
+	TPartial,
 };

@@ -1,14 +1,20 @@
-import { TAs, TNullable } from "@ts/types";
-import { TDiff, TEntriesReturn, TPath, TPathValue } from "./types";
+import { TAs, TNullable } from '@ts/types';
+import { TDiff, TEntriesReturn, TIterate, TPath, TPathValue } from './types';
 
 /**
  * @internal
-*/
+ */
 class ObjectUtils {
-	static valueFromPath<const T, const P extends TPath<T>>(obj: T, path: P): TPathValue<T, P> {
-		return (path as string).split(".").reduce((acc: any, key: string): any => {
-			return acc[key];
-		}, obj);
+	static valueFromPath<const T, const P extends TPath<T> | undefined>(
+		obj: T,
+		path?: P
+	): T | TPathValue<T, P> {
+		if (!path) return obj;
+		return String(path)
+			.split('.')
+			.reduce((acc: any, key: string): any => {
+				return acc[key];
+			}, obj);
 	}
 
 	static setValueFromPath<
@@ -16,8 +22,7 @@ class ObjectUtils {
 		const Path extends TPath<T>,
 		const Value extends TPathValue<T, Path>,
 	>(obj: T, path: Path, value: Value): Value {
-		const pathStr: string = path;
-		const keys: string[] = pathStr.split(".");
+		const keys: string[] = String(path).split('.');
 		keys.reduce((acc: any, key: string, idx: number): any => {
 			if (idx == keys.length - 1) {
 				acc[key] = value;
@@ -45,11 +50,11 @@ class ObjectUtils {
 			obj,
 			(_, value) => {
 				if (!ObjectUtils.isObject(value)) return value;
-				if (seen.has(value)) return undefined
+				if (seen.has(value)) return undefined;
 				seen.add(value);
 				return value;
 			},
-			compact ? undefined : 2,
+			compact ? undefined : 2
 		);
 	}
 
@@ -62,33 +67,34 @@ class ObjectUtils {
 		return false;
 	}
 
-	static diff<const A extends object, const B extends object>(a: A, b: B): TDiff<A, B> {
+	static diff<A extends Partial<B> & Record<any, any>, B extends Partial<A> & Record<any, any>>(
+		a: A,
+		b: B
+	): TDiff<A, B> {
 		const result: any = {};
 		const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
 		for (const key of keys) {
-			const aVal: any = (a as any)[key];
-			const bVal: any = (b as any)[key];
-			if (!(key in b)) {result[key] = ['REMOVED', aVal]; continue;}
-			if (!(key in a)) {result[key] = ['ADDED', bVal]; continue;}
+			const aVal: any = a[key];
+			const bVal: any = b[key];
+			if (!(key in b)) {
+				result[key] = ['REMOVED', aVal];
+				continue;
+			}
+			if (!(key in a)) {
+				result[key] = ['ADDED', bVal];
+				continue;
+			}
 			if (aVal == bVal) continue;
-			if (isObject(aVal) && isObject(bVal)) {result[key] = ObjectUtils.diff(aVal, bVal); continue;}
+			if (isObject(aVal) && isObject(bVal)) {
+				result[key] = ObjectUtils.diff(aVal, bVal);
+				continue;
+			}
 			result[key] = ['CHANGED', aVal, bVal];
 		}
 		return result;
 	}
 }
 
-const {
-	isNull,
-	isNullOrUndefined,
-	json,
-	isObject,
-} = ObjectUtils;
+const { isNull, isNullOrUndefined, json, isObject } = ObjectUtils;
 
-export {
-	ObjectUtils,
-	isNull,
-	isNullOrUndefined,
-	json,
-	isObject,
-}
+export { ObjectUtils, isNull, isNullOrUndefined, json, isObject };

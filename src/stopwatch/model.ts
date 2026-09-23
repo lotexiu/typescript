@@ -5,16 +5,16 @@ import { STOP_WATCH_LOCALES } from '@ts/subscription/locale';
 
 class StopWatch {
 	#startTime: number = NaN;
-	laps = model<number[]>([]);
-	totalLaps = model(NaN);
+	readonly laps = model<number[]>([]);
+	readonly totalLaps = model(NaN);
 
-	duration = computed(() => this.laps.value.reduce((a, b) => a + b, 0), [this.laps]);
-	avarage = computed(() => this.duration.value / this.laps.value.length, [this.duration]);
-	estimated = computed(
+	readonly duration = computed(() => this.laps.value.reduce((a, b) => a + b, 0), [this.laps]);
+	readonly avarage = computed(() => this.duration.value / this.laps.value.length, [this.duration]);
+	readonly estimated = computed(
 		() => this.avarage.value * (this.totalLaps.value - this.laps.value.length),
 		[this.avarage, this.totalLaps]
 	);
-	currentLap = computed(() => this.laps.value[this.laps.value.length - 1], [this.laps]);
+	readonly currentLap = computed(() => this.laps.value[this.laps.value.length - 1], [this.laps]);
 
 	start() {
 		this.laps.set([]);

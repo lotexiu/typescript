@@ -1,11 +1,11 @@
-import { lazyReadonlyValue } from "@ts/lazy-readonly-value/model";
+import { readonlyValue } from "@ts/readonly-value/model";
 
 class TMaskStaticToken {
 	constructor(readonly value: string){}
 }
 
 class TMaskRuleToken {
-	readonly match = lazyReadonlyValue(
+	readonly match = readonlyValue(
 		()=>new RegExp(`^(?:${this.value})$`, this.flags)
 	)
 

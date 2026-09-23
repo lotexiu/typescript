@@ -5,14 +5,14 @@ import { TIndexedValue } from "./types";
 class ValueHistory<T> {
 	#history: T[] = []
 
-	index = model(-1)
+	readonly index = model(-1)
 
-	previous = computed(() => this.#toIndexedValue(this.index.value - 1), [this.index])
-	current = computed(() => this.#toIndexedValue(this.index.value), [this.index])
-	next = computed(() => this.#toIndexedValue(this.index.value + 1), [this.index])
+	readonly previous = computed(() => this.#toIndexedValue(this.index.value - 1), [this.index])
+	readonly current = computed(() => this.#toIndexedValue(this.index.value), [this.index])
+	readonly next = computed(() => this.#toIndexedValue(this.index.value + 1), [this.index])
 
-	length = computed(() => this.#history.length, [this.index])
-	history = computed(() => this.#history.map((value, index) => ({ index, value })), [this.length])
+	readonly length = computed(() => this.#history.length, [this.index])
+	readonly history = computed(() => this.#history.map((value, index) => ({ index, value })), [this.length])
 
 	constructor(public cacheSize: number = -1) { }
 

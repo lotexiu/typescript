@@ -2,16 +2,15 @@ import { Computed } from "../computed/model";
 import { Subscription } from "../subscription/model";
 import { model, Model } from "../model/model";
 
-class Item<V> extends Subscription<any> {
-	value: Model<any>
+class Item<V> {
+	readonly value: Model<V>
 
 	constructor(
 		readonly id: string,
 		readonly label: Computed<string>,
-		value: V
+		initial: V
 	){
-		super()
-		this.value = model(value)
+		this.value = model(initial)
 	}
 }
 

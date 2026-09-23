@@ -38,7 +38,7 @@ declare global {
 	}
 
 	interface Function {
-		thisAsParameter<T extends TFn>(this: T): TFnDeclaration<T>;
+		thisAsParameter<T extends TFn>(this: T): TFn;
 		children?: TFn;
 		origin?: TFn;
 	}
@@ -74,10 +74,10 @@ GlobalUtils.register(Function, {
 });
 
 GlobalUtils.register(Object, {
-	setValueFromPath: ObjectUtils.setValueFromPath.thisAsParameter() as any,
-	valueFromPath: ObjectUtils.valueFromPath.thisAsParameter() as any,
+	setValueFromPath: ObjectUtils.setValueFromPath.thisAsParameter(),
+	valueFromPath: ObjectUtils.valueFromPath.thisAsParameter(),
 	update: ObjectUtils.update.thisAsParameter() as any,
-	toJson: ObjectUtils.json.thisAsParameter() as any,
+	toJson: ObjectUtils.json.thisAsParameter(),
 });
 
 GlobalUtils.register(String, {

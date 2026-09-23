@@ -5,9 +5,9 @@ import { TVariantDerive } from "./types";
 
 class Variant<K, V> extends Subscription<Variant<K,V>> {
 	#prevKey?: K
-	#key: Model<K>
-	#value: Computed<V>
-	#derive: TVariantDerive<K, V>
+	readonly #key: Model<K>
+	readonly #value: Computed<V>
+	readonly #derive: TVariantDerive<K, V>
 
 	get key() {return this.#key.value}
 	get value() {return this.#value.value}

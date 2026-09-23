@@ -2,14 +2,8 @@ import { TArrayOf, TArrayRest } from '@tsn-array/types';
 
 type TFnType = 'constructor' | 'normal';
 
-type TFn<
-	Args extends any[] = any[],
-	Return = any,
-	InfArgType = any,
-	Type extends TFnType = 'normal',
-> =
-	Type extends 'constructor' ? abstract new (...args: TArrayOf<Args, InfArgType>) => Return
-	:	(...args: TArrayOf<Args, InfArgType>) => Return;
+type TFn<Args extends any[] = any[], Return = any, Type extends TFnType = 'normal'> =
+	Type extends 'constructor' ? abstract new (...args: Args) => Return : (...args: Args) => Return;
 
 /** Rewrites a function type with a leading "this-like" parameter into a method declaration with an explicit `this: V` parameter (used to type `thisAsParameter`-wrapped functions). */
 type TFnDeclaration<T extends TFn> =
@@ -68,22 +62,22 @@ type TConstructorParameters<T> = T extends TAbstractConstructor<any, infer P> ? 
 type TInstanceType<T extends abstract new (...args: any) => any> = InstanceType<T>;
 
 /** The wrapped function `debounce()` returns — callable like `T`, plus `clear()` to cancel a pending call. */
-type TDebounceFn<T extends TFn> = T & {
+type TDebounceFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
 };
 
 /** The wrapped function `throttle()` returns — callable like `T`, plus `clear()` to reset its interval tracking. */
-type TThrottleFn<T extends TFn> = T & {
+type TThrottleFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
 };
 
 /** The wrapped function `step()` returns — callable like `T`, plus `clear()` to reset its call counter. */
-type TStepFn<T extends TFn> = T & {
+type TStepFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
 };
 
 /** The wrapped function `once()` returns — callable like `T`, plus `clear()` to allow it to run again. */
-type TOnceFn<T extends TFn> = T & {
+type TOnceFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
 };
 
@@ -92,6 +86,10 @@ type TScheduleOnceFn = {
 	(): void;
 	clear: () => void;
 	flush: () => void;
+};
+
+type TMemoizeFn<Args extends any[], Return> = TFn<Args, Return> & {
+	cache: Map<string, any>;
 };
 
 export {
@@ -113,4 +111,5 @@ export {
 	TStepFn,
 	TOnceFn,
 	TScheduleOnceFn,
+	TMemoizeFn,
 };

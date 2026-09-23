@@ -6,10 +6,10 @@ class Computed<T> extends Subscription<Computed<T>> {
 	#unsubscribes!: TValueUnsubscribe[];
 	readonly #compute: () => T;
 	#changed = true;
-	#value?: T;
+	#value!: T;
 	#prevValue?: T;
 
-	constructor(compute: () => T, dependencies: TSubscription[]) {
+	constructor(compute: () => T, dependencies: TSubscription[] = []) {
 		super();
 		this.#compute = compute;
 		this.#dependencies = dependencies;
@@ -30,7 +30,7 @@ class Computed<T> extends Subscription<Computed<T>> {
 
 	get value() {
 		this.#tryUpdate();
-		return this.#value!;
+		return this.#value;
 	}
 
 	dispose(): void {
@@ -39,6 +39,7 @@ class Computed<T> extends Subscription<Computed<T>> {
 	}
 
 	#unsubscribe() {
+		if (!this.#unsubscribes.length) return;
 		this.#unsubscribes.forEach((unsubscribe) => unsubscribe());
 	}
 
@@ -58,7 +59,7 @@ class Computed<T> extends Subscription<Computed<T>> {
 	}
 }
 
-function computed<T>(compute: () => T, dependencies: TSubscription[]) {
+function computed<T>(compute: () => T, dependencies?: TSubscription[]) {
 	return new Computed(compute, dependencies);
 }
 

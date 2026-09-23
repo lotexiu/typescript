@@ -40,8 +40,10 @@ class Model<T> extends Subscription<T> {
 	}
 }
 
-function model<T>(initial: T): Model<T> {
-	return new Model(initial);
+function model<T>(): Model<T | undefined>;
+function model<T>(initial: T): Model<T>;
+function model<T>(initial?: T): Model<T> | Model<T | undefined> {
+	return new Model(initial)
 }
 
 export {

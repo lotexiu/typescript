@@ -39,7 +39,7 @@ class Cache<V> {
 	getBatch(batchKey: string): TCacheReturn<any, V> {
 		let cached: TCacheReturn<any, V> = this.batchCache?.get(batchKey);
 		if (!cached) {
-			cached = this.get(...(batchKey.split(this.options.keySeparator) as any));
+			cached = this.get(...(batchKey.split(this.options.keySeparator) as TCacheGetParam));
 		}
 		return Array.isArray(cached) ? [...cached] : cached;
 	}
