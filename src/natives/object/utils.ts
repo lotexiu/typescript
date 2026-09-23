@@ -6,7 +6,7 @@ import { TDiff, TEntriesReturn, TPath, TPathValue } from "./types";
 */
 class ObjectUtils {
 	static valueFromPath<const T, const P extends TPath<T>>(obj: T, path: P): TPathValue<T, P> {
-		return String(path).split(".").reduce((acc: any, key: string): any => {
+		return (path as string).split(".").reduce((acc: any, key: string): any => {
 			return acc[key];
 		}, obj);
 	}
@@ -16,7 +16,8 @@ class ObjectUtils {
 		const Path extends TPath<T>,
 		const Value extends TPathValue<T, Path>,
 	>(obj: T, path: Path, value: Value): Value {
-		const keys: string[] = String(path).split(".");
+		const pathStr: string = path;
+		const keys: string[] = pathStr.split(".");
 		keys.reduce((acc: any, key: string, idx: number): any => {
 			if (idx == keys.length - 1) {
 				acc[key] = value;
