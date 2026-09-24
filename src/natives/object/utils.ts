@@ -1,5 +1,5 @@
 import { TAs, TNullable } from '@ts/types';
-import { TDiff, TEntriesReturn, TIterate, TPath, TPathValue } from './types';
+import { TDiff, TPath, TPathValue, TRecord } from './types';
 
 /**
  * @internal
@@ -67,7 +67,7 @@ class ObjectUtils {
 		return false;
 	}
 
-	static diff<A extends Partial<B> & Record<any, any>, B extends Partial<A> & Record<any, any>>(
+	static diff<const A extends TRecord, const B extends TRecord>(
 		a: A,
 		b: B
 	): TDiff<A, B> {

@@ -1,51 +1,51 @@
-import { computed } from "../computed/model";
-import { model } from "../model/model";
-import { TIndexedValue } from "./types";
+import { derived, Signal, signal } from '@ts/signal/model';
+import { TIndexedValue } from './types';
 
 class ValueHistory<T> {
-	#history: T[] = []
+	// Mutado no lugar + `notify()` — sem copiar o array a cada `add`.
+	readonly #entries = signal<T[]>([]);
 
-	readonly index = model(-1)
+	readonly index = signal(-1);
 
-	readonly previous = computed(() => this.#toIndexedValue(this.index.value - 1), [this.index])
-	readonly current = computed(() => this.#toIndexedValue(this.index.value), [this.index])
-	readonly next = computed(() => this.#toIndexedValue(this.index.value + 1), [this.index])
+	readonly previous = derived(() => this.#at(this.index() - 1));
+	readonly current = derived(() => this.#at(this.index()));
+	readonly next = derived(() => this.#at(this.index() + 1));
 
-	readonly length = computed(() => this.#history.length, [this.index])
-	readonly history = computed(() => this.#history.map((value, index) => ({ index, value })), [this.length])
+	readonly length = derived(() => this.#entries().length);
+	readonly history = derived(() => this.#entries().map((value, index) => ({ index, value })));
 
-	constructor(public cacheSize: number = -1) { }
+	// Quantas entradas manter (as mais antigas saem primeiro); negativo = sem limite.
+	constructor(public cacheSize: number = -1) {}
 
-	#toIndexedValue(index: number): TIndexedValue<T> | undefined {
-		if (index < 0 || index >= this.#history.length) return undefined;
-		return { index, value: this.#history[index] };
+	#at(index: number): TIndexedValue<T> | undefined {
+		const entries = this.#entries();
+		if (index < 0 || index >= entries.length) return undefined;
+		return { index, value: entries[index] };
 	}
 
-	undo() {
-		if (this.index.value < 0) return;
+	undo(): void {
+		if (this.index() < 0) return;
 		this.index.update((v) => v - 1);
 	}
 
-	redo() {
-		if (this.index.value >= this.#history.length - 1) return;
+	redo(): void {
+		if (this.index() >= this.#entries().length - 1) return;
 		this.index.update((v) => v + 1);
 	}
 
-	add(value: T) {
-		this.index.silentUpdate(v => v + 1)
-		let index = this.index.value;
-		if (this.cacheSize >= 0 && index >= this.cacheSize) {
-			this.#history = this.#history.slice(index - (this.cacheSize - 1), index);
-			this.index.silentSet(this.cacheSize - 1);
-		} else {
-			this.#history.length = index;
-		}
-		index = this.index.value;
-		this.#history.push(value);
-		this.index.notifies(index);
+	add(value: T): void {
+		Signal.batch(() => {
+			const entries = this.#entries();
+			// Registrar depois de um undo descarta o que dava para refazer.
+			entries.length = this.index() + 1;
+			entries.push(value);
+			if (this.cacheSize >= 0 && entries.length > this.cacheSize) {
+				entries.splice(0, entries.length - this.cacheSize);
+			}
+			this.#entries.notify();
+			this.index.set(entries.length - 1);
+		});
 	}
 }
 
-export {
-	ValueHistory
-}
+export { ValueHistory };

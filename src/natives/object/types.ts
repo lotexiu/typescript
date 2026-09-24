@@ -1,7 +1,6 @@
-import { TSameType } from '@ts/index';
-import { TNil } from '@ts/types';
+import { TEquals, TNil, TNullPropagation, TUnkown } from '@ts/types';
+import { TPair } from '@tsn-array/types';
 
-/** Basic Non-object types (primitives, functions, and arrays). Used for filtering out non-object values. */
 type TNonObject =
 	String | Number | Boolean | BigInt | Symbol | null | undefined | Function | readonly any[];
 
@@ -17,7 +16,7 @@ type TIterate<T, KeyTypes extends TIterKeyType = TIterKeyType> =
 type TKeyOf<T, KeyTypes = PropertyKey, RemoveKey = never> = Exclude<keyof T & KeyTypes, RemoveKey>;
 
 /** Builds an object type from a union of `[key, value]` tuples — the inverse of `TEntriesReturn`. */
-type TRecord<T extends [any, any]> = {
+type TRecord<T extends TPair = TPair> = {
 	[P in T as P[0]]: P[1];
 };
 
@@ -47,10 +46,8 @@ type TPath<T, AsT = '' | TNil> =
 		}[TIterate<R>]
 	:	never;
 
-type TNullable<WeakType, Result> = Extract<WeakType, TNil> | Result;
-
 /** Resolves the type found at a dot-separated `Path` string into `T` (the return type of `valueFromPath`). */
-type TPathValue<T, Path extends TPath<T> | '' | TNil> = TNullable<
+type TPathValue<T, Path extends TPath<T> | '' | TNil> = TNullPropagation<
 	T | Path,
 	Path extends '' | TNil ? T
 	: TObject<T> extends infer R ?
@@ -68,23 +65,22 @@ type TEntriesReturn<T> = {
 	[K in TIterate<T, string>]: [K, T[K]];
 }[TIterate<T, string>][];
 
-type TDiffType = ['REMOVED', any] | ['ADDED', any] | ['CHANGED', any, any];
-interface TDiffObject {
-	[K: string | number]: TDiffType | TDiffObject;
-}
-type TDiffValue = TDiffType | TDiffObject;
+type TDiffAdd<T> = ['ADDED', T];
+type TDiffRemoved<T> = ['REMOVED', T];
+type TDiffChanged<T, U> = ['CHANGED', T, U];
 
-type TDiff<A, B> =
-	TSameType<A, B> extends false ?
-		A | B extends TObject<A | B> ?
-			{
-				[K in TIterate<A & B>]: K extends TIterate<A | B> ? TDiff<A[K], B[K]>
-				: K extends TIterate<A> ? ['REMOVED', A[K]]
-				: K extends TIterate<B> ? ['ADDED', B[K]]
-				: never;
-			}
-		:	['CHANGED', A, B]
-	:	never;
+type TDiffType<T, U> =
+	TEquals<T, U> extends true ? TNil | TDiffChanged<T,U>
+	: TUnkown<T | U> extends never ? TDiffChanged<T, U>
+	: TUnkown<T> extends never ? TDiffRemoved<T>
+	: TDiffAdd<U>;
+
+type TDiff<T, U> =
+	T | U extends TObject<T | U> ?
+		{
+			[K in TIterate<T | U>]: TDiff<T[K], U[K]>;
+		}
+	:	TDiffType<T, U>;
 
 export type {
 	TNonObject,
@@ -100,7 +96,9 @@ export type {
 	TPath,
 	TPathValue,
 	TEntriesReturn,
+	TDiffAdd,
+	TDiffRemoved,
+	TDiffChanged,
 	TDiffType,
-	TDiffValue,
 	TDiff,
 };

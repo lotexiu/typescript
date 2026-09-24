@@ -1,19 +1,16 @@
-import { Computed } from "../computed/model";
-import { Subscription } from "../subscription/model";
-import { model, Model } from "../model/model";
+import { signal } from '@ts/signal/model';
+import { TReadable, TSignal } from '@ts/signal/types';
 
 class Item<V> {
-	readonly value: Model<V>
+	readonly value: TSignal<V>;
 
 	constructor(
 		readonly id: string,
-		readonly label: Computed<string>,
+		readonly label: TReadable<string>,
 		initial: V
-	){
-		this.value = model(initial)
+	) {
+		this.value = signal(initial);
 	}
 }
 
-export {
-	Item
-}
+export { Item };

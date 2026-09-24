@@ -1,98 +1,94 @@
-import { Computed, computed } from "@ts/computed/model";
-import { Model, model } from "@ts/model/model";
-import Color, { ColorTypes } from "colorjs.io";
-import { ColorSpace } from "colorjs.io/fn";
-import { TONE_STOPS } from "./declarations";
-import { TToneStop, TToneStops } from "./types";
-import { read } from "fs";
+import { derived, signal } from '@ts/signal/model';
+import { TSignal } from '@ts/signal/types';
+import Color, { ColorTypes } from 'colorjs.io';
+import { ColorSpace } from 'colorjs.io/fn';
+import { TONE_STOPS } from './declarations';
+import { TToneStop, TToneStops } from './types';
 
 abstract class Palette {
-	protected readonly tones: Map<TToneStop, Color> = new Map()
-	readonly name: Model<string>
+	readonly name: TSignal<string>;
 
-	constructor(name: string){
-		this.name = model(name)
-	}
-	
-	abstract get(toneStop: TToneStop): Color
-
-	rangeTo(toneStop: TToneStop, space: string|ColorSpace = 'srgb') {
-		return this.get(toneStop).toGamut({space}).to(space)
+	constructor(name: string) {
+		this.name = signal(name);
 	}
 
-	opposite(value: TToneStop|Color): TToneStop {
-		const toneStop = value instanceof Color ? this.lightness(value) : value
-		const target = 100 - toneStop
-		return TONE_STOPS.reduce<TToneStop>((closest, stop) =>
-			Math.abs(stop - target) < Math.abs(closest - target) ? stop : closest,
+	abstract get(toneStop: TToneStop): Color;
+
+	rangeTo(toneStop: TToneStop, space: string | ColorSpace = 'srgb') {
+		return this.get(toneStop).toGamut({ space }).to(space);
+	}
+
+	opposite(value: TToneStop | Color): TToneStop {
+		const toneStop = value instanceof Color ? this.lightness(value) : value;
+		const target = 100 - toneStop;
+		return TONE_STOPS.reduce<TToneStop>(
+			(closest, stop) => (Math.abs(stop - target) < Math.abs(closest - target) ? stop : closest),
 			TONE_STOPS[0]
-		)
+		);
 	}
 
 	chroma(value: Color): TToneStop {
-		const target = value.to("oklch").coords[1] ?? 0
-		return this.#closestToneStop((toneStop) => this.get(toneStop).to("oklch").coords[1] ?? 0, target)
+		const target = value.to('oklch').coords[1] ?? 0;
+		return this.#closestToneStop((toneStop) => this.get(toneStop).to('oklch').coords[1] ?? 0, target);
 	}
 
 	lightness(value: Color): TToneStop {
-		const target = value.to("oklch").coords[0] ?? 0
-		return this.#closestToneStop((toneStop) => this.get(toneStop).to("oklch").coords[0] ?? 0, target)
+		const target = value.to('oklch').coords[0] ?? 0;
+		return this.#closestToneStop((toneStop) => this.get(toneStop).to('oklch').coords[0] ?? 0, target);
 	}
 
 	#closestToneStop(extract: (toneStop: TToneStop) => number, target: number): TToneStop {
-		return TONE_STOPS.reduce<TToneStop>((closest, stop) =>
-			Math.abs(extract(stop) - target) < Math.abs(extract(closest) - target) ? stop : closest,
+		return TONE_STOPS.reduce<TToneStop>(
+			(closest, stop) => (Math.abs(extract(stop) - target) < Math.abs(extract(closest) - target) ? stop : closest),
 			TONE_STOPS[0]
-		)
+		);
 	}
 }
 
 class CustomPalette extends Palette {
+	readonly #tones = new Map<TToneStop, Color>();
+
 	constructor(
 		name: string,
 		public readonly seedTones: Record<number, string>
-	) {super(name)}
+	) {
+		super(name);
+	}
 
-	get(toneStop: TToneStop) {
-		if (!this.tones.has(toneStop)) {
-			this.tones.set(toneStop, new Color(this.seedTones[toneStop]))
+	get(toneStop: TToneStop): Color {
+		let tone = this.#tones.get(toneStop);
+		if (tone === undefined) {
+			tone = new Color(this.seedTones[toneStop]);
+			this.#tones.set(toneStop, tone);
 		}
-		return this.tones.get(toneStop)!
+		return tone;
 	}
 }
 
 class TonalPalette<T extends ColorTypes = string> extends Palette {
-	readonly seed: Model<T>
-	protected readonly seedOklch: Computed<Color>
-	protected changed: boolean = true
-	
-	constructor(
-		seed: T,
-		name: string,
-	){
-		super(name)
-		this.seed = model(seed)
-		this.seedOklch = computed(()=> {
-			this.changed = true
-			return new Color(this.seed.value).to("oklch")
-		}, [this.seed])
+	readonly seed: TSignal<T>;
+	// Refeito quando a semente muda: a semente em oklch + um cache vazio, preenchido tom a tom sob demanda.
+	// Ler `get()` dentro de um derived registra a paleta como dependência (troca de semente o recalcula).
+	readonly #tones = derived(() => ({
+		seedOklch: new Color(this.seed()).to('oklch'),
+		cache: new Map<TToneStop, Color>(),
+	}));
+
+	constructor(seed: T, name: string) {
+		super(name);
+		this.seed = signal(seed);
 	}
-	
-	get(toneStop: TToneStops[number]) {
-		if (this.changed || !this.tones.has(toneStop)) {
-			this.tones.clear()
-			const lightness = toneStop / 100
-			const chroma = this.seedOklch.value.coords[1]
-			const hue = this.seedOklch.value.coords[2]
-			this.tones.set(toneStop, new Color("oklch", [lightness, chroma, hue]))
-			this.changed = false
+
+	get(toneStop: TToneStops[number]): Color {
+		const { seedOklch, cache } = this.#tones();
+		let tone = cache.get(toneStop);
+		if (tone === undefined) {
+			const [, chroma, hue] = seedOklch.coords;
+			tone = new Color('oklch', [toneStop / 100, chroma, hue]);
+			cache.set(toneStop, tone);
 		}
-		return this.tones.get(toneStop)!
+		return tone;
 	}
 }
 
-export {
-	Palette,
-	CustomPalette,
-	TonalPalette
-}
+export { Palette, CustomPalette, TonalPalette };

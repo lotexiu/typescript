@@ -1,12 +1,9 @@
-import { Computed } from "@ts/computed/model";
-import { Model } from "@ts/model/model";
-import Color from "colorjs.io";
+import { TReadable } from '@ts/signal/types';
+import Color from 'colorjs.io';
 
 type SlotColor = {
-	readonly id: string,
-	readonly value: Model<Color>|Computed<Color>
-}
+	readonly id: string;
+	readonly value: TReadable<Color>;
+};
 
-export {
-	SlotColor
-}
+export { SlotColor };

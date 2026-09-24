@@ -1,28 +1,27 @@
-import { TValueListener, TValueUnsubscribe } from "./types";
+import { TListeners, TValueListener, TValueUnsubscribe } from './types';
+import { ListenerUtils } from './utils';
 
-abstract class Subscription<T> {
-	#listeners = new Set<TValueListener<T>>();
-
-	protected notifies(value: T) {
-		this.#listeners.forEach((listener) => listener(value));
-	}
+// Emissor de eventos sem valor guardado — para estado (valor atual + derivados), usar `signal`.
+class Subscription<T = void> {
+	#listeners: TListeners<T> = undefined;
 
 	subscribe(listener: TValueListener<T>): TValueUnsubscribe {
-		this.#listeners.add(listener);
-		return () => { this.#listeners.delete(listener); };
+		this.#listeners = ListenerUtils.add(this.#listeners, listener);
+		let active = true;
+		return () => {
+			if (!active) return;
+			active = false;
+			this.#listeners = ListenerUtils.remove(this.#listeners, listener);
+		};
 	}
 
-	protected dispose(): void {
-		this.#listeners.clear();
+	notify(value: T): void {
+		ListenerUtils.call(this.#listeners, value);
+	}
+
+	dispose(): void {
+		this.#listeners = undefined;
 	}
 }
 
-class SubscriptionController<T> extends Subscription<T> {
-	notifies(value: T): void {super.notifies(value)}
-	dispose(): void {super.dispose()}
-}
-
-export {
-	Subscription,
-	SubscriptionController
-}
+export { Subscription };

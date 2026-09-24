@@ -1,4 +1,3 @@
-import type { TSameType, TUnkown } from "@ts/types";
 import { TPath, TPathValue } from "@tsn-object/types";
 
 /** Thin alias over the built-in `Array<T>`. */
@@ -6,6 +5,11 @@ type TArray<T = any> = Array<T>;
 
 /** Thin alias over the built-in `ArrayLike<T>`. */
 type TArrayLike<T> = ArrayLike<T>;
+
+type Tuple<T> = readonly T[]
+
+/** A 2-tuple `[T, T2]`. */
+type TPair<T = any, T2 = any> = [T, T2]; 
 
 /** The union of every element type in a tuple/array `T`. */
 type TExtractValues<T extends readonly any[]> = T[number];
@@ -28,15 +32,6 @@ type TArrayRest<
 	B extends any[]
 > = A extends [...B, ...infer Rest] ? Rest : never;
 
-type TArrayOf<Args extends any[] = never, InfType = never> =
-	TSameType<Args|InfType,never> extends true 
-		? [] 
-		: Args extends never ? [...InfType[]]
-		: [...(Args), ...(InfType|undefined)[]] 
-	
-/** A 2-tuple `[T, T2]`. */
-type TPair<T = any, T2 = any> = [T, T2];
-
 /** `T` itself if it's already an array type, otherwise `never`. */
 type TAsArray<T> = T extends any[] ? T : never;
 
@@ -51,11 +46,11 @@ type TMap<List extends any[], Path extends TPath<List[number]>> = [...{
 export type {
 	TArray,
 	TArrayLike,
+	Tuple,
+	TPair,
 	TExtractValues,
 	TArrayType,
 	TValueOf,
-	TArrayOf,
-	TPair,
 	TAsArray,
 	TReverseArray,
 	TArrayRest,

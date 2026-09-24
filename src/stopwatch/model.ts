@@ -1,20 +1,20 @@
-import { computed } from '@ts/computed/model';
 import { LocaleError } from '@ts/locale/error';
-import { model } from '@ts/model/model';
-import { STOP_WATCH_LOCALES } from '@ts/subscription/locale';
+import { derived, signal } from '@ts/signal/model';
+import { STOP_WATCH_LOCALES } from './locale';
 
 class StopWatch {
 	#startTime: number = NaN;
-	readonly laps = model<number[]>([]);
-	readonly totalLaps = model(NaN);
+	// Mutado no lugar + `notify()` a cada volta.
+	readonly laps = signal<number[]>([]);
+	readonly totalLaps = signal(NaN);
 
-	readonly duration = computed(() => this.laps.value.reduce((a, b) => a + b, 0), [this.laps]);
-	readonly avarage = computed(() => this.duration.value / this.laps.value.length, [this.duration]);
-	readonly estimated = computed(
-		() => this.avarage.value * (this.totalLaps.value - this.laps.value.length),
-		[this.avarage, this.totalLaps]
-	);
-	readonly currentLap = computed(() => this.laps.value[this.laps.value.length - 1], [this.laps]);
+	readonly duration = derived(() => this.laps().reduce((a, b) => a + b, 0));
+	readonly avarage = derived(() => this.duration() / this.laps().length);
+	readonly estimated = derived(() => this.avarage() * (this.totalLaps() - this.laps().length));
+	readonly currentLap = derived(() => {
+		const laps = this.laps();
+		return laps[laps.length - 1];
+	});
 
 	start() {
 		this.laps.set([]);
@@ -23,8 +23,8 @@ class StopWatch {
 
 	lap() {
 		if (Number.isNaN(this.#startTime)) throw new LocaleError(STOP_WATCH_LOCALES, 'notStarted');
-		this.laps.value.push(this.current());
-		this.laps.notifies(this.laps.value);
+		this.laps().push(this.current());
+		this.laps.notify();
 		this.#startTime = performance.now();
 	}
 

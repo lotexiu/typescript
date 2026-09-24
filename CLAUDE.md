@@ -34,13 +34,12 @@ Estado registrado nesta revisão (2026-08-25, branch `clean-code`, commits `temp
 
 ```
 src/
-  computed/           — valores derivados lazy com dependências reativas
   filters/            — debounce, throttle, step, once
   global/             — extensões de prototype nativas (_Global.register)
-  item/               — Item<V> extends Subscription — item reativo genérico (id, label computado, value)
+  field/              — field/readField — derived sobre parte de um signal (field também escreve de volta)
+  item/               — Item<V> — item reativo genérico (id, label: TReadable, value: TSignal)
   mask/               — Mask — formatação/validação por máscara (classe totalmente static)
     token/            — TMaskToken / TMaskRuleToken — tokens compilados de um pattern
-  model/              — primitivo reativo base (Model<T>)
   natives/
     array/            — ArrayUtils
     class/            — instanceOf/ClassUtils + Timeout (construtor NodeJS.Timeout recuperado)
@@ -52,21 +51,22 @@ src/
     regex/            — REGEX_PATTERNS, _Regex (escapeReservedKeys, hasAstralChar)
     string/           — _String, utilitários de string
   parser/             — parser de escopos genérico configurável
+  signal/             — núcleo reativo: signal/derived (fachada) + ReactiveNode (@internal, o grafo)
   state/
-    keyboard/         — KeyboardState (extends Subscription direto, sem base intermediária)
+    keyboard/         — KeyboardState (signal de Set mutado no lugar + notify)
     mouse/            — MouseState<Buttons> (idem — capture-manager foi removido/inlined)
   stopwatch/          — medição de tempo/performance
-  subscription/       — Subscription<T> / SubscriptionController<T> (base de notificação)
-  theme/              — Theme (mode + style, dois Model<T> simples)
-    palette/          — Palette / CustomPalette / TonalPalette (reativo via Model/Computed + colorjs.io)
+  subscription/       — Subscription<T> (emissor sem valor) + ListenerUtils (@internal, armazenamento de listeners)
+  theme/              — Theme (mode + style, dois signals simples)
+    palette/          — Palette / CustomPalette / TonalPalette (cache de tons = derived da seed) + presets.ts (PALETTES)
     style/            — ThemeStyle, SlotColor
-  value-history/      — ValueHistory<T> (undo/redo, construído sobre Model/Computed)
+  value-history/      — ValueHistory<T> (undo/redo, construído sobre signal/derived)
   variant/            — Variant<K,V> — chave → valor derivado (chave muda → recomputa)
   declarations.ts     — monkey-patch de prototypes nativos (@required, não exporta)
 
-.old-mask/            — implementação anterior do Mask (incl. MaskUtils.caretPositionAfterFormat), arquivada.
-                        Dot-prefixed → fora de `tsconfig.json` include e não referenciada por index.ts.
-                        Mantida como referência durante a reescrita do mask, não wired em lugar nenhum.
+.old/                 — (na raiz do pacote, não em src/) Model/Computed/Subscription antigos, arquivados em
+                        2026-09-24 na troca pelo núcleo signal/derived. Fora de `src/` porque o tsconfig inclui
+                        `src/.*/**/*` (pastas com ponto dentro de src/ SÃO type-checked). Só referência.
 ```
 
 ---
@@ -122,7 +122,7 @@ Sempre importar via alias ao cruzar boundaries de `src/natives/<x>/`. Dentro de 
 
 **Atualização 2026-08-27 — o split `_Foo` + `FooUtils` está sendo aposentado para módulos novos.** O autor considera `_Foo` redundante: um único `utils.ts` com `class FooUtils { static ... }` (statics diretos, chamadas entre irmãos sempre via `FooUtils.x` nunca `this`, superfície controlada por `@internal`/JSDoc) substitui `implementations.ts` + `utils.ts`. Free functions exportadas soltas também saem — vira tudo static da classe, um único export. Primeiro exemplo: `src/language/utils.ts` (`LanguageUtils`) — o exemplo original, `src/ast/grammar/utils.ts` (`GrammarUtils`), foi removido em 2026-09-14 junto com o motor antigo (`src/ast/grammar/` + `src/lexer/`, superados por `src/language/`). Módulos antigos com `implementations.ts` separado são drift pré-existente, não migrar especulativamente. (O basename fica `utils` no plural — cogitou-se `util` singular e desistiu-se.)
 
-**Caso cinzento a observar: `Mask`.** Depois da reescrita em `mask/model.ts`, `Mask` é totalmente static (sem `new Mask()`, cache + `Model<Map>` de regras como estado de classe) mas não segue nem `_Foo`/`FooUtils` nem o padrão de instanciável-com-estado — é exportada direto como `Mask` (igual `model.ts`/`declarations.ts` da tabela acima: "singleton"). Não é necessariamente um erro, mas é uma terceira forma que a regra atual não cobre explicitamente — vale perguntar ao autor se isso deveria virar uma terceira categoria nomeada, em vez de inventar por conta própria.
+**Caso cinzento a observar: `Mask`.** Depois da reescrita em `mask/model.ts`, `Mask` é totalmente static (sem `new Mask()`, cache + `signal<Map>` de regras como estado de classe) mas não segue nem `_Foo`/`FooUtils` nem o padrão de instanciável-com-estado — é exportada direto como `Mask` (igual `model.ts`/`declarations.ts` da tabela acima: "singleton"). Não é necessariamente um erro, mas é uma terceira forma que a regra atual não cobre explicitamente — vale perguntar ao autor se isso deveria virar uma terceira categoria nomeada, em vez de inventar por conta própria.
 
 **O projeto está em migração:** classes `_Foo` que ainda são object literals estão sendo convertidas para `class _Foo { static ... }`. Ao encontrar um `_Foo` que ainda é object literal, é essa migração em andamento, não uma convenção diferente.
 
@@ -139,41 +139,52 @@ Sempre importar via alias ao cruzar boundaries de `src/natives/<x>/`. Dentro de 
 
 ## Módulos reativos
 
-### `Subscription<T>`
-Base de notificação. `Set<listener>` — deduplicação automática, remoção O(1). `notifies`/`dispose` são `protected` na base — só a própria subclasse chama (ex.: `KeyboardState`/`MouseState`/`Item` chamam `this.notifies(this)` internamente, sem expor notify externamente).
+Reescritos em 2026-09-24 (branch `clean-code`): `Model`/`Computed`/`SubscriptionController` saíram (cópias em `.old/`), tudo passou a ser construído sobre `src/signal/`. Modelo push-pull com versões, o mesmo do Angular (`@angular/core/primitives/signals`), com diferenças medidas — ver "Decisões de performance do núcleo reativo" abaixo.
 
-### `SubscriptionController<T> extends Subscription<T>`
-Mesma coisa que `Subscription<T>`, mas reexpõe `notifies`/`dispose` como `public` — para quando o consumidor quer um pub/sub genérico standalone (sem os campos de valor do `Model`) e precisa notificar de fora.
+### `signal(initial, equal?)` / `derived(compute, equal?)` — `src/signal/model.ts`
+- **Instância é uma função**: `s()` lê. Não existe `.value` (decisão do autor: uma forma só). Métodos são propriedades da função: signal tem `set`/`update`/`notify`/`subscribe`/`dispose`; derived tem `subscribe`/`dispose`. Tipos: `TSignal<T>`, `TDerived<T>`, `TReadable<T>` (o que os dois têm em comum) em `src/signal/types.ts`.
+- **Dependências automáticas**: ler um signal/derived dentro do `compute` de um derived registra a dependência (`activeConsumer`). Não existe mais lista manual de dependências (`Computed.setDependencies`, parâmetro `dependencies` de `field`) — quem precisava ler algo só para registrar dependência lê explicitamente (ex.: `Parser._root` lê `configVersion()`).
+- **`derived.subscribe(fn)`** recebe o **valor** e só é chamado quando ele **muda de fato** (recalcula na hora para comparar). Diferente do `Computed` antigo, que avisava a cada mudança de dependência, mesmo sem mudar o valor, passando a si mesmo. Listeners rodam depois que a propagação termina (ou no fim do `Signal.batch` mais externo); um listener com erro não impede os outros.
+- **Escrever (`set`/`update`/`notify`) durante o `compute` de um derived lança erro** (`SIGNAL_LOCALES.writeInDerived`), como o Angular. Efeito colateral vai em `subscribe`. Escape: `Signal.untracked(() => s.set(x))`.
+- `Signal.batch(fn)`, `Signal.untracked(fn)` (ou `Signal.untracked(s)` direto), `x instanceof Signal`/`Derived`.
+- Métodos da fachada usam `this` (como métodos de classe) — `const { set } = s` não funciona. `field` usa closures de propósito (extraível).
 
-### `Model<T> extends Subscription<T>`
-Menor primitivo reativo. Usa `Object.is` (cobre `NaN === NaN`, `-0 !== 0`).
-- `set(next)` — substitui e notifica se diferente
-- `silentSet`/`silentUpdate` — muda sem notificar
-- `notifies(value)` — público intencionalmente: permite mutar in-place e notificar manualmente (ver "filosofia de performance reativa" abaixo)
+### `Subscription<T>` — `src/subscription/model.ts`
+Emissor de eventos **sem valor guardado** (`subscribe`/`notify`/`dispose`, tudo público). Para estado, usar `signal`. Listeners guardados por `ListenerUtils` (sem `Set`: `undefined` / a função / array copy-on-write) — o mesmo armazenamento do `ReactiveNode`.
 
-### `Computed<T> extends Subscription<Computed<T>>`
-Valor derivado lazy — só recomputa quando dependência muda **e** alguém acessa `.value`.
-- `prevValue` — valor antes da última recomputação
-- `dispose()` — cancela todas as assinaturas de dependências
+### `field(source, get, set)` / `readField(source, get)`
+Derived sobre parte de um signal; `field` escreve de volta mutando a fonte no lugar + `source.notify()`.
 
 ### `Variant<K,V>`
-Composição de `Model<K>` + `Computed<V>`. Chave muda → valor derivado recomputa.
+Classe: `key()`/`value()` (leituras reativas), `set(key)`, `prevKey`/`prevValue` (não reativos), `subscribe(fn)` (valor). `prevValue` saiu do núcleo e vive só aqui.
 
-`ValueCell<T>` e `VariantCell<TName, TValue>` **não existem mais** — removidos junto com o sistema de plugins (`html/plugins/`) que era o único consumidor de `ValueCell`; `VariantCell` (o padrão "nome ativo + valor derivado cacheado, dois eixos independentes") não tem substituto direto hoje — `Theme` (`src/theme/model.ts`) usa dois `Model<T>` simples (`mode`, `style`) em vez disso. Se o padrão de dois eixos independentes for necessário de novo, ele precisa ser reconstruído, não presumido presente.
+### `ReadonlyValue<T>` — mantido como classe com `.value`
+Não é reativo (calcula uma vez e guarda). Medido em 2026-09-24: a classe (104 bytes) é **menor e mais rápida** que uma closure equivalente (168 bytes, leitura 2x mais lenta — closure com variável mutável aloca um objeto de contexto extra). Não trocar por closure.
+
+`ValueCell<T>` e `VariantCell<TName, TValue>` **não existem mais** — removidos junto com o sistema de plugins (`html/plugins/`) que era o único consumidor de `ValueCell`; `VariantCell` (o padrão "nome ativo + valor derivado cacheado, dois eixos independentes") não tem substituto direto hoje — `Theme` (`src/theme/model.ts`) usa dois signals simples (`mode`, `style`) em vez disso. Se o padrão de dois eixos independentes for necessário de novo, ele precisa ser reconstruído, não presumido presente.
+
+### Decisões de performance do núcleo reativo (medidas em 2026-09-24, não refazer sem motivo novo)
+- **Fachada = closure `() => node.read()` + métodos como propriedades próprias.** Testado contra: classe com `Object.setPrototypeOf` numa função (~10x mais caro de criar), `.value` como getter via `defineProperty` (mesmo custo), `bind` com prototype herdado (3x mais lento de criar, leitura 4.7x mais lenta) e `bind` puro sem métodos, estilo alien-signals (cria 2.5x mais rápido, mas **leitura 2.7x mais lenta** — leitura é o caminho quente, criação acontece uma vez).
+- **Grafo em `ReactiveNode`, uma classe só para fonte e derivado** (formato único → acessos monomórficos). Estado de objeto-função é ~1.7x mais lento de escrever que de instância comum, por isso nada do grafo fica na fachada.
+- **Booleanos do nó = bits em `#flags`** (`NODE_FLAGS` em `signal/declarations.ts`).
+- **Dedup de leitura repetida** (`a() + b() + a()` cria 2 links, não 3) via `#runId`/`#trackedInRun`: −35% de memória nesse caso, ~5% mais lento numa cadeia não viva (a checagem roda em toda leitura rastreada).
+- **Juntar `#recompute` dentro de `#refresh` para economizar quadro de pilha não aumentou a profundidade máxima** (5500 nos dois casos — o quadro que sobra fica maior). Por isso ficaram separados.
+- **Profundidade:** a 1ª leitura de uma cadeia não viva recursa um nível de pilha por derived (limite ~5500 no Node). Inerente a qualquer modelo pull preguiçoso (Angular tem o mesmo) — o cálculo de um nível chama o anterior. A propagação (push) é iterativa e não tem esse limite.
+- Benchmarks, fuzz com oráculo e casos de borda usados nessa rodada ficaram em `.tmp/` (fora do git, pode ter sido apagado).
 
 ---
 
 ## Filosofia de performance reativa — mutar in-place, notificar manualmente
 
-Esta lib **não é obrigada a reproduzir a convenção de update imutável do React/Angular**. `notifies()` é público especificamente para que um consumidor possa mutar o objeto que um `Model` já guarda in-place e chamar `.notifies(value)` diretamente, sem clonar para um novo objeto só para passar no `Object.is` do `set()`.
+Esta lib **não é obrigada a reproduzir a convenção de update imutável do React/Angular**. `signal.notify()` existe especificamente para que um consumidor possa mutar o objeto que um signal já guarda in-place e avisar diretamente, sem clonar para um novo objeto só para passar no `Object.is` do `set()`.
 
 ```ts
 // preferir:
-this.buttons.value[button] = true
-this.buttons.notifies(this.buttons.value)
+this.buttons().add(button)
+this.buttons.notify()
 
 // evitar (aloca objeto novo em cada chamada sem benefício):
-this.buttons.set({ ...this.buttons.value, [button]: true })
+this.buttons.set(new Set([...this.buttons(), button]))
 ```
 
 **Exceção real:** ao bridgear para algo que gatea re-renders em identidade de referência (ex: `useSyncExternalStore` do React), produzir referência nova **naquele boundary específico**, não mudando como a lib atualiza seu estado interno.
@@ -244,7 +255,7 @@ Alternativas: `||` (ex: `(00) 00000-0000||(00) 0000-0000`)
 ### API atual — `Mask` é uma classe totalmente static (sem `new Mask()`)
 `Mask.apply(value, mask)`, `Mask.unapply(value, mask)`, `Mask.valid(value, mask)` — todos static, chamados direto na classe. Não existe `MaskUtils` no módulo ativo hoje (ver nota sobre `.old-mask/` abaixo).
 
-Gerenciamento de regras (também static): `Mask.setRule(key, rule)` (substitui o antigo `setToken`), `Mask.resetRulesToDefault()`, `Mask.clearRules()`. `Mask.rules` é um `Computed` com os valores registrados (array), `Mask.ruleKeys` um `Computed` com as chaves — ambos recomputam quando o `Model<Map>` interno de regras muda; mudar regras invalida o cache de patterns compilados automaticamente (`Mask._rules.subscribe(() => Mask.cache.clear())`).
+Gerenciamento de regras (também static): `Mask.setRule(key, rule)` (substitui o antigo `setToken`), `Mask.resetRulesToDefault()`, `Mask.clearRules()`. `Mask.rules` é um `derived` com os valores registrados (array), `Mask.ruleKeys` um `derived` com as chaves — ambos recomputam quando o `signal<Map>` interno de regras muda; mudar regras invalida o cache de patterns compilados automaticamente (`Mask._rules.subscribe(() => Mask.cache.clear())`).
 
 ### Tokens compilados (`src/mask/token/`)
 Um pattern (`mask.split('||')`) compila para uma lista de `TMaskToken` (literal) / `TMaskRuleToken` (regra, com `min`/`max`/`test: RegExp` pré-compilado) — classes reais em `token/model.ts`, não mais a union discriminada `{type: 'mask'|'rule', ...}` de antes. Distinguir com `instanceof`, não `.type`. `TMaskCompiledPattern` guarda `tokens` (ambos) e `ruleTokens` (só as regras, pré-filtrado, usado por `unapply`).
@@ -274,9 +285,9 @@ Parser genérico e configurável. **Não** é um parser de linguagem específica
 
 ### Refatoração planejada
 Ver `PROMPT-parser-refactor.md` para o prompt completo. Resumo:
-- `_changed`/`_processed` manual → `Model<string>` + `Computed<ParserRoot>`
-- `ParserRoot.text: Model<string>` como fonte única da verdade (flyweight)
-- `ParserNode.content` e `ParserGap.text` — extraídos lazy via `Computed`
+- `_changed`/`_processed` manual → `signal<string>` + `derived<ParserRoot>` (**feito** em 2026-09-24: `text` é signal, `root` é derived)
+- `ParserRoot.text: signal<string>` como fonte única da verdade (flyweight)
+- `ParserNode.content` e `ParserGap.text` — extraídos lazy (hoje via `ReadonlyValue`)
 - Adicionar `ParserGap` para intervalos entre nós
 - `children` (typo `childrens` corrigido), `unclosed: boolean` explícito
 - `closeOf` — remover (nunca lido)
@@ -362,9 +373,9 @@ Existiu um `Proxy` reativo (`proxyHandler`/`deleteProxy`, com callbacks `onChang
 ## Temas e paletas de cor
 
 - **`colorjs.io`** — única dependência de runtime (confirmado em `package.json`, `^0.6.1`). Justificada pela complexidade real: conversões entre espaços de cor (`oklch`, `lab`, `display-p3`), gamut mapping, variation selectors, formatos múltiplos. Mantida por Lea Verou (W3C CSS WG). Isolar atrás de adapter se possível
-- **`src/theme/palette/`** — não é mais uma função `buildTonalPalette`. Hoje é uma classe abstrata `Palette` com subclasses `CustomPalette` (mapa de tons a partir de uma seed) e `TonalPalette<T>` — a derivação de tom é reativa de verdade (`seed: Model<T>` + `seedOklch: Computed<Color>`), não um rebuild imperativo. Constantes `TONE_STOPS`/`PALETTES` em `constants.ts`
-- **`src/theme/style/`** — `ThemeStyle<N,S,C>` (nome + `slotColors: Record<string, Palette>` + `components`) e o tipo `SlotColor = {id, value: Model<Color>|Computed<Color>}`. Isso já parece o começo de uma camada de papel semântico (slot → cor reativa) — verificar o uso real antes de assumir escopo ou nomenclatura, não é o vocabulário Material 3 antigo que foi removido de propósito
-- **`themeManager`** (`html/managers/theme/` — light/dark detect + persist + live system-preference tracking) **não existe mais** — removido junto com `html/`. `Theme` hoje (`src/theme/model.ts`) é só `{ mode: Model<TThemeMode>, style: Model<ThemeStyle> }`, sem detecção de SO/persistência embutida
+- **`src/theme/palette/`** — não é mais uma função `buildTonalPalette`. Hoje é uma classe abstrata `Palette` com subclasses `CustomPalette` (mapa de tons a partir de uma seed) e `TonalPalette<T>` — a derivação de tom é reativa de verdade (`seed: TSignal<T>` + cache de tons como `derived` da seed — ler `palette.get(tom)` dentro de um derived registra a dependência), não um rebuild imperativo. `TONE_STOPS` em `declarations.ts`; `PALETTES` (instâncias prontas) em `presets.ts` — separados em 2026-09-24 porque `declarations.ts` importava `model.ts` e vice-versa (import circular que quebrava quando `model.ts` carregava primeiro)
+- **`src/theme/style/`** — `ThemeStyle<N,S,C>` (nome + `slotColors: Record<string, Palette>` + `components`) e o tipo `SlotColor = {id, value: TReadable<Color>}`. Isso já parece o começo de uma camada de papel semântico (slot → cor reativa) — verificar o uso real antes de assumir escopo ou nomenclatura, não é o vocabulário Material 3 antigo que foi removido de propósito
+- **`themeManager`** (`html/managers/theme/` — light/dark detect + persist + live system-preference tracking) **não existe mais** — removido junto com `html/`. `Theme` hoje (`src/theme/model.ts`) é só `{ mode: TSignal<TThemeMode>, style: TSignal<ThemeStyle> }`, sem detecção de SO/persistência embutida
 - **`VariantCell` para style/theme como dois eixos independentes não existe mais** — ver nota em "Módulos reativos"
 
 ---
@@ -390,7 +401,7 @@ Existiu um `Proxy` reativo (`proxyHandler`/`deleteProxy`, com callbacks `onChang
 ```
 Auditoria dos módulos existentes (unicode, surrogate pairs)
         ↓
-Refatoração do Parser (estrutura + reatividade via Model/Computed)
+Refatoração do Parser (estrutura + reatividade via signal/derived)
         ↓
 Lexer genérico (em cima do Parser)
         ↓
@@ -445,6 +456,7 @@ densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` 
 - **Não usar o compiler API do TypeScript** para análise de código nos scripts — agora é regra limpa: `scripts/analyzer/` e todo `scripts/tools/` que dependiam de `ts.Program` foram removidos (2026-08). O que sobrou (`scripts/doc/`) roda sobre `src/language` (`TypescriptLang`). Não reintroduzir `import ts from "typescript"` em script novo — se o AST próprio não dá conta, é sinal pra estender o AST, não pra voltar ao compiler API
 - **Não copiar strings desnecessariamente** — padrão flyweight: guardar índices, extrair lazy
 - **Não adicionar dependências de runtime** sem justificativa clara
+- **Não escrever em signal dentro do `compute` de um derived** — lança erro de propósito (lazy = o efeito dependeria de quando alguém lê; o derived se dá por atualizado com valor inconsistente; listeners rodariam no meio do cálculo). Efeito colateral vai em `subscribe`
 - **Não ressuscitar especulativamente** código removido intencionalmente (`isEmptyObj`, `ValidationPlugin`, etc.) — só se surgir necessidade concreta. E mesmo com necessidade concreta: checar primeiro se foi remoção definitiva ou "vai ser refeito diferente" (ver "⚠️ Este arquivo pode estar desatualizado" no topo) — trazer de volta na forma antiga quando o autor já queria uma forma nova é tão errado quanto ressuscitar sem necessidade nenhuma
 - **Não adicionar JSDoc proativamente** sem uma estratégia definida
 - **Não manter estado eager em field initializer/constructor** em managers que rodam sob Node em testes — manter lazy no primeiro acesso (`matchMedia`, `localStorage`, `document`)
@@ -468,6 +480,10 @@ densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` 
 | 2026-08-23 | `process.cwd()` em module scope em `ts-ast/model.ts` | Crash em qualquer browser (ReferenceError) |
 | 2026-08-25 | `_String.capitalize` usava `charAt(0)`/`toUpperCase()` direto | Quebrava quando o primeiro char era um surrogate pair (astral) — corrigido para `codePointAt`/`String.fromCodePoint` |
 | 2026-08-25 | `_String.charCodeArray` retornava `.toString(16)` (hex) | Nome do método promete code unit numérico; consumidor que esperava número quebrava. Corrigido para retornar o `charCodeAt` puro |
+| 2026-09-24 | `TonalPalette.get` só limpava o cache ao pedir um tom novo | Depois de trocar a `seed`, tons já pedidos voltavam com a cor antiga — cache virou `derived` da seed |
+| 2026-09-24 | `Time.calendarDays`: `for (i < 42 - calendarDays.length)` reavaliado enquanto o array crescia | Grade do calendário com menos de 42 células — virou `CALENDAR_CELLS` calculado uma vez |
+| 2026-09-24 | `Time.getTime`/`toString`/... eram `bind` na data inicial | Com `new Time(data)`, devolviam a data padrão (agora) em vez da passada — viraram métodos que leem a data atual |
+| 2026-09-24 | `import { read } from "fs"` sem uso em `theme/palette/model.ts` | Módulo Node-only numa lib que roda em browser — removido |
 | 2026-09-14 | Regra de `G` (`src/language/grammar.ts`) escrita como `choice(node(seq(field(x, NIVEL_BAIXO), resto...)), NIVEL_BAIXO)` | `NIVEL_BAIXO` é computado 2x quando o padrão composto falha (1x tentando, 1x de novo no fallback) — sem problema isolado, mas se `NIVEL_BAIXO` for alcançável recursivamente através de si mesmo (típico em cadeia de precedência de expressão/tipo — parêntese, argumento de chamada, generic), a duplicação composta multiplicativamente a cada nível de aninhamento. Achado construindo `TypescriptLang`: `ConditionalExpr`/`AssignmentExpr`/`ConditionalType`/`ExponentExpr`/`UnaryExpr` tinham esse padrão: parsing de arquivo de ~250 linhas foi de timeout/OOM pra <50ms depois de reescrever essas 5 regras pra computar o nível-base 1x (`const x = NIVEL_BAIXO(ctx,pos); if (!x.ok) return x; ...`) e ramificar manualmente em vez de usar `choice`. Regra geral pra qualquer regra nova nesse estilo: nunca `choice(um-padrão-que-já-consome-X, X)` — sempre computar `X` uma vez só e ramificar a partir do resultado. |
 
 ---

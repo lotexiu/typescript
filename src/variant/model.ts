@@ -1,36 +1,60 @@
-import { Computed, computed } from "../computed/model";
-import { Subscription } from "../subscription/model";
-import { model, Model } from "../model/model";
-import { TVariantDerive } from "./types";
+import { derived, signal } from '@ts/signal/model';
+import { TDerived, TSignal } from '@ts/signal/types';
+import { TValueListener, TValueUnsubscribe } from '@ts/subscription/types';
+import { TVariantDerive } from './types';
 
-class Variant<K, V> extends Subscription<Variant<K,V>> {
-	#prevKey?: K
-	readonly #key: Model<K>
-	readonly #value: Computed<V>
-	readonly #derive: TVariantDerive<K, V>
+// Chave ativa + valor derivado dela: trocar a chave recalcula o valor (sob demanda).
+class Variant<K, V> {
+	readonly #key: TSignal<K>;
+	readonly #value: TDerived<V>;
+	#prevKey?: K;
+	#prevValue?: V;
+	#lastValue?: V;
 
-	get key() {return this.#key.value}
-	get value() {return this.#value.value}
-
-	get prevKey() {return this.#prevKey}
-	get prevValue() {return this.#value.prevValue}
-
-	constructor(
-		derive: TVariantDerive<K, V>,
-		initial: K
-	) {
-		super()
-		this.#derive = derive
-		this.#key = model(initial)
-		this.#value = computed(() => this.#derive(this.#key.value), [this.#key])
+	constructor(derive: TVariantDerive<K, V>, initial: K) {
+		this.#key = signal(initial);
+		this.#value = derived(() => {
+			const next = derive(this.#key());
+			this.#prevValue = this.#lastValue;
+			this.#lastValue = next;
+			return next;
+		});
 	}
 
-	set(key: K) {
-		const prev = this.#key.value
-		if (this.#key.set(key)) {
-			this.#prevKey = prev;
-			this.notifies(this);
-		}
+	// Leituras reativas: dentro de um derived, viram dependência.
+	key(): K {
+		return this.#key();
+	}
+
+	value(): V {
+		return this.#value();
+	}
+
+	// Leituras pontuais (não reativas) do estado anterior.
+	get prevKey(): K | undefined {
+		return this.#prevKey;
+	}
+
+	get prevValue(): V | undefined {
+		this.#value();
+		return this.#prevValue;
+	}
+
+	set(key: K): boolean {
+		const previous = this.#key();
+		if (!this.#key.set(key)) return false;
+		this.#prevKey = previous;
+		return true;
+	}
+
+	// Chamado com o novo valor quando ele muda.
+	subscribe(listener: TValueListener<V>): TValueUnsubscribe {
+		return this.#value.subscribe(listener);
+	}
+
+	dispose(): void {
+		this.#value.dispose();
+		this.#key.dispose();
 	}
 }
 
@@ -38,7 +62,4 @@ function variant<K, V>(derive: TVariantDerive<K, V>, initial: K): Variant<K, V> 
 	return new Variant(derive, initial);
 }
 
-export {
-	Variant,
-	variant
-}
+export { Variant, variant };

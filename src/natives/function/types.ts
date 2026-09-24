@@ -1,4 +1,4 @@
-import { TArrayOf, TArrayRest } from '@tsn-array/types';
+import { TArrayRest } from '@tsn-array/types';
 
 type TFnType = 'constructor' | 'normal';
 

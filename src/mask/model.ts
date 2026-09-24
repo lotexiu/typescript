@@ -1,7 +1,6 @@
 import { REGEX_PATTERNS } from "@tsn/regex/declarations";
 import { TMaskRule } from "./types";
-import { model } from "@ts/model/model";
-import { computed } from "@ts/computed/model";
+import { derived, signal } from "@ts/signal/model";
 import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "./token/model";
 import { RegexUtils } from "@tsn/regex/utils";
 import { MaskCompiledPattern } from "./compiled-pattern/model";
@@ -12,13 +11,13 @@ class Mask {
 	static readonly #cache = new Map<string, MaskCompiledPattern>();
 	static readonly #patternCache = new Map<string, MaskCompiledPattern[]>();
 
-	static readonly #rules = model<Map<string, TMaskRule>>(new Map());
-	static readonly rules = computed(() => [...Mask.#rules.value.values()], [Mask.#rules]);
-	static readonly ruleKeys = computed(() => [...Mask.#rules.value.keys()], [Mask.#rules]);
-	static readonly ruleMatcher = computed(() => {
-		const keys = Mask.ruleKeys.value.map((key) => RegexUtils.escapeReservedKeys(key));
+	static readonly #rules = signal<Map<string, TMaskRule>>(new Map());
+	static readonly rules = derived(() => [...Mask.#rules().values()]);
+	static readonly ruleKeys = derived(() => [...Mask.#rules().keys()]);
+	static readonly ruleMatcher = derived(() => {
+		const keys = Mask.ruleKeys().map((key) => RegexUtils.escapeReservedKeys(key));
 		return new RegExp(`(${keys.join("|")})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, "g");
-	}, [Mask.ruleKeys]);
+	});
 
 	static {
 		Mask.resetRulesToDefault();
@@ -29,27 +28,28 @@ class Mask {
 	}
 
 	static resetRulesToDefault() {
-		Mask.#rules.value.clear();
-		Mask.#rules.value.set("0", { match: [DIGITS.BASIC] });
-		Mask.#rules.value.set("A", { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: "v" });
-		Mask.#rules.value.set("W", { match: [LETTERS.EXTENDED.ALL], flags: "v" });
-		Mask.#rules.value.set("U", { match: [LETTERS.EXTENDED.UPPERCASE], flags: "v" });
-		Mask.#rules.value.set("L", { match: [LETTERS.EXTENDED.LOWERCASE], flags: "v" });
-		Mask.#rules.value.set("S", { match: [SYMBOLS.ALL], flags: "v" });
-		Mask.#rules.value.set("C", { match: [SYMBOLS.CURRENCY], flags: "v" });
-		Mask.#rules.value.set("E", { match: [SYMBOLS.EMOJI], flags: "v" });
-		Mask.#rules.value.set("X", { match: ["."], flags: "v" });
-		Mask.#rules.notifies(Mask.#rules.value);
+		const rules = Mask.#rules();
+		rules.clear();
+		rules.set("0", { match: [DIGITS.BASIC] });
+		rules.set("A", { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: "v" });
+		rules.set("W", { match: [LETTERS.EXTENDED.ALL], flags: "v" });
+		rules.set("U", { match: [LETTERS.EXTENDED.UPPERCASE], flags: "v" });
+		rules.set("L", { match: [LETTERS.EXTENDED.LOWERCASE], flags: "v" });
+		rules.set("S", { match: [SYMBOLS.ALL], flags: "v" });
+		rules.set("C", { match: [SYMBOLS.CURRENCY], flags: "v" });
+		rules.set("E", { match: [SYMBOLS.EMOJI], flags: "v" });
+		rules.set("X", { match: ["."], flags: "v" });
+		Mask.#rules.notify();
 	}
 
 	static clearRules() {
-		Mask.#rules.value.clear();
-		Mask.#rules.notifies(Mask.#rules.value);
+		Mask.#rules().clear();
+		Mask.#rules.notify();
 	}
 
 	static setRule(key: string, rule: TMaskRule) {
-		Mask.#rules.value.set(key, rule);
-		Mask.#rules.notifies(Mask.#rules.value);
+		Mask.#rules().set(key, rule);
+		Mask.#rules.notify();
 	}
 
 	static #compile(mask: string): MaskCompiledPattern[] {
@@ -73,9 +73,9 @@ class Mask {
 			let staticTokens: TMaskStaticToken[] = [];
 			let flags = new Set<string>();
 
-			for (const match of pattern.matchAll(Mask.ruleMatcher.value)) {
+			for (const match of pattern.matchAll(Mask.ruleMatcher())) {
 				const [_, key, min = 1, max, star, question] = match;
-				const rule = Mask.#rules.value.get(key)!;
+				const rule = Mask.#rules().get(key)!;
 
 				if (maskPos < match.index) {
 					const staticToken = new TMaskStaticToken(pattern.slice(maskPos, match.index));

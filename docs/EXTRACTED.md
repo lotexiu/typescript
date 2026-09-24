@@ -2,32 +2,36 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-89 arquivos, 379 declarações top-level.
+95 arquivos, 414 declarações top-level.
 
 ---
 ## src/types.ts
 
-#### `_typeof` — const _(local, L1)_
+#### `_typeof` — const _(local, L3)_
 
-#### `TTypeOfValue` — type _(exported, L4)_
+#### `TTypeOfValue` — type _(exported, L5)_
 
-The literal union of every possible result of the `typeof` operator (`"string"`, `"number"`, etc).
+#### `TNil` — type _(exported, L19)_
 
-#### `TNotUndefined` — type _(exported, L15)_
+#### `TFalse` — type _(exported, L21)_
 
-`T` with `undefined` excluded from the union.
+#### `TEmpty` — type _(exported, L23)_
 
-#### `TAs` — type _(exported, L18)_
+#### `TNullPropagation` — type _(exported, L25)_
+
+#### `TNullable` — type _(exported, L27)_
+
+#### `TNonUndefined` — type _(exported, L29)_
+
+#### `TNotUnkown` — type _(exported, L31)_
+
+#### `TUnkown` — type _(exported, L33)_
+
+#### `TAs` — type _(exported, L36)_
 
 `T` narrowed/cast to `T & U` when `T` is assignable to `U`, otherwise `never`.
 
-#### `TUnkown` — type _(exported, L21)_
-
-`T` itself if it has no known keys (e.g. `unknown`, `{}`), otherwise `never`.
-
-#### `TSameType` — type _(exported, L24)_
-
-`A` if `A` and `B` are structurally identical (mutually assignable), otherwise `never`.
+#### `TEquals` — type _(exported, L38)_
 
 ## src/aho-corasick/declarations.ts
 
@@ -71,27 +75,19 @@ The literal union of every possible result of the `typeof` operator (`"string"`,
 
 #### `ChunkUtils` — class _(exported, L3)_
 
-## src/computed/model.ts
-
-#### `Computed` — class _(exported, L4)_
-
-#### `computed` — function _(exported, L61)_
-
 ## src/field/model.ts
 
-#### `ReadField` — class _(exported, L6)_
+#### `readField` — function _(exported, L6)_
 
-#### `Field` — class _(exported, L41)_
-
-#### `readField` — function _(exported, L66)_
-
-#### `field` — function _(exported, L70)_
+#### `field` — function _(exported, L10)_
 
 ## src/field/types.ts
 
-#### `TFieldGet` — type _(exported, L1)_
+#### `TFieldGet` — type _(exported, L3)_
 
-#### `TFieldSet` — type _(exported, L2)_
+#### `TFieldSet` — type _(exported, L5)_
+
+#### `TField` — type _(exported, L8)_
 
 ## src/global/types.ts
 
@@ -105,7 +101,7 @@ The shape `_Global.register` expects: an optional function-valued override for e
 
 ## src/item/model.ts
 
-#### `Item` — class _(exported, L5)_
+#### `Item` — class _(exported, L4)_
 
 ## src/language/declarations.ts
 
@@ -713,13 +709,13 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 ## src/mask/model.ts
 
-#### `DIGITS` — const _(local, L9)_
+#### `DIGITS` — const _(local, L8)_
 
-#### `LETTERS` — const _(local, L9)_
+#### `LETTERS` — const _(local, L8)_
 
-#### `SYMBOLS` — const _(local, L9)_
+#### `SYMBOLS` — const _(local, L8)_
 
-#### `Mask` — class _(exported, L11)_
+#### `Mask` — class _(exported, L10)_
 
 ## src/mask/types.ts
 
@@ -739,23 +735,13 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 ## src/matrix/model.ts
 
-#### `Matrix` — class _(exported, L6)_
+#### `Matrix` — class _(exported, L4)_
 
 ## src/matrix/types.ts
 
 #### `TMatrixBuffer` — type _(exported, L1)_
 
 #### `TMatrixBufferCtor` — type _(exported, L12)_
-
-## src/model/model.ts
-
-#### `Model` — class _(exported, L8)_
-
-Menor primitivo reativo da lib: guarda um valor e notifica assinantes quando ele muda.
-Não sabe de UI/DOM e não é um plugin — é a peça que plugins "adaptadores de util"
-(ex.: MaskPlugin) usam por baixo para virar reativos sem reimplementar notify-on-change.
-
-#### `model` — function _(exported, L43)_
 
 ## src/natives/types.ts
 
@@ -791,45 +777,45 @@ Extracts from T the types that are assignable to U.
 
 ## src/natives/array/types.ts
 
-#### `TArray` — type _(exported, L5)_
+#### `TArray` — type _(exported, L4)_
 
 Thin alias over the built-in `Array<T>`.
 
-#### `TArrayLike` — type _(exported, L8)_
+#### `TArrayLike` — type _(exported, L7)_
 
 Thin alias over the built-in `ArrayLike<T>`.
 
-#### `TExtractValues` — type _(exported, L11)_
+#### `Tuple` — type _(exported, L9)_
 
-The union of every element type in a tuple/array `T`.
-
-#### `TArrayType` — type _(exported, L14)_
-
-Extracts an array type's element type — `never` if `T` isn't an array.
-
-#### `TValueOf` — type _(exported, L17)_
-
-The element type at `Index` in tuple `List` — `-1` means the last element.
-
-#### `TArrayRest` — type _(exported, L26)_
-
-The remaining tuple elements of `A` after removing the leading elements shared with `B`.
-
-#### `TArrayOf` — type _(exported, L31)_
-
-#### `TPair` — type _(exported, L38)_
+#### `TPair` — type _(exported, L12)_
 
 A 2-tuple `[T, T2]`.
 
-#### `TAsArray` — type _(exported, L41)_
+#### `TExtractValues` — type _(exported, L15)_
+
+The union of every element type in a tuple/array `T`.
+
+#### `TArrayType` — type _(exported, L18)_
+
+Extracts an array type's element type — `never` if `T` isn't an array.
+
+#### `TValueOf` — type _(exported, L21)_
+
+The element type at `Index` in tuple `List` — `-1` means the last element.
+
+#### `TArrayRest` — type _(exported, L30)_
+
+The remaining tuple elements of `A` after removing the leading elements shared with `B`.
+
+#### `TAsArray` — type _(exported, L36)_
 
 `T` itself if it's already an array type, otherwise `never`.
 
-#### `TReverseArray` — type _(exported, L44)_
+#### `TReverseArray` — type _(exported, L39)_
 
 Reverses the element order of a tuple type.
 
-#### `TMap` — type _(exported, L47)_
+#### `TMap` — type _(exported, L42)_
 
 Maps a tuple type `List` to a new tuple type where each element is the value of `Path` in the corresponding element of `List`.
 
@@ -1041,8 +1027,6 @@ Makes all properties of T optional.
 
 #### `TNonObject` — type _(exported, L4)_
 
-Basic Non-object types (primitives, functions, and arrays). Used for filtering out non-object values.
-
 #### `TObject` — type _(exported, L8)_
 
 `T` narrowed to plain-object shapes only — `never` for functions, arrays, or non-objects.
@@ -1053,43 +1037,45 @@ Basic Non-object types (primitives, functions, and arrays). Used for filtering o
 
 Keys of `T` that are iterable (string or number).
 
-#### `TKeyOf` — type _(exported, L15)_
+#### `TKeyOf` — type _(exported, L16)_
 
-#### `TRecord` — type _(exported, L18)_
+#### `TRecord` — type _(exported, L19)_
 
 Builds an object type from a union of `[key, value]` tuples — the inverse of `TEntriesReturn`.
 
-#### `TCommonFields` — type _(exported, L23)_
+#### `TCommonFields` — type _(exported, L24)_
 
 The subset of `T`'s fields whose keys also exist on `U`.
 
-#### `TKeysType` — type _(exported, L25)_
+#### `TKeysType` — type _(exported, L26)_
 
-#### `TMethodKey` — type _(exported, L29)_
+#### `TMethodKey` — type _(exported, L30)_
 
-#### `TDeepPartial` — type _(exported, L32)_
+#### `TDeepPartial` — type _(exported, L33)_
 
 `T` with every nested property (recursively) made optional.
 
-#### `TPath` — type _(exported, L41)_
+#### `TPath` — type _(exported, L42)_
 
 Every valid dot-separated path string into `T`, including nested object paths — used to type `valueFromPath`/`setValueFromPath`.
 
-#### `TPathValue` — type _(exported, L45)_
+#### `TPathValue` — type _(exported, L50)_
 
 Resolves the type found at a dot-separated `Path` string into `T` (the return type of `valueFromPath`).
 
-#### `TEntriesReturn` — type _(exported, L56)_
+#### `TEntriesReturn` — type _(exported, L64)_
 
 The array of `[key, value]` tuples `Object.entries(value)` would produce for `T` — the return type of `ObjectUtils.entries`.
 
-#### `TDiffType` — type _(exported, L60)_
+#### `TDiffAdd` — type _(exported, L68)_
 
-#### `TDiffObject` — interface _(local, L61)_
+#### `TDiffRemoved` — type _(exported, L69)_
 
-#### `TDiffValue` — type _(exported, L64)_
+#### `TDiffChanged` — type _(exported, L70)_
 
-#### `TDiff` — type _(exported, L66)_
+#### `TDiffType` — type _(exported, L72)_
+
+#### `TDiff` — type _(exported, L78)_
 
 ## src/natives/object/utils.ts
 
@@ -1097,13 +1083,13 @@ The array of `[key, value]` tuples `Object.entries(value)` would produce for `T`
 
 - `@internal`
 
-#### `isNull` — const _(exported, L94)_
+#### `isNull` — const _(exported, L98)_
 
-#### `isNullOrUndefined` — const _(exported, L94)_
+#### `isNullOrUndefined` — const _(exported, L98)_
 
-#### `json` — const _(exported, L94)_
+#### `json` — const _(exported, L98)_
 
-#### `isObject` — const _(exported, L94)_
+#### `isObject` — const _(exported, L98)_
 
 ## src/natives/proxy/types.ts
 
@@ -1161,7 +1147,7 @@ Reverses a string literal type character by character.
 
 ## src/parser/model.ts
 
-#### `Parser` — class _(exported, L7)_
+#### `Parser` — class _(exported, L6)_
 
 ## src/parser/types.ts
 
@@ -1183,6 +1169,80 @@ Reverses a string literal type character by character.
 
 #### `readonlyValue` — function _(exported, L18)_
 
+## src/signal/declarations.ts
+
+#### `NODE_FLAGS` — const _(exported, L7)_
+
+- `@internal`
+
+#### `SIGNAL_LOCALES` — const _(exported, L20)_
+
+## src/signal/model.ts
+
+#### `NODE` — const _(local, L9)_
+
+#### `TWithNode` — type _(local, L11)_
+
+#### `update` — function _(local, L17)_
+
+#### `notify` — function _(local, L22)_
+
+#### `subscribe` — function _(local, L26)_
+
+#### `dispose` — function _(local, L30)_
+
+#### `signal` — function _(exported, L34)_
+
+#### `derived` — function _(exported, L46)_
+
+#### `Signal` — const _(exported, L56)_
+
+#### `Derived` — const _(exported, L64)_
+
+## src/signal/node.ts
+
+#### `DIRTY` — const _(local, L7)_
+
+#### `MUST_RECOMPUTE` — const _(local, L7)_
+
+#### `HAS_VALUE` — const _(local, L7)_
+
+#### `COMPUTING` — const _(local, L7)_
+
+#### `QUEUED` — const _(local, L7)_
+
+#### `activeConsumer` — let _(local, L10)_
+
+#### `epoch` — let _(local, L12)_
+
+#### `runCounter` — let _(local, L14)_
+
+#### `batchDepth` — let _(local, L15)_
+
+#### `flushing` — let _(local, L16)_
+
+#### `pending` — const _(local, L18)_
+
+#### `propagateStack` — const _(local, L20)_
+
+#### `Link` — class _(local, L27)_
+
+- `@internal`
+
+#### `ReactiveNode` — class _(exported, L49)_
+
+- `@internal`
+
+## src/signal/types.ts
+
+#### `TEqual` — type _(exported, L3)_
+
+#### `TReadable` — type _(exported, L6)_
+
+#### `TSignal` — type _(exported, L14)_
+
+#### `TDerived` — type _(exported, L21)_
+
 ## src/state/keyboard/model.ts
 
 #### `KeyboardState` — class _(exported, L4)_
@@ -1191,35 +1251,41 @@ Reverses a string literal type character by character.
 
 #### `MouseState` — class _(exported, L4)_
 
-## src/stopwatch/model.ts
-
-#### `StopWatch` — class _(exported, L6)_
-
-## src/subscription/locale.ts
+## src/stopwatch/locale.ts
 
 #### `STOP_WATCH_LOCALES` — const _(exported, L3)_
 
+## src/stopwatch/model.ts
+
+#### `StopWatch` — class _(exported, L5)_
+
+## src/subscription/declarations.ts
+
+#### `SUBSCRIPTION_LOCALES` — const _(exported, L3)_
+
 ## src/subscription/model.ts
 
-#### `Subscription` — class _(exported, L3)_
-
-#### `SubscriptionController` — class _(exported, L20)_
+#### `Subscription` — class _(exported, L5)_
 
 ## src/subscription/types.ts
 
-#### `TValueListener` — type _(exported, L2)_
+#### `TValueListener` — type _(exported, L1)_
 
-Listener signature `ValueCell.subscribe(...)` accepts.
+#### `TValueUnsubscribe` — type _(exported, L3)_
 
-#### `TValueUnsubscribe` — type _(exported, L5)_
+#### `TSubscription` — type _(exported, L5)_
 
-The unsubscribe function `ValueCell.subscribe(...)` returns.
+#### `TListeners` — type _(exported, L10)_
 
-#### `TSubscription` — type _(exported, L7)_
+## src/subscription/utils.ts
+
+#### `ListenerUtils` — class _(exported, L11)_
+
+- `@internal`
 
 ## src/theme/model.ts
 
-#### `Theme` — class _(exported, L5)_
+#### `Theme` — class _(exported, L6)_
 
 ## src/theme/types.ts
 
@@ -1227,29 +1293,31 @@ The unsubscribe function `ValueCell.subscribe(...)` returns.
 
 ## src/theme/palette/declarations.ts
 
-#### `TONE_STOPS` — const _(exported, L3)_
-
-#### `BASIC` — const _(local, L6)_
-
-#### `LIGHT` — const _(local, L30)_
-
-#### `PASTEL` — const _(local, L44)_
-
-#### `NEON` — const _(local, L58)_
-
-#### `DARK` — const _(local, L72)_
-
-#### `EARTH` — const _(local, L86)_
-
-#### `PALETTES` — const _(exported, L99)_
+#### `TONE_STOPS` — const _(exported, L1)_
 
 ## src/theme/palette/model.ts
 
 #### `Palette` — class _(exported, L8)_
 
-#### `CustomPalette` — class _(exported, L49)_
+#### `CustomPalette` — class _(exported, L48)_
 
-#### `TonalPalette` — class _(exported, L63)_
+#### `TonalPalette` — class _(exported, L68)_
+
+## src/theme/palette/presets.ts
+
+#### `BASIC` — const _(local, L4)_
+
+#### `LIGHT` — const _(local, L28)_
+
+#### `PASTEL` — const _(local, L42)_
+
+#### `NEON` — const _(local, L56)_
+
+#### `DARK` — const _(local, L70)_
+
+#### `EARTH` — const _(local, L84)_
+
+#### `PALETTES` — const _(exported, L97)_
 
 ## src/theme/palette/types.ts
 
@@ -1263,7 +1331,13 @@ The unsubscribe function `ValueCell.subscribe(...)` returns.
 
 ## src/theme/style/types.ts
 
-#### `SlotColor` — type _(exported, L5)_
+#### `SlotColor` — type _(exported, L4)_
+
+## src/time/declarations.ts
+
+#### `CALENDAR_CELLS` — const _(exported, L5)_
+
+- `@internal`
 
 ## src/time/model.ts
 
@@ -1275,7 +1349,7 @@ The unsubscribe function `ValueCell.subscribe(...)` returns.
 
 ## src/value-history/model.ts
 
-#### `ValueHistory` — class _(exported, L5)_
+#### `ValueHistory` — class _(exported, L4)_
 
 ## src/value-history/types.ts
 
@@ -1305,9 +1379,9 @@ Listener signature for `ValueHistory` being cleared — receives the full histor
 
 ## src/variant/model.ts
 
-#### `Variant` — class _(exported, L6)_
+#### `Variant` — class _(exported, L7)_
 
-#### `variant` — function _(exported, L37)_
+#### `variant` — function _(exported, L61)_
 
 ## src/variant/types.ts
 

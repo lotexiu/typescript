@@ -1,6 +1,5 @@
-import { Computed, computed } from '@ts/computed/model';
-import { model } from '@ts/model/model';
-import { TPath, TPathValue } from '@tsn-object/types';
+import { derived, signal } from '@ts/signal/model';
+import { TPath } from '@tsn-object/types';
 import { ObjectUtils } from '@tsn-object/utils';
 
 class Select<
@@ -14,20 +13,14 @@ class Select<
 	readonly list;
 	readonly raw;
 
-	readonly value = computed(() => {
-		return ObjectUtils.valueFromPath(this.raw.value, this.valuePath.value);
-	});
-	readonly label = computed(() => {
-		return ObjectUtils.valueFromPath(this.raw.value, this.displayPath.value);
-	});
+	readonly value = derived(() => ObjectUtils.valueFromPath(this.raw(), this.valuePath()));
+	readonly label = derived(() => ObjectUtils.valueFromPath(this.raw(), this.displayPath()));
 
 	constructor(list: Raw[], initial: Raw, valuePath: ValuePath, displayPath: LabelPath) {
-		this.list = model(list);
-		this.raw = model(initial);
-		this.valuePath = model(valuePath);
-		this.displayPath = model(displayPath);
-		Computed.setDependencies(this.value, [this.raw, this.valuePath]);
-		Computed.setDependencies(this.label, [this.raw, this.displayPath]);
+		this.list = signal(list);
+		this.raw = signal(initial);
+		this.valuePath = signal(valuePath);
+		this.displayPath = signal(displayPath);
 	}
 }
 

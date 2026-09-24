@@ -1,19 +1,14 @@
-import { computed } from '@ts/computed/model';
-import { model } from '@ts/model/model';
-import { Subscription } from '@ts/subscription/model';
+import { derived, signal } from '@ts/signal/model';
 import { TMatrixBuffer, TMatrixBufferCtor } from './types';
 
-class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
-	readonly dimensions = model<number[]>([128, 128]);
-	readonly dataClass = model<TMatrixBufferCtor<T>>(Array);
+class Matrix<T> {
+	readonly dimensions = signal<number[]>([128, 128]);
+	readonly dataClass = signal<TMatrixBufferCtor<T>>(Array);
 
-	readonly size = computed(
-		() => this.dimensions.value.reduce((total, dim) => total * dim, 1),
-		[this.dimensions]
-	);
+	readonly size = derived(() => this.dimensions().reduce((total, dim) => total * dim, 1));
 
-	readonly #strides = computed(() => {
-		const dims = this.dimensions.value;
+	readonly #strides = derived(() => {
+		const dims = this.dimensions();
 		const strides = new Array<number>(dims.length);
 		let stride = 1;
 		for (let axis = dims.length - 1; axis >= 0; axis--) {
@@ -21,26 +16,31 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 			stride *= dims[axis];
 		}
 		return strides;
-	}, [this.dimensions]);
+	});
 
-	readonly #data = computed(
-		() => new this.dataClass.value(this.size.value),
-		[this.size, this.dataClass]
+	// O buffer só é recriado quando o tamanho ou o tipo mudam.
+	readonly #buffer = derived(() => {
+		const DataClass = this.dataClass();
+		return new DataClass(this.size());
+	});
+	// Avisado a cada `set` (o buffer é mutado no lugar, sem trocar de referência).
+	readonly #revision = signal(0);
+
+	// O buffer atual; notifica a cada `set` e a cada troca de buffer. `equal` sempre falso porque
+	// um `set` devolve o mesmo buffer (mutado) e precisa notificar mesmo assim.
+	readonly data = derived(
+		() => (this.#revision(), this.#buffer()),
+		() => false
 	);
 
-	get data(): TMatrixBuffer<T> {
-		return this.#data.value;
-	}
-
 	constructor(dimensions?: number[], dataClass?: TMatrixBufferCtor<T>, filledValue?: T) {
-		super();
 		if (dimensions) this.dimensions.set(dimensions);
 		if (dataClass) this.dataClass.set(dataClass);
-		if (filledValue != undefined) this.data.fill(filledValue);
+		if (filledValue != undefined) this.#buffer().fill(filledValue);
 	}
 
 	#flatIndex(indexes: number[]): number {
-		const strides = this.#strides.value;
+		const strides = this.#strides();
 		let flat = 0;
 		for (let axis = 0; axis < indexes.length; axis++) {
 			flat += indexes[axis] * strides[axis];
@@ -49,33 +49,33 @@ class Matrix<T> extends Subscription<TMatrixBuffer<T>> {
 	}
 
 	get(...indexes: number[]): T {
-		return this.data[this.#flatIndex(indexes)];
+		return this.#buffer()[this.#flatIndex(indexes)];
 	}
 
 	set(value: T, ...indexes: number[]): void {
-		this.data[this.#flatIndex(indexes)] = value;
-		this.notifies(this.data);
+		this.#buffer()[this.#flatIndex(indexes)] = value;
+		this.#revision.notify();
 	}
 
 	section(...indexes: number[]): TMatrixBuffer<T> {
 		const start = this.#flatIndex(indexes);
 		const length = this.#sectionLength(indexes.length);
-		return this.data.slice(start, start + length);
+		return this.#buffer().slice(start, start + length);
 	}
 
 	#sectionLength(fixedAxes: number): number {
-		if (fixedAxes === 0) return this.size.value;
-		return this.#strides.value[fixedAxes - 1];
+		if (fixedAxes === 0) return this.size();
+		return this.#strides()[fixedAxes - 1];
 	}
 
 	toString(): string {
-		const dims = this.dimensions.value;
+		const dims = this.dimensions();
 		const lastAxis = dims.length - 1;
 		const columns = dims[lastAxis];
-		const rowCount = this.size.value / columns;
+		const rowCount = this.size() / columns;
 
 		let cellWidth = 0;
-		this.data.forEach((value) => {
+		this.#buffer().forEach((value) => {
 			cellWidth = Math.max(cellWidth, String(value).length);
 		});
 

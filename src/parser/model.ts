@@ -1,19 +1,20 @@
-import { Model } from "@ts/model/model";
-import { Computed, computed } from "@ts/computed/model";
+import { derived, signal } from "@ts/signal/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
 import { TGatePatternInfo } from "./types";
 
 class Parser {
-	public readonly text = new Model<string>('')
+	public readonly text = signal('')
 
-	private readonly configVersion = new Model(0)
-	private readonly _root: Computed<ParserRoot> = computed(
-		() => this.resolve(),
-		[this.text, this.configVersion],
-	)
+	private readonly configVersion = signal(0)
+	// `resolve()` lê `text`; a config (gates, escape, trackGaps) não é um signal, então a versão
+	// é lida aqui para que mudar a config também refaça a árvore.
+	private readonly _root = derived(() => {
+		this.configVersion()
+		return this.resolve()
+	})
 
-	get root(): ParserRoot { return this._root.value }
+	get root(): ParserRoot { return this._root() }
 
 	private _escape: string = ''
 	get escape() { return this._escape }
@@ -46,7 +47,7 @@ class Parser {
 	private holeGates = new Set<ParserGate>();
 
 	private bumpConfig() {
-		this.configVersion.set(this.configVersion.value + 1)
+		this.configVersion.update((version) => version + 1)
 	}
 
 	/** Recompila o autômato a partir de `gates` inteiro — só roda em config-time (addGates/clearGates), nunca por mudança de texto. */
@@ -117,7 +118,7 @@ class Parser {
 	}
 
 	private resolve(): ParserRoot {
-		const text = this.text.value
+		const text = this.text()
 		const len = text.length
 		const root = new ParserRoot(text)
 		let scope: ParserNode | ParserRoot = root;

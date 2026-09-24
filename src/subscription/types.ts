@@ -1,15 +1,12 @@
-/** Listener signature `ValueCell.subscribe(...)` accepts. */
 type TValueListener<T> = (value: T) => void;
 
-/** The unsubscribe function `ValueCell.subscribe(...)` returns. */
 type TValueUnsubscribe = () => void;
 
 type TSubscription = {
-	subscribe(listener: TValueListener<any>): TValueUnsubscribe
-}
+	subscribe(listener: TValueListener<any>): TValueUnsubscribe;
+};
 
-export type {
-	TValueListener,
-	TValueUnsubscribe,
-	TSubscription,
-}
+// `undefined` (nenhum), a própria função (um) ou um array (vários) — ver `ListenerUtils`.
+type TListeners<T> = TValueListener<T> | TValueListener<T>[] | undefined;
+
+export type { TValueListener, TValueUnsubscribe, TSubscription, TListeners };

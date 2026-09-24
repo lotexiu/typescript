@@ -1,44 +1,58 @@
-const _typeof = typeof "";
+import { TExclude } from '@tsn/types';
 
-/** The literal union of every possible result of the `typeof` operator (`"string"`, `"number"`, etc). */
+const _typeof = typeof '';
+
 type TTypeOfValue = typeof _typeof;
+
+type TPrimitiveTypes =
+	| String
+	| Number
+	| Boolean
+	| BigInt
+	| Symbol
+	| Function
+	| null
+	| undefined
+	| object
+	| readonly any[];
 
 type TNil = null | undefined;
 
-type TEmpty = TNil | '' | 0 | false;
+type TFalse = TNil | '' | 0 | false;
 
-/** `Type` widened with `undefined`/`null` (and `void`, unless `NoVoid` is `true`). */
-type TNullable<
-	Type = null,
-	NoVoid extends boolean = false,
-> = NoVoid extends false
-	? Type | undefined | null | void
-	: Type | undefined | null;
+type TEmpty = TFalse | {} | [];
 
-/** `T` with `undefined` excluded from the union. */
-type TNotUndefined<T> = T extends undefined ? never : T;
+type TNullPropagation<WeakType, Result> = Extract<WeakType, TNil> | Result;
+
+type TNullable<Type = null> = Type | TNil;
+
+type TNonUndefined<T> = TExclude<T, undefined>;
+
+type TNotUnkown<T> = keyof T extends never ? never : T;
+
+type TUnkown<T> = keyof T extends never ? T : never;
 
 /** `T` narrowed/cast to `T & U` when `T` is assignable to `U`, otherwise `never`. */
 type TAs<T, U> = T extends U ? T & U : never;
 
-/** `T` itself if it has no known keys (e.g. `unknown`, `{}`), otherwise `never`. */
-type TUnkown<T> = keyof T extends never ? T : never;
+type TEquals<A, B> =
+	A extends B ?
+		B extends A ?
+			true
+		:	false
+	:	false;
 
-/** `A` if `A` and `B` are structurally identical (mutually assignable), otherwise `never`. */
-type TSameType<A,B> =
-	A extends B
-		? B extends A
-			? true
-			: false
-		: false
-
-export type {
-	TNil,
-	TEmpty,
-	TNullable,
-	TNotUndefined,
+export {
 	TTypeOfValue,
-	TAs,
+	TPrimitiveTypes,
+	TNil,
+	TFalse,
+	TEmpty,
+	TNullPropagation,
+	TNullable,
+	TNonUndefined,
+	TNotUnkown,
 	TUnkown,
-	TSameType,
+	TAs,
+	TEquals,
 };
