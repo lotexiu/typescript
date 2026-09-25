@@ -8,6 +8,16 @@ class BitwiseUtils {
 		}
 		return enumObject;
 	}
+
+	static actives<T extends TRecord<[string, number]>>(value: number, enumObject: T): (keyof T)[] {
+		const actives: (keyof T)[] = [];
+		for (const key in enumObject) {
+			if (value & enumObject[key]) {
+				actives.push(key);
+			}
+		}
+		return actives;
+	}
 }
 
 const { enum: bitEnum } = BitwiseUtils;
