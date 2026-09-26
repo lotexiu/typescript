@@ -1,5 +1,5 @@
 import { readField } from '@ts/field/model';
-import { signal } from '@ts/signal/model';
+import { signal } from '@ts/reactive-node/signal/model'
 
 class KeyboardState<KeyCode> {
 	// O `Set` é mutado no lugar + `notify()` — sem alocar um novo a cada tecla.

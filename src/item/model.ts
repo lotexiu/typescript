@@ -1,5 +1,5 @@
-import { signal } from '@ts/signal/model';
-import { TReadable, TSignal } from '@ts/signal/types';
+import { signal } from '@ts/reactive-node/signal/model'
+import { TReadable, TSignal } from '@ts/reactive-node/types';
 
 class Item<V> {
 	readonly value: TSignal<V>;

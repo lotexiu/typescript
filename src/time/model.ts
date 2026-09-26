@@ -1,5 +1,6 @@
 import { field } from '@ts/field/model';
-import { derived, signal } from '@ts/signal/model';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
 import { CALENDAR_CELLS } from './declarations';
 import { TCalendarDay } from './types';
 
@@ -29,11 +30,11 @@ class Time {
 		(date, value) => date.setDate(date.getDate() + value - date.getDay())
 	);
 
-	readonly firstDay = derived(() => new Date(this.year(), this.month(), 1).getDay());
-	readonly totalDays = derived(() => new Date(this.year(), this.month() + 1, 0).getDate());
-	readonly totalWeeks = derived(() => Math.ceil(this.totalDays() / 7));
+	readonly firstDay = computed(() => new Date(this.year(), this.month(), 1).getDay());
+	readonly totalDays = computed(() => new Date(this.year(), this.month() + 1, 0).getDate());
+	readonly totalWeeks = computed(() => Math.ceil(this.totalDays() / 7));
 
-	readonly calendarDays = derived(() => {
+	readonly calendarDays = computed(() => {
 		const year = this.year();
 		const month = this.month();
 		const firstDay = this.firstDay();

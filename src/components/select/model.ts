@@ -1,4 +1,5 @@
-import { derived, signal } from '@ts/signal/model';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
 import { TPath } from '@tsn-object/types';
 import { ObjectUtils } from '@tsn-object/utils';
 
@@ -13,8 +14,8 @@ class Select<
 	readonly list;
 	readonly raw;
 
-	readonly value = derived(() => ObjectUtils.valueFromPath(this.raw(), this.valuePath()));
-	readonly label = derived(() => ObjectUtils.valueFromPath(this.raw(), this.displayPath()));
+	readonly value = computed(() => ObjectUtils.valueFromPath(this.raw(), this.valuePath()));
+	readonly label = computed(() => ObjectUtils.valueFromPath(this.raw(), this.displayPath()));
 
 	constructor(list: Raw[], initial: Raw, valuePath: ValuePath, displayPath: LabelPath) {
 		this.list = signal(list);

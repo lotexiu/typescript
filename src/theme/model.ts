@@ -1,5 +1,5 @@
-import { signal } from '@ts/signal/model';
-import { TSignal } from '@ts/signal/types';
+import { signal } from '@ts/reactive-node/signal/model'
+import { TSignal } from '@ts/reactive-node/types';
 import { ThemeStyle } from './style/model';
 import { TThemeMode } from './types';
 

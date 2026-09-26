@@ -1,7 +1,8 @@
-import { derived, signal } from "@ts/signal/model";
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
 import { TGatePatternInfo } from "./types";
+import { computed } from "@ts/reactive-node/computed/model";
+import { signal } from "@ts/reactive-node/signal/model";
 
 class Parser {
 	public readonly text = signal('')
@@ -9,7 +10,7 @@ class Parser {
 	private readonly configVersion = signal(0)
 	// `resolve()` lê `text`; a config (gates, escape, trackGaps) não é um signal, então a versão
 	// é lida aqui para que mudar a config também refaça a árvore.
-	private readonly _root = derived(() => {
+	private readonly _root = computed(() => {
 		this.configVersion()
 		return this.resolve()
 	})

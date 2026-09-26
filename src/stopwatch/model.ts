@@ -1,5 +1,6 @@
 import { LocaleError } from '@ts/locale/error';
-import { derived, signal } from '@ts/signal/model';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
 import { STOP_WATCH_LOCALES } from './locale';
 
 class StopWatch {
@@ -8,10 +9,10 @@ class StopWatch {
 	readonly laps = signal<number[]>([]);
 	readonly totalLaps = signal(NaN);
 
-	readonly duration = derived(() => this.laps().reduce((a, b) => a + b, 0));
-	readonly avarage = derived(() => this.duration() / this.laps().length);
-	readonly estimated = derived(() => this.avarage() * (this.totalLaps() - this.laps().length));
-	readonly currentLap = derived(() => {
+	readonly duration = computed(() => this.laps().reduce((a, b) => a + b, 0));
+	readonly avarage = computed(() => this.duration() / this.laps().length);
+	readonly estimated = computed(() => this.avarage() * (this.totalLaps() - this.laps().length));
+	readonly currentLap = computed(() => {
 		const laps = this.laps();
 		return laps[laps.length - 1];
 	});

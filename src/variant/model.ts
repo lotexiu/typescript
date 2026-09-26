@@ -1,19 +1,20 @@
-import { derived, signal } from '@ts/signal/model';
-import { TDerived, TSignal } from '@ts/signal/types';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
+import { TComputed, TSignal } from '@ts/reactive-node/types';
 import { TValueListener, TValueUnsubscribe } from '@ts/subscription/types';
 import { TVariantDerive } from './types';
 
 // Chave ativa + valor derivado dela: trocar a chave recalcula o valor (sob demanda).
 class Variant<K, V> {
 	readonly #key: TSignal<K>;
-	readonly #value: TDerived<V>;
+	readonly #value: TComputed<V>;
 	#prevKey?: K;
 	#prevValue?: V;
 	#lastValue?: V;
 
 	constructor(derive: TVariantDerive<K, V>, initial: K) {
 		this.#key = signal(initial);
-		this.#value = derived(() => {
+		this.#value = computed(() => {
 			const next = derive(this.#key());
 			this.#prevValue = this.#lastValue;
 			this.#lastValue = next;
@@ -21,7 +22,7 @@ class Variant<K, V> {
 		});
 	}
 
-	// Leituras reativas: dentro de um derived, viram dependência.
+	// Leituras reativas: dentro de um computed, viram dependência.
 	key(): K {
 		return this.#key();
 	}

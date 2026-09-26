@@ -1,5 +1,6 @@
-import { derived, signal } from '@ts/signal/model';
-import { TSignal } from '@ts/signal/types';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
+import { TSignal } from '@ts/reactive-node/types';
 import Color, { ColorTypes } from 'colorjs.io';
 import { ColorSpace } from 'colorjs.io/fn';
 import { TONE_STOPS } from './declarations';
@@ -68,8 +69,8 @@ class CustomPalette extends Palette {
 class TonalPalette<T extends ColorTypes = string> extends Palette {
 	readonly seed: TSignal<T>;
 	// Refeito quando a semente muda: a semente em oklch + um cache vazio, preenchido tom a tom sob demanda.
-	// Ler `get()` dentro de um derived registra a paleta como dependência (troca de semente o recalcula).
-	readonly #tones = derived(() => ({
+	// Ler `get()` dentro de um computed registra a paleta como dependência (troca de semente o recalcula).
+	readonly #tones = computed(() => ({
 		seedOklch: new Color(this.seed()).to('oklch'),
 		cache: new Map<TToneStop, Color>(),
 	}));

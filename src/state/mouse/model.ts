@@ -1,5 +1,5 @@
 import { readField } from '@ts/field/model';
-import { signal } from '@ts/signal/model';
+import { signal } from '@ts/reactive-node/signal/model'
 
 class MouseState<Buttons extends PropertyKey> {
 	// Objetos mutados no lugar + `notify()` — sem alocar a cada movimento/clique.

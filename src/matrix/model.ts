@@ -1,13 +1,14 @@
-import { derived, signal } from '@ts/signal/model';
+import { computed } from '@ts/reactive-node/computed/model';
+import { signal } from '@ts/reactive-node/signal/model'
 import { TMatrixBuffer, TMatrixBufferCtor } from './types';
 
 class Matrix<T> {
 	readonly dimensions = signal<number[]>([128, 128]);
 	readonly dataClass = signal<TMatrixBufferCtor<T>>(Array);
 
-	readonly size = derived(() => this.dimensions().reduce((total, dim) => total * dim, 1));
+	readonly size = computed(() => this.dimensions().reduce((total, dim) => total * dim, 1));
 
-	readonly #strides = derived(() => {
+	readonly #strides = computed(() => {
 		const dims = this.dimensions();
 		const strides = new Array<number>(dims.length);
 		let stride = 1;
@@ -19,7 +20,7 @@ class Matrix<T> {
 	});
 
 	// O buffer só é recriado quando o tamanho ou o tipo mudam.
-	readonly #buffer = derived(() => {
+	readonly #buffer = computed(() => {
 		const DataClass = this.dataClass();
 		return new DataClass(this.size());
 	});
@@ -28,7 +29,7 @@ class Matrix<T> {
 
 	// O buffer atual; notifica a cada `set` e a cada troca de buffer. `equal` sempre falso porque
 	// um `set` devolve o mesmo buffer (mutado) e precisa notificar mesmo assim.
-	readonly data = derived(
+	readonly data = computed(
 		() => (this.#revision(), this.#buffer()),
 		() => false
 	);

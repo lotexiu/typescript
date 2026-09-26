@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-95 arquivos, 414 declarações top-level.
+99 arquivos, 412 declarações top-level.
 
 ---
 ## src/types.ts
@@ -709,13 +709,13 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 ## src/mask/model.ts
 
-#### `DIGITS` — const _(local, L8)_
+#### `DIGITS` — const _(local, L9)_
 
-#### `LETTERS` — const _(local, L8)_
+#### `LETTERS` — const _(local, L9)_
 
-#### `SYMBOLS` — const _(local, L8)_
+#### `SYMBOLS` — const _(local, L9)_
 
-#### `Mask` — class _(exported, L10)_
+#### `Mask` — class _(exported, L11)_
 
 ## src/mask/types.ts
 
@@ -735,7 +735,7 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 ## src/matrix/model.ts
 
-#### `Matrix` — class _(exported, L4)_
+#### `Matrix` — class _(exported, L5)_
 
 ## src/matrix/types.ts
 
@@ -826,6 +826,10 @@ Maps a tuple type `List` to a new tuple type where each element is the value of 
 ## src/natives/async/utils.ts
 
 #### `AsyncUtils` — class _(exported, L1)_
+
+## src/natives/bitwise/utils.ts
+
+#### `BitwiseUtils` — class _(exported, L3)_
 
 ## src/natives/class/declarations.ts
 
@@ -1147,7 +1151,7 @@ Reverses a string literal type character by character.
 
 ## src/parser/model.ts
 
-#### `Parser` — class _(exported, L6)_
+#### `Parser` — class _(exported, L7)_
 
 ## src/parser/types.ts
 
@@ -1163,85 +1167,91 @@ Reverses a string literal type character by character.
 
 #### `ParserRoot` — class _(exported, L76)_
 
+## src/reactive-node/declarations.ts
+
+#### `NODE` — const _(exported, L6)_
+
+- `@internal`
+
+#### `NODE_FLAGS` — const _(exported, L11)_
+
+- `@internal`
+
+#### `SIGNAL_LOCALES` — const _(exported, L19)_
+
+## src/reactive-node/model.ts
+
+#### `DIRTY` — const _(local, L8)_
+
+#### `MUST_RECOMPUTE` — const _(local, L8)_
+
+#### `HAS_VALUE` — const _(local, L8)_
+
+#### `COMPUTING` — const _(local, L8)_
+
+#### `QUEUED` — const _(local, L8)_
+
+#### `activeDependent` — let _(local, L10)_
+
+#### `writeCount` — let _(local, L11)_
+
+#### `computeCount` — let _(local, L12)_
+
+#### `batchDepth` — let _(local, L13)_
+
+#### `notifying` — let _(local, L14)_
+
+#### `pendingNotifications` — const _(local, L15)_
+
+#### `dirtyMarkStack` — const _(local, L16)_
+
+#### `ReactiveNode` — class _(exported, L21)_
+
+- `@internal`
+
+## src/reactive-node/types.ts
+
+#### `TEqual` — type _(exported, L5)_
+
+#### `TReadable` — type _(exported, L7)_
+
+#### `TSignal` — type _(exported, L13)_
+
+#### `TComputed` — type _(exported, L19)_
+
+#### `TWithNode` — type _(exported, L24)_
+
+- `@internal`
+
+## src/reactive-node/utils.ts
+
+#### `ReactiveNodeUtils` — class _(exported, L8)_
+
+- `@internal`
+
+## src/reactive-node/computed/model.ts
+
+#### `computed` — function _(exported, L9)_
+
+#### `Computed` — const _(exported, L18)_
+
+## src/reactive-node/link/model.ts
+
+#### `ReactiveLink` — class _(exported, L6)_
+
+- `@internal`
+
+## src/reactive-node/signal/model.ts
+
+#### `signal` — function _(exported, L8)_
+
+#### `Signal` — const _(exported, L20)_
+
 ## src/readonly-value/model.ts
 
 #### `ReadonlyValue` — class _(exported, L1)_
 
 #### `readonlyValue` — function _(exported, L18)_
-
-## src/signal/declarations.ts
-
-#### `NODE_FLAGS` — const _(exported, L7)_
-
-- `@internal`
-
-#### `SIGNAL_LOCALES` — const _(exported, L20)_
-
-## src/signal/model.ts
-
-#### `NODE` — const _(local, L9)_
-
-#### `TWithNode` — type _(local, L11)_
-
-#### `update` — function _(local, L17)_
-
-#### `notify` — function _(local, L22)_
-
-#### `subscribe` — function _(local, L26)_
-
-#### `dispose` — function _(local, L30)_
-
-#### `signal` — function _(exported, L34)_
-
-#### `derived` — function _(exported, L46)_
-
-#### `Signal` — const _(exported, L56)_
-
-#### `Derived` — const _(exported, L64)_
-
-## src/signal/node.ts
-
-#### `DIRTY` — const _(local, L7)_
-
-#### `MUST_RECOMPUTE` — const _(local, L7)_
-
-#### `HAS_VALUE` — const _(local, L7)_
-
-#### `COMPUTING` — const _(local, L7)_
-
-#### `QUEUED` — const _(local, L7)_
-
-#### `activeConsumer` — let _(local, L10)_
-
-#### `epoch` — let _(local, L12)_
-
-#### `runCounter` — let _(local, L14)_
-
-#### `batchDepth` — let _(local, L15)_
-
-#### `flushing` — let _(local, L16)_
-
-#### `pending` — const _(local, L18)_
-
-#### `propagateStack` — const _(local, L20)_
-
-#### `Link` — class _(local, L27)_
-
-- `@internal`
-
-#### `ReactiveNode` — class _(exported, L49)_
-
-- `@internal`
-
-## src/signal/types.ts
-
-#### `TEqual` — type _(exported, L3)_
-
-#### `TReadable` — type _(exported, L6)_
-
-#### `TSignal` — type _(exported, L14)_
-
-#### `TDerived` — type _(exported, L21)_
 
 ## src/state/keyboard/model.ts
 
@@ -1257,7 +1267,7 @@ Reverses a string literal type character by character.
 
 ## src/stopwatch/model.ts
 
-#### `StopWatch` — class _(exported, L5)_
+#### `StopWatch` — class _(exported, L6)_
 
 ## src/subscription/declarations.ts
 
@@ -1297,11 +1307,11 @@ Reverses a string literal type character by character.
 
 ## src/theme/palette/model.ts
 
-#### `Palette` — class _(exported, L8)_
+#### `Palette` — class _(exported, L9)_
 
-#### `CustomPalette` — class _(exported, L48)_
+#### `CustomPalette` — class _(exported, L49)_
 
-#### `TonalPalette` — class _(exported, L68)_
+#### `TonalPalette` — class _(exported, L69)_
 
 ## src/theme/palette/presets.ts
 
@@ -1341,7 +1351,7 @@ Reverses a string literal type character by character.
 
 ## src/time/model.ts
 
-#### `Time` — class _(exported, L6)_
+#### `Time` — class _(exported, L7)_
 
 ## src/time/types.ts
 
@@ -1349,7 +1359,7 @@ Reverses a string literal type character by character.
 
 ## src/value-history/model.ts
 
-#### `ValueHistory` — class _(exported, L4)_
+#### `ValueHistory` — class _(exported, L5)_
 
 ## src/value-history/types.ts
 
@@ -1379,9 +1389,9 @@ Listener signature for `ValueHistory` being cleared — receives the full histor
 
 ## src/variant/model.ts
 
-#### `Variant` — class _(exported, L7)_
+#### `Variant` — class _(exported, L8)_
 
-#### `variant` — function _(exported, L61)_
+#### `variant` — function _(exported, L62)_
 
 ## src/variant/types.ts
 

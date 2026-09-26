@@ -1,4 +1,5 @@
-import { derived, Signal, signal } from '@ts/signal/model';
+import { computed } from '@ts/reactive-node/computed/model';
+import { Signal, signal } from '@ts/reactive-node/signal/model'
 import { TIndexedValue } from './types';
 
 class ValueHistory<T> {
@@ -7,12 +8,12 @@ class ValueHistory<T> {
 
 	readonly index = signal(-1);
 
-	readonly previous = derived(() => this.#at(this.index() - 1));
-	readonly current = derived(() => this.#at(this.index()));
-	readonly next = derived(() => this.#at(this.index() + 1));
+	readonly previous = computed(() => this.#at(this.index() - 1));
+	readonly current = computed(() => this.#at(this.index()));
+	readonly next = computed(() => this.#at(this.index() + 1));
 
-	readonly length = derived(() => this.#entries().length);
-	readonly history = derived(() => this.#entries().map((value, index) => ({ index, value })));
+	readonly length = computed(() => this.#entries().length);
+	readonly history = computed(() => this.#entries().map((value, index) => ({ index, value })));
 
 	// Quantas entradas manter (as mais antigas saem primeiro); negativo = sem limite.
 	constructor(public cacheSize: number = -1) {}

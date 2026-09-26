@@ -1,6 +1,7 @@
 import { REGEX_PATTERNS } from "@tsn/regex/declarations";
 import { TMaskRule } from "./types";
-import { derived, signal } from "@ts/signal/model";
+import { computed } from "@ts/reactive-node/computed/model";
+import { signal } from "@ts/reactive-node/signal/model";
 import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "./token/model";
 import { RegexUtils } from "@tsn/regex/utils";
 import { MaskCompiledPattern } from "./compiled-pattern/model";
@@ -12,9 +13,9 @@ class Mask {
 	static readonly #patternCache = new Map<string, MaskCompiledPattern[]>();
 
 	static readonly #rules = signal<Map<string, TMaskRule>>(new Map());
-	static readonly rules = derived(() => [...Mask.#rules().values()]);
-	static readonly ruleKeys = derived(() => [...Mask.#rules().keys()]);
-	static readonly ruleMatcher = derived(() => {
+	static readonly rules = computed(() => [...Mask.#rules().values()]);
+	static readonly ruleKeys = computed(() => [...Mask.#rules().keys()]);
+	static readonly ruleMatcher = computed(() => {
 		const keys = Mask.ruleKeys().map((key) => RegexUtils.escapeReservedKeys(key));
 		return new RegExp(`(${keys.join("|")})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, "g");
 	});
