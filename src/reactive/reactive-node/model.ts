@@ -1,9 +1,10 @@
-import { LocaleError } from '@ts/locale/error';
-import { TListeners, TValueListener, TValueUnsubscribe } from '@ts/subscription/types';
-import { ListenerUtils } from '@ts/subscription/utils';
-import { NODE_FLAGS, SIGNAL_LOCALES } from './declarations';
-import { ReactiveLink } from './link/model';
-import { TEqual } from './types';
+import { LocaleError } from "@ts/locale/error";
+import { TListeners, TValueListener, TValueUnsubscribe } from "@tsr/subscription/types";
+import { ListenerUtils } from "@tsr/subscription/utils";
+import { NODE_FLAGS, SIGNAL_LOCALES } from "./declarations";
+import { ReactiveLink } from "./link/model";
+import { TEqual } from "./types";
+
 
 const { DIRTY, MUST_RECOMPUTE, HAS_VALUE, COMPUTING, QUEUED } = NODE_FLAGS;
 

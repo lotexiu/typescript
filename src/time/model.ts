@@ -1,19 +1,43 @@
-import { field } from '@ts/field/model';
-import { computed } from '@ts/reactive-node/computed/model';
-import { signal } from '@ts/reactive-node/signal/model'
+import { computed } from '@tsr-node/computed/model';
+import { signal } from '@tsr-node/signal/model';
 import { CALENDAR_CELLS } from './declarations';
 import { TCalendarDay } from './types';
+import { field } from '@tsr/field/model';
 
 class Time {
 	// Mutado no lugar pelos `field`s (`setFullYear`, `setMonth`, ...) + `notify()`.
 	readonly #date = signal(new Date());
 
-	readonly year = field(this.#date, (date) => date.getFullYear(), (date, value) => date.setFullYear(value));
-	readonly month = field(this.#date, (date) => date.getMonth(), (date, value) => date.setMonth(value));
-	readonly day = field(this.#date, (date) => date.getDate(), (date, value) => date.setDate(value));
-	readonly hour = field(this.#date, (date) => date.getHours(), (date, value) => date.setHours(value));
-	readonly minutes = field(this.#date, (date) => date.getMinutes(), (date, value) => date.setMinutes(value));
-	readonly seconds = field(this.#date, (date) => date.getSeconds(), (date, value) => date.setSeconds(value));
+	readonly year = field(
+		this.#date,
+		(date) => date.getFullYear(),
+		(date, value) => date.setFullYear(value)
+	);
+	readonly month = field(
+		this.#date,
+		(date) => date.getMonth(),
+		(date, value) => date.setMonth(value)
+	);
+	readonly day = field(
+		this.#date,
+		(date) => date.getDate(),
+		(date, value) => date.setDate(value)
+	);
+	readonly hour = field(
+		this.#date,
+		(date) => date.getHours(),
+		(date, value) => date.setHours(value)
+	);
+	readonly minutes = field(
+		this.#date,
+		(date) => date.getMinutes(),
+		(date, value) => date.setMinutes(value)
+	);
+	readonly seconds = field(
+		this.#date,
+		(date) => date.getSeconds(),
+		(date, value) => date.setSeconds(value)
+	);
 	readonly milliseconds = field(
 		this.#date,
 		(date) => date.getMilliseconds(),

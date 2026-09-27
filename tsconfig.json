@@ -17,6 +17,8 @@
       "@tsn-object/*": ["./src/natives/object/*"],
       "@tsn-string/*": ["./src/natives/string/*"],
       "@tsn-validation/*": ["./src/natives/validation/*"],
+      "@tsr-node/*": ["./src/reactive/reactive-node/*"],
+      "@tsr/*": ["./src/reactive/*"],
       "@tsn/*": ["./src/natives/*"],
       "@ts/*": ["./src/*"]
 		}

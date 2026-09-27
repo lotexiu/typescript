@@ -1,11 +1,10 @@
-import { signal } from '@ts/reactive-node/signal/model'
-import { TSignal } from '@ts/reactive-node/types';
+import { Signal, signal } from '@tsr-node/signal/model';
 import { ThemeStyle } from './style/model';
 import { TThemeMode } from './types';
 
 class Theme {
-	readonly mode: TSignal<TThemeMode>;
-	readonly style: TSignal<ThemeStyle>;
+	readonly mode: Signal<TThemeMode>;
+	readonly style: Signal<ThemeStyle>;
 
 	constructor(initialStyle: ThemeStyle, initialMode: TThemeMode = 'dark') {
 		this.mode = signal(initialMode);

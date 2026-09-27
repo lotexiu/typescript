@@ -1,4 +1,4 @@
-import { TLocaleMap, TLocaleObject } from './types';
+import { TLocaleMap } from './types';
 import { LocaleUtils } from './utils';
 
 class LocaleError<T extends TLocaleMap> extends Error {

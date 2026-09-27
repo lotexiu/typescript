@@ -1,26 +1,20 @@
-import { readonlyValue } from "@ts/readonly-value/model";
+import { readonlyValue } from '@tsr/readonly-value/model';
 
 class TMaskStaticToken {
-	constructor(readonly value: string){}
+	constructor(readonly value: string) {}
 }
 
 class TMaskRuleToken {
-	readonly match = readonlyValue(
-		()=>new RegExp(`^(?:${this.value})$`, this.flags)
-	)
+	readonly match = readonlyValue(() => new RegExp(`^(?:${this.value})$`, this.flags));
 
 	constructor(
 		readonly value: string,
 		readonly min: number,
 		readonly max: number,
-		readonly flags?: string,
-	){}
+		readonly flags?: string
+	) {}
 }
 
-type TMaskToken = TMaskStaticToken | TMaskRuleToken
+type TMaskToken = TMaskStaticToken | TMaskRuleToken;
 
-export {
-	TMaskToken,
-	TMaskStaticToken,
-	TMaskRuleToken,
-}
+export { TMaskToken, TMaskStaticToken, TMaskRuleToken };

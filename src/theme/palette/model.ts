@@ -1,13 +1,12 @@
-import { computed } from '@ts/reactive-node/computed/model';
-import { signal } from '@ts/reactive-node/signal/model'
-import { TSignal } from '@ts/reactive-node/types';
-import Color, { ColorTypes } from 'colorjs.io';
-import { ColorSpace } from 'colorjs.io/fn';
-import { TONE_STOPS } from './declarations';
-import { TToneStop, TToneStops } from './types';
+import { computed } from "@tsr-node/computed/model";
+import { Signal, signal } from "@tsr-node/signal/model";
+import Color, { ColorTypes } from "colorjs.io";
+import { ColorSpace } from "colorjs.io/fn";
+import { TONE_STOPS } from "./declarations";
+import { TToneStop, TToneStops } from "./types";
 
 abstract class Palette {
-	readonly name: TSignal<string>;
+	readonly name: Signal<string>;
 
 	constructor(name: string) {
 		this.name = signal(name);
@@ -67,7 +66,7 @@ class CustomPalette extends Palette {
 }
 
 class TonalPalette<T extends ColorTypes = string> extends Palette {
-	readonly seed: TSignal<T>;
+	readonly seed: Signal<T>;
 	// Refeito quando a semente muda: a semente em oklch + um cache vazio, preenchido tom a tom sob demanda.
 	// Ler `get()` dentro de um computed registra a paleta como dependência (troca de semente o recalcula).
 	readonly #tones = computed(() => ({

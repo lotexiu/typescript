@@ -1,6 +1,6 @@
 import { RegexUtils } from "@tsn/regex/utils";
 import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "../token/model";
-import { readonlyValue } from "@ts/readonly-value/model";
+import { readonlyValue } from "@tsr/readonly-value/model";
 
 class MaskCompiledPattern {
 	validWithMask = readonlyValue(()=>{

@@ -1,6 +1,6 @@
-import { computed } from '@ts/reactive-node/computed/model';
-import { Signal, signal } from '@ts/reactive-node/signal/model'
-import { TIndexedValue } from './types';
+import { computed } from "@tsr-node/computed/model";
+import { Signal, signal } from "@tsr-node/signal/model";
+import { TIndexedValue } from "./types";
 
 class ValueHistory<T> {
 	// Mutado no lugar + `notify()` — sem copiar o array a cada `add`.

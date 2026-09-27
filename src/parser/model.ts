@@ -1,8 +1,8 @@
 import { AhoCorasick } from "@ts/aho-corasick/model";
-import { ParserGate, ParserGap, ParserNode, ParserRoot } from "./node/model";
+import { computed } from "@tsr-node/computed/model";
+import { signal } from "@tsr-node/signal/model";
+import { ParserGap, ParserGate, ParserNode, ParserRoot } from "./node/model";
 import { TGatePatternInfo } from "./types";
-import { computed } from "@ts/reactive-node/computed/model";
-import { signal } from "@ts/reactive-node/signal/model";
 
 class Parser {
 	public readonly text = signal('')

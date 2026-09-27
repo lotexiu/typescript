@@ -1,7 +1,7 @@
 import { AhoCorasick } from "@ts/aho-corasick/model";
 import { ParserGate, ParserNode, ParserRoot } from "@ts/parser/node/model";
 import { SCOPE_KIND_PREFIX } from "./declarations";
-import type { TGateInfo, TLangToken, TLanguageSpec, TLiteralAutomaton, TScanContext } from "./types";
+import { TGateInfo, TLangToken, TLanguageSpec, TLiteralAutomaton, TScanContext } from "./types";
 
 /**
  * Helpers estáticos da `Language` — compilação da espec e tokenização de um escopo. Todas as

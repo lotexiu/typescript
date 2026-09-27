@@ -1,7 +1,8 @@
-import { LocaleError } from '@ts/locale/error';
-import { computed } from '@ts/reactive-node/computed/model';
-import { signal } from '@ts/reactive-node/signal/model'
-import { STOP_WATCH_LOCALES } from './locale';
+import { LocaleError } from "@ts/locale/error";
+import { computed } from "@tsr-node/computed/model";
+import { signal } from "@tsr-node/signal/model";
+import { STOP_WATCH_LOCALES } from "./locale";
+
 
 class StopWatch {
 	#startTime: number = NaN;

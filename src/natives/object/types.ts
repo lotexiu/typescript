@@ -1,5 +1,6 @@
 import { TEquals, TNil, TNullPropagation, TUnkown } from '@ts/types';
 import { TPair } from '@tsn-array/types';
+import { INTERNAL } from './declarations';
 
 type TNonObject =
 	String | Number | Boolean | BigInt | Symbol | null | undefined | Function | readonly any[];
@@ -82,6 +83,11 @@ type TDiff<T, U> =
 		}
 	:	TDiffType<T, U>;
 
+
+type TInternal<T> = {
+	[INTERNAL]: T
+}
+
 export type {
 	TNonObject,
 	TObject,
@@ -101,4 +107,5 @@ export type {
 	TDiffChanged,
 	TDiffType,
 	TDiff,
+	TInternal,
 };

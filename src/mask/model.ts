@@ -1,10 +1,10 @@
-import { REGEX_PATTERNS } from "@tsn/regex/declarations";
-import { TMaskRule } from "./types";
-import { computed } from "@ts/reactive-node/computed/model";
-import { signal } from "@ts/reactive-node/signal/model";
-import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "./token/model";
-import { RegexUtils } from "@tsn/regex/utils";
-import { MaskCompiledPattern } from "./compiled-pattern/model";
+import { REGEX_PATTERNS } from '@tsn/regex/declarations';
+import { RegexUtils } from '@tsn/regex/utils';
+import { computed } from '@tsr-node/computed/model';
+import { signal } from '@tsr-node/signal/model';
+import { MaskCompiledPattern } from './compiled-pattern/model';
+import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from './token/model';
+import { TMaskRule } from './types';
 
 const { DIGITS, LETTERS, SYMBOLS } = REGEX_PATTERNS;
 
@@ -17,7 +17,7 @@ class Mask {
 	static readonly ruleKeys = computed(() => [...Mask.#rules().keys()]);
 	static readonly ruleMatcher = computed(() => {
 		const keys = Mask.ruleKeys().map((key) => RegexUtils.escapeReservedKeys(key));
-		return new RegExp(`(${keys.join("|")})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, "g");
+		return new RegExp(`(${keys.join('|')})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, 'g');
 	});
 
 	static {
@@ -31,15 +31,15 @@ class Mask {
 	static resetRulesToDefault() {
 		const rules = Mask.#rules();
 		rules.clear();
-		rules.set("0", { match: [DIGITS.BASIC] });
-		rules.set("A", { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: "v" });
-		rules.set("W", { match: [LETTERS.EXTENDED.ALL], flags: "v" });
-		rules.set("U", { match: [LETTERS.EXTENDED.UPPERCASE], flags: "v" });
-		rules.set("L", { match: [LETTERS.EXTENDED.LOWERCASE], flags: "v" });
-		rules.set("S", { match: [SYMBOLS.ALL], flags: "v" });
-		rules.set("C", { match: [SYMBOLS.CURRENCY], flags: "v" });
-		rules.set("E", { match: [SYMBOLS.EMOJI], flags: "v" });
-		rules.set("X", { match: ["."], flags: "v" });
+		rules.set('0', { match: [DIGITS.BASIC] });
+		rules.set('A', { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: 'v' });
+		rules.set('W', { match: [LETTERS.EXTENDED.ALL], flags: 'v' });
+		rules.set('U', { match: [LETTERS.EXTENDED.UPPERCASE], flags: 'v' });
+		rules.set('L', { match: [LETTERS.EXTENDED.LOWERCASE], flags: 'v' });
+		rules.set('S', { match: [SYMBOLS.ALL], flags: 'v' });
+		rules.set('C', { match: [SYMBOLS.CURRENCY], flags: 'v' });
+		rules.set('E', { match: [SYMBOLS.EMOJI], flags: 'v' });
+		rules.set('X', { match: ['.'], flags: 'v' });
 		Mask.#rules.notify();
 	}
 
@@ -57,7 +57,7 @@ class Mask {
 		const wholeCached = Mask.#patternCache.get(mask);
 		if (wholeCached) return wholeCached;
 
-		const patterns = mask.split("||");
+		const patterns = mask.split('||');
 		const compiledPatterns: MaskCompiledPattern[] = [];
 
 		for (const pattern of patterns) {
@@ -86,16 +86,16 @@ class Mask {
 				maskPos = match.index + match[0].length;
 
 				const ruleToken = new TMaskRuleToken(
-					rule.match.join("|"),
+					rule.match.join('|'),
 					question ? 0
 					: star ? 0
 					: Number(min),
 					question ? 1
 					: star ? Infinity
 					: max === undefined ? Number(min)
-					: max === "" ? Infinity
+					: max === '' ? Infinity
 					: Number(max),
-					rule.flags,
+					rule.flags
 				);
 				tokens.push(ruleToken);
 				ruleTokens.push(ruleToken);
@@ -107,7 +107,13 @@ class Mask {
 				staticTokens.push(staticToken);
 			}
 			/* Compiled Pattern */
-			const compiledPattern = new MaskCompiledPattern(pattern, tokens, ruleTokens, staticTokens, [...flags.values()].join(""));
+			const compiledPattern = new MaskCompiledPattern(
+				pattern,
+				tokens,
+				ruleTokens,
+				staticTokens,
+				[...flags.values()].join('')
+			);
 			Mask.#cache.set(pattern, compiledPattern);
 			compiledPatterns.push(compiledPattern);
 		}
@@ -118,11 +124,11 @@ class Mask {
 	static apply(value: string, mask: string) {
 		const raw = Mask.unapply(value, mask);
 		const rawChars = RegexUtils.hasAstralChar(raw) ? [...raw] : null;
-		let best = "";
+		let best = '';
 
 		for (const pattern of Mask.#compile(mask)) {
-			let formatted = "";
-			let pendingLiteral = "";
+			let formatted = '';
+			let pendingLiteral = '';
 			let index = 0;
 			let truncated = false;
 
@@ -131,24 +137,26 @@ class Mask {
 					pendingLiteral += token.value;
 					continue;
 				}
-				if (index >= (rawChars??raw).length) {
-					truncated = true
-					break
+				if (index >= (rawChars ?? raw).length) {
+					truncated = true;
+					break;
 				}
-				const takenChars = (rawChars??raw).slice(index, index + token.max)
-				formatted += pendingLiteral + (typeof takenChars == 'string' ? takenChars : (takenChars as string[]).join(''))
-				pendingLiteral = ''
-				index += takenChars.length
+				const takenChars = (rawChars ?? raw).slice(index, index + token.max);
+				formatted +=
+					pendingLiteral +
+					(typeof takenChars == 'string' ? takenChars : (takenChars as string[]).join(''));
+				pendingLiteral = '';
+				index += takenChars.length;
 			}
-			if (!truncated) formatted += pendingLiteral
-			if (formatted.length > best.length) best = formatted
+			if (!truncated) formatted += pendingLiteral;
+			if (formatted.length > best.length) best = formatted;
 		}
 
 		return best;
 	}
 
 	static unapply(value: string, mask: string) {
-		let best = "";
+		let best = '';
 		const chars = RegexUtils.hasAstralChar(value) ? [...value] : value;
 
 		for (const pattern of Mask.#compile(mask)) {
@@ -157,12 +165,12 @@ class Mask {
 
 			let ruleIndex = 0;
 			let count = 0;
-			let raw = "";
+			let raw = '';
 
 			for (let i = 0; i < chars.length && ruleIndex < ruleTokens.length; i++) {
 				const char = chars[i];
 				const rule = ruleTokens[ruleIndex];
-				if (!rule.match.value.test(char)) continue;
+				if (!rule.match().test(char)) continue;
 
 				raw += char;
 				if (++count >= rule.max) {
@@ -178,11 +186,11 @@ class Mask {
 	}
 
 	static valid(value: string, mask: string): boolean {
-		return Mask.#compile(mask).some((pattern) => pattern.validWithMask.value.test(value));
+		return Mask.#compile(mask).some((pattern) => pattern.validWithMask().test(value));
 	}
 
 	static validWithoutMask(value: string, mask: string): boolean {
-		return Mask.#compile(mask).some((pattern) => pattern.validWithoutMask.value.test(value));
+		return Mask.#compile(mask).some((pattern) => pattern.validWithoutMask().test(value));
 	}
 }
 

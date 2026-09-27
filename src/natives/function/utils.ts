@@ -2,10 +2,8 @@ import { Timeout } from '@tsn-class/declarations';
 import {
 	TDebounceFn,
 	TFn,
-	TFnDeclaration,
 	TMemoizeFn,
 	TOnceFn,
-	TParameters,
 	TScheduleOnceFn,
 	TStepFn,
 	TThrottleFn,
@@ -33,14 +31,19 @@ class FunctionUtils {
 	}
 
 	/** Delays calling `fn` until `delay` ms have passed with no further calls — each call reschedules with the latest arguments. */
-	static debounce<Args extends any[]>(fn: TFn<Args>, delay: number = 50): TDebounceFn<Args> {
+	static debounce<Args extends any[]>(
+		fn: TFn<Args>,
+		delay: number | TFn<[], number>
+	): TDebounceFn<Args> {
 		let timeoutId: Timeout | undefined;
 		function handler(this: any, ...args: Args) {
-			if (timeoutId !== undefined) clearTimeout(timeoutId);
+			handler.clear();
+			const ms = typeof delay === 'number' ? delay : delay();
+			if (ms === 0) return fn.apply(this, args);
 			timeoutId = setTimeout(() => {
 				timeoutId = undefined;
 				fn.apply(this, args);
-			}, delay);
+			}, ms);
 		}
 		handler.clear = () => {
 			if (timeoutId !== undefined) clearTimeout(timeoutId);

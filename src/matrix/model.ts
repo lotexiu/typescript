@@ -1,5 +1,5 @@
-import { computed } from '@ts/reactive-node/computed/model';
-import { signal } from '@ts/reactive-node/signal/model'
+import { computed } from '@tsr-node/computed/model';
+import { signal } from '@tsr-node/signal/model';
 import { TMatrixBuffer, TMatrixBufferCtor } from './types';
 
 class Matrix<T> {
