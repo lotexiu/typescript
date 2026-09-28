@@ -9,13 +9,13 @@ class DateUtils {
 
 	static set(date: Date, value: TDateSetValue) {
 		const { year, month, day, hour, minute, second, millisecond } = value;
-		if (year) date.setFullYear(year);
-		if (month) date.setMonth(month);
-		if (day) date.setDate(day);
-		if (hour) date.setHours(hour);
-		if (minute) date.setMinutes(minute);
-		if (second) date.setSeconds(second);
-		if (millisecond) date.setMilliseconds(millisecond);
+		if (year !== undefined) date.setFullYear(year);
+		if (month !== undefined) date.setMonth(month);
+		if (day !== undefined) date.setDate(day);
+		if (hour !== undefined) date.setHours(hour);
+		if (minute !== undefined) date.setMinutes(minute);
+		if (second !== undefined) date.setSeconds(second);
+		if (millisecond !== undefined) date.setMilliseconds(millisecond);
 		return date;
 	}
 

@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-100 arquivos, 413 declarações top-level.
+104 arquivos, 429 declarações top-level.
 
 ---
 ## src/types.ts
@@ -977,6 +977,10 @@ Compares two single-digit literal types: `-1` (`A < B`), `0` (equal), or `1` (`A
 
 #### `NumberUtils` — class _(exported, L4)_
 
+## src/natives/object/declarations.ts
+
+#### `INTERNAL` — const _(exported, L1)_
+
 ## src/natives/object/types.native.ts
 
 #### `TRequired` — type _(exported, L9)_
@@ -1011,57 +1015,59 @@ Makes all properties of T optional.
 
 ## src/natives/object/types.ts
 
-#### `TNonObject` — type _(exported, L4)_
+#### `TNonObject` — type _(exported, L5)_
 
-#### `TObject` — type _(exported, L8)_
+#### `TObject` — type _(exported, L9)_
 
 `T` narrowed to plain-object shapes only — `never` for functions, arrays, or non-objects.
 
-#### `TIterKeyType` — type _(exported, L10)_
+#### `TIterKeyType` — type _(exported, L11)_
 
-#### `TIterate` — type _(exported, L13)_
+#### `TIterate` — type _(exported, L14)_
 
 Keys of `T` that are iterable (string or number).
 
-#### `TKeyOf` — type _(exported, L16)_
+#### `TKeyOf` — type _(exported, L17)_
 
-#### `TRecord` — type _(exported, L19)_
+#### `TRecord` — type _(exported, L20)_
 
 Builds an object type from a union of `[key, value]` tuples — the inverse of `TEntriesReturn`.
 
-#### `TCommonFields` — type _(exported, L24)_
+#### `TCommonFields` — type _(exported, L25)_
 
 The subset of `T`'s fields whose keys also exist on `U`.
 
-#### `TKeysType` — type _(exported, L26)_
+#### `TKeysType` — type _(exported, L27)_
 
-#### `TMethodKey` — type _(exported, L30)_
+#### `TMethodKey` — type _(exported, L31)_
 
-#### `TDeepPartial` — type _(exported, L33)_
+#### `TDeepPartial` — type _(exported, L34)_
 
 `T` with every nested property (recursively) made optional.
 
-#### `TPath` — type _(exported, L42)_
+#### `TPath` — type _(exported, L43)_
 
 Every valid dot-separated path string into `T`, including nested object paths — used to type `valueFromPath`/`setValueFromPath`.
 
-#### `TPathValue` — type _(exported, L50)_
+#### `TPathValue` — type _(exported, L51)_
 
 Resolves the type found at a dot-separated `Path` string into `T` (the return type of `valueFromPath`).
 
-#### `TEntriesReturn` — type _(exported, L64)_
+#### `TEntriesReturn` — type _(exported, L65)_
 
 The array of `[key, value]` tuples `Object.entries(value)` would produce for `T` — the return type of `ObjectUtils.entries`.
 
-#### `TDiffAdd` — type _(exported, L68)_
+#### `TDiffAdd` — type _(exported, L69)_
 
-#### `TDiffRemoved` — type _(exported, L69)_
+#### `TDiffRemoved` — type _(exported, L70)_
 
-#### `TDiffChanged` — type _(exported, L70)_
+#### `TDiffChanged` — type _(exported, L71)_
 
-#### `TDiffType` — type _(exported, L72)_
+#### `TDiffType` — type _(exported, L73)_
 
-#### `TDiff` — type _(exported, L78)_
+#### `TDiff` — type _(exported, L79)_
+
+#### `TInternal` — type _(exported, L87)_
 
 ## src/natives/object/utils.ts
 
@@ -1151,19 +1157,51 @@ Reverses a string literal type character by character.
 
 ## src/reactive/utils.ts
 
-#### `ReactiveUtils` — class _(exported, L6)_
+#### `ReactiveUtils` — class _(exported, L7)_
+
+## src/reactive/bit-flag/model.ts
+
+#### `disable` — const _(local, L6)_
+
+#### `disabled` — const _(local, L6)_
+
+#### `enable` — const _(local, L6)_
+
+#### `enabled` — const _(local, L6)_
+
+#### `toggle` — const _(local, L6)_
+
+#### `reset` — const _(local, L6)_
+
+#### `bitFlag` — function _(exported, L8)_
+
+#### `BitFlag` — type _(exported, L21)_
+
+#### `BitFlag` — const _(exported, L30)_
+
+## src/reactive/bit-flag/utils.ts
+
+#### `BitFlagUtils` — class _(exported, L3)_
 
 ## src/reactive/field/model.ts
 
-#### `field` — function _(exported, L5)_
+#### `field` — function _(exported, L9)_
+
+#### `Field` — type _(exported, L21)_
+
+#### `Field` — const _(exported, L25)_
 
 ## src/reactive/field/types.ts
 
-#### `TFieldGet` — type _(exported, L4)_
+#### `TFieldGet` — type _(exported, L5)_
 
-#### `TFieldSet` — type _(exported, L6)_
+#### `TFieldSet` — type _(exported, L7)_
 
 #### `TField` — type _(exported, L9)_
+
+## src/reactive/field/utils.ts
+
+#### `FieldUtils` — class _(exported, L4)_
 
 ## src/reactive/reactive-node/declarations.ts
 
@@ -1219,7 +1257,7 @@ Reverses a string literal type character by character.
 
 ## src/reactive/reactive-node/utils.ts
 
-#### `ReactiveNodeUtils` — class _(exported, L9)_
+#### `ReactiveNodeUtils` — class _(exported, L10)_
 
 - `@internal`
 
@@ -1283,9 +1321,11 @@ Reverses a string literal type character by character.
 
 ## src/reactive/variant/model.ts
 
-#### `Variant` — class _(exported, L8)_
+#### `variant` — function _(exported, L6)_
 
-#### `variant` — function _(exported, L62)_
+#### `Variant` — type _(exported, L13)_
+
+#### `Variant` — const _(exported, L17)_
 
 ## src/reactive/variant/types.ts
 

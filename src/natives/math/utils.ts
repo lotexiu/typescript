@@ -22,17 +22,17 @@ class MathUtils {
 
 	static sum(...values: number[]): number {
 		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
-		return values.reduce((acc, val) => acc + val * scale) / scale;
+		return values.map((val) => val * scale).reduce((acc, val) => acc + val) / scale;
 	}
 
 	static subtract(...values: number[]): number {
 		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
-		return values.reduce((acc, val) => acc - val * scale) / scale;
+		return values.map((val) => val * scale).reduce((acc, val) => acc - val) / scale;
 	}
 
 	static multiply(...values: number[]): number {
 		const scale = Math.max(...values.map(NumberUtils.getScaleToInt));
-		return values.reduce((acc, val) => acc * (val * scale)) / scale ** values.length;
+		return values.map((val) => val * scale).reduce((acc, val) => acc * val) / scale ** values.length;
 	}
 
 	static divide(...values: number[]): number {

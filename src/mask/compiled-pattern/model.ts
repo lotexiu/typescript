@@ -4,14 +4,14 @@ import { readonlyValue } from "@tsr/readonly-value/model";
 
 class MaskCompiledPattern {
 	validWithMask = readonlyValue(()=>{
-		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken 
-			? `${token.value}{${token.min},${token.max}}` 
+		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken
+			? `(?:${token.value}){${token.min},${token.max}}`
 			: `${RegexUtils.escapeReservedKeys(token.value)}`
 		).join('')+'$', this.flags)
 	})
 	validWithoutMask = readonlyValue(()=>{
-		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken 
-			? `${token.value}{${token.min},${token.max}}` : ``
+		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken
+			? `(?:${token.value}){${token.min},${token.max}}` : ``
 		).join('')+'$', this.flags)
 	})
 

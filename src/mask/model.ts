@@ -99,7 +99,7 @@ class Mask {
 				);
 				tokens.push(ruleToken);
 				ruleTokens.push(ruleToken);
-				rule.flags?.forEach((flag) => flags.add(flag));
+				for (const flag of rule.flags ?? '') flags.add(flag);
 			}
 			if (maskPos < pattern.length) {
 				const staticToken = new TMaskStaticToken(pattern.slice(maskPos));
@@ -144,7 +144,7 @@ class Mask {
 				const takenChars = (rawChars ?? raw).slice(index, index + token.max);
 				formatted +=
 					pendingLiteral +
-					(typeof takenChars == 'string' ? takenChars : (takenChars as string[]).join(''));
+					(typeof takenChars === 'string' ? takenChars : (takenChars as string[]).join(''));
 				pendingLiteral = '';
 				index += takenChars.length;
 			}

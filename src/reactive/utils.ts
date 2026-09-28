@@ -5,9 +5,13 @@ import { TReactive } from '@tsr-node/types';
 import { bitFlag } from './bit-flag/model';
 
 class ReactiveUtils {
-	static external<T>(initial: T, process: Computed<T>, debounce?: TReactive<number>) {
+	static inputProcess<T, V>(
+		initial: T,
+		process: Computed<V>,
+		debounce?: TReactive<number> | number
+	) {
 		const input = signal(initial);
-		const value = signal(initial);
+		const value = signal(process());
 
 		if (debounce) {
 			input.subscribe(
@@ -25,10 +29,32 @@ class ReactiveUtils {
 
 		return {
 			input,
-			value,
 			output,
+			value,
 		};
 	}
 }
 
+/*  Ainda pensando...
+function component<T, V>(initial: T, process: Computed<V>, debounce?: TReactive<number> | number) {
+	const state = bitFlag('disabled', 'focused', 'hovered', 'pressing');
+	const { flags } = state;
+
+	const { input, output, value } = ReactiveUtils.inputProcess(
+		initial,
+		computed((): V => {
+			if (state.enabled(flags.disabled)) return value();
+			return process();
+		}),
+		debounce
+	);
+
+	return {
+		state,
+		input,
+		output,
+		value,
+	};
+}
+ */
 export { ReactiveUtils };

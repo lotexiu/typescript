@@ -59,11 +59,11 @@ class StringUtils {
 	}
 
 	static padRight(str: string, padChar: string, length: number): string {
-		return str + padChar.repeat(length - str.length);
+		return str + padChar.repeat(Math.max(0, length - str.length));
 	}
 
 	static padLeft(str: string, padChar: string, length: number): string {
-		return padChar.repeat(length - str.length) + str;
+		return padChar.repeat(Math.max(0, length - str.length)) + str;
 	}
 
 	static noAccent(str: string): string {
@@ -171,23 +171,23 @@ class StringUtils {
 
 	static isLineBreak(char: string): boolean {
 		const code = char.charCodeAt(0);
-		return code == StringUtils.NEWLINE_CODE || code == StringUtils.CARRIAGE_RETURN_CODE;
+		return code === StringUtils.NEWLINE_CODE || code === StringUtils.CARRIAGE_RETURN_CODE;
 	}
 
 	static isTab(char: string): boolean {
-		return char.charCodeAt(0) == StringUtils.TAB_CODE;
+		return char.charCodeAt(0) === StringUtils.TAB_CODE;
 	}
 
 	static isCarriageReturn(char: string): boolean {
-		return char.charCodeAt(0) == StringUtils.CARRIAGE_RETURN_CODE;
+		return char.charCodeAt(0) === StringUtils.CARRIAGE_RETURN_CODE;
 	}
 
 	static isFormFeed(char: string): boolean {
-		return char.charCodeAt(0) == StringUtils.FORM_FEED_CODE;
+		return char.charCodeAt(0) === StringUtils.FORM_FEED_CODE;
 	}
 
 	static isVerticalTab(char: string): boolean {
-		return char.charCodeAt(0) == StringUtils.VERTICAL_TAB_CODE;
+		return char.charCodeAt(0) === StringUtils.VERTICAL_TAB_CODE;
 	}
 
 	static isMathOperator(char: string): boolean {
@@ -269,7 +269,7 @@ class StringUtils {
 	}
 
 	static isEscape(char: string): char is '\\' {
-		return char.charCodeAt(0) == StringUtils.ESCAPE_CODE;
+		return char.charCodeAt(0) === StringUtils.ESCAPE_CODE;
 	}
 
 	static forEach(str: string, callback: TStrForEeachCallback) {

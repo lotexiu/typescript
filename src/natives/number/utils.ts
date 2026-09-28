@@ -14,7 +14,7 @@ class NumberUtils {
 
 	static getDecimals(value: number): number {
 		NumberUtils.assertFinite(value);
-		return value % 1;
+		return Math.abs(value % 1);
 	}
 
 	static getScaleToInt(value: number): number {

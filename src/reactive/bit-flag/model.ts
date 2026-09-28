@@ -6,8 +6,8 @@ import { BitFlagUtils } from './utils';
 const { disable, disabled, enable, enabled, toggle, reset } = BitFlagUtils;
 
 function bitFlag<T extends string[]>(...keys: T) {
-	const flags = bitEnum('NONE', ...keys);
-	const instance = signal(flags.NONE) as BitFlag<T[number]>;
+	const flags = bitEnum('none', ...keys);
+	const instance = signal(flags.none) as BitFlag<T[number]>;
 	instance.toggle = toggle;
 	instance.disable = disable;
 	instance.enable = enable;
@@ -22,10 +22,10 @@ type BitFlag<T> = Signal<number> & {
 	toggle: (...flags: number[]) => void;
 	disable: (...flags: number[]) => void;
 	enable: (...flags: number[]) => void;
-	enabled: (some: boolean, ...flags: number[]) => boolean;
-	disabled: (some: boolean, ...flags: number[]) => boolean;
+	enabled: (...flags: number[]) => boolean;
+	disabled: (...flags: number[]) => boolean;
 	reset: () => void;
-	flags: TRecord<['NONE' | T, number]>;
+	flags: TRecord<['none' | T, number]>;
 };
 const BitFlag = {
 	[Symbol.hasInstance](instance: any) {

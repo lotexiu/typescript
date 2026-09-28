@@ -24,7 +24,7 @@ class ObjectUtils {
 	>(obj: T, path: Path, value: Value): Value {
 		const keys: string[] = String(path).split('.');
 		keys.reduce((acc: any, key: string, idx: number): any => {
-			if (idx == keys.length - 1) {
+			if (idx === keys.length - 1) {
 				acc[key] = value;
 			}
 			return acc[key];
@@ -37,7 +37,7 @@ class ObjectUtils {
 	}
 
 	static isNullOrUndefined<T>(value: TNullable<T>): value is TNullable {
-		return value == null || value == undefined;
+		return value === null || value === undefined;
 	}
 
 	static isObject(value: any): value is Object {
@@ -84,7 +84,7 @@ class ObjectUtils {
 				result[key] = ['ADDED', bVal];
 				continue;
 			}
-			if (aVal == bVal) continue;
+			if (aVal === bVal) continue;
 			if (isObject(aVal) && isObject(bVal)) {
 				result[key] = ObjectUtils.diff(aVal, bVal);
 				continue;
