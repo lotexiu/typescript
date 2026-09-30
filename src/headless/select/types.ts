@@ -1,8 +1,9 @@
 import { Computed } from '@tsr-node/computed/model';
 import { Signal } from '@tsr-node/signal/model';
 import { TReactive } from '@tsr-node/types';
-import { TActiveIndex } from '@ts/composables/active-index/types';
-import { TSelection, TSelectionMode } from '@ts/composables/selection/types';
+import { TActiveIndex } from '@tsr/active-index/types';
+import { Selection } from '@tsr/selection/model';
+import { TSelectionMode } from '@tsr/selection/types';
 import { Toggle } from '@tsr/toggle/model';
 
 type TSelectConfig<T, K> = {
@@ -28,13 +29,13 @@ type TSelect<T, K> = {
 	loading: Signal<boolean>;
 	error: Signal<unknown>;
 	active: TActiveIndex;
-	selection: TSelection<K>;
+	selection: Selection<K>;
 	selectedItems: Computed<T[]>;
 	/** Convenience for single-select UIs: `selectedItems()[0]`. */
 	selectedItem: Computed<T | undefined>;
 	/** Toggles the item's selection, clears `query`, and closes `open` in single mode. */
 	selectOption(item: T): void;
-	/** Selects whatever `active.index` currently points to in `options()`, if any. */
+	/** Selects whatever `active()` currently points to in `options()`, if any. */
 	activateAndSelect(): void;
 	/** Multi mode "select all" master checkbox: true when every currently visible `options()` is selected. */
 	optionsAllSelected: Computed<boolean>;

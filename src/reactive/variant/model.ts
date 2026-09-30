@@ -15,8 +15,9 @@ type Variant<K, V> = Computed<V> & {
 	derive: TVariantDerive<K, V>;
 };
 const Variant = {
-	[Symbol.hasInstance]: (value: any): boolean =>
-		value instanceof Computed && value.key instanceof Signal,
+	[Symbol.hasInstance](instance: any): instance is Variant<any, any> {
+		return instance.key instanceof Signal && instance instanceof Computed;
+	},
 };
 
 export { variant, Variant };

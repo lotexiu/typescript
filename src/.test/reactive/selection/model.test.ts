@@ -1,25 +1,26 @@
 import { describe, it, expect, vi } from 'vitest';
-import { selection } from '@ts/composables/selection/model';
+import { selection, Selection } from '@tsr/selection/model';
+import { Signal, signal } from '@tsr-node/signal/model';
 
 describe('selection (single mode)', () => {
 	it('starts with no selected keys', () => {
 		const s = selection<number>();
-		expect(s.keys()).toEqual(new Set());
+		expect(s()).toEqual(new Set());
 	});
 
 	it('select() replaces any previously selected key', () => {
 		const s = selection<number>('single');
 		s.select(1);
 		s.select(2);
-		expect(s.keys()).toEqual(new Set([2]));
+		expect(s()).toEqual(new Set([2]));
 	});
 
 	it('toggle() selects an unselected key and deselects an already-selected one', () => {
 		const s = selection<number>('single');
 		s.toggle(1);
-		expect(s.keys()).toEqual(new Set([1]));
+		expect(s()).toEqual(new Set([1]));
 		s.toggle(1);
-		expect(s.keys()).toEqual(new Set());
+		expect(s()).toEqual(new Set());
 	});
 });
 
@@ -28,7 +29,7 @@ describe('selection (multi mode)', () => {
 		const s = selection<number>('multi');
 		s.select(1);
 		s.select(2);
-		expect(s.keys()).toEqual(new Set([1, 2]));
+		expect(s()).toEqual(new Set([1, 2]));
 	});
 
 	it('deselect() removes only the given key', () => {
@@ -36,21 +37,21 @@ describe('selection (multi mode)', () => {
 		s.select(1);
 		s.select(2);
 		s.deselect(1);
-		expect(s.keys()).toEqual(new Set([2]));
+		expect(s()).toEqual(new Set([2]));
 	});
 
 	it('selectAll() replaces the whole set with the given keys', () => {
 		const s = selection<number>('multi');
 		s.select(9);
 		s.selectAll([1, 2, 3]);
-		expect(s.keys()).toEqual(new Set([1, 2, 3]));
+		expect(s()).toEqual(new Set([1, 2, 3]));
 	});
 
 	it('clear() empties the set', () => {
 		const s = selection<number>('multi');
 		s.selectAll([1, 2, 3]);
 		s.clear();
-		expect(s.keys()).toEqual(new Set());
+		expect(s()).toEqual(new Set());
 	});
 });
 
@@ -81,23 +82,23 @@ describe('selection "select all" helpers (multi mode)', () => {
 		const s = selection<number>('multi');
 		s.select(1);
 		s.toggleAll([1, 2, 3]);
-		expect(s.keys()).toEqual(new Set([1, 2, 3]));
+		expect(s()).toEqual(new Set([1, 2, 3]));
 	});
 
 	it('toggleAll() deselects the universe when all of it is already selected', () => {
 		const s = selection<number>('multi');
 		s.selectAll([1, 2, 3]);
 		s.toggleAll([1, 2, 3]);
-		expect(s.keys()).toEqual(new Set());
+		expect(s()).toEqual(new Set());
 	});
 
 	it('toggleAll() leaves keys outside the universe untouched', () => {
 		const s = selection<number>('multi');
 		s.select(99);
 		s.toggleAll([1, 2, 3]);
-		expect(s.keys()).toEqual(new Set([99, 1, 2, 3]));
+		expect(s()).toEqual(new Set([99, 1, 2, 3]));
 		s.toggleAll([1, 2, 3]);
-		expect(s.keys()).toEqual(new Set([99]));
+		expect(s()).toEqual(new Set([99]));
 	});
 });
 
@@ -105,7 +106,7 @@ describe('selection notifications', () => {
 	it('notifies subscribers on a real change', () => {
 		const s = selection<number>('multi');
 		const listener = vi.fn();
-		s.keys.subscribe(listener);
+		s.subscribe(listener);
 		s.select(1);
 		expect(listener).toHaveBeenCalledTimes(1);
 	});
@@ -113,7 +114,7 @@ describe('selection notifications', () => {
 	it('does not notify when deselect() targets a key that was not selected', () => {
 		const s = selection<number>('multi');
 		const listener = vi.fn();
-		s.keys.subscribe(listener);
+		s.subscribe(listener);
 		s.deselect(999);
 		expect(listener).not.toHaveBeenCalled();
 	});
@@ -121,8 +122,17 @@ describe('selection notifications', () => {
 	it('does not notify when clear() runs on an already-empty selection', () => {
 		const s = selection<number>('multi');
 		const listener = vi.fn();
-		s.keys.subscribe(listener);
+		s.subscribe(listener);
 		s.clear();
 		expect(listener).not.toHaveBeenCalled();
+	});
+});
+
+describe('selection shape', () => {
+	it('is itself a Signal of the key Set, recognised by instanceof Selection', () => {
+		const s = selection<number>('multi');
+		expect(s instanceof Signal).toBe(true);
+		expect(s instanceof Selection).toBe(true);
+		expect(signal(new Set()) instanceof Selection).toBe(false);
 	});
 });

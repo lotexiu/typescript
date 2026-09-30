@@ -1,14 +1,5 @@
 import { Signal, signal } from '@tsr-node/signal/model';
 import { TEqual } from '@tsr-node/types';
-import { ToggleUtils } from './utils';
-
-function toggle(initial = false, equal?: TEqual<boolean>): Toggle {
-	const instance = signal(initial, equal) as Toggle;
-	instance.on = ToggleUtils.on;
-	instance.off = ToggleUtils.off;
-	instance.toggle = ToggleUtils.toggle;
-	return instance;
-}
 
 type Toggle = Signal<boolean> & {
 	on(): void;
@@ -16,8 +7,31 @@ type Toggle = Signal<boolean> & {
 	toggle(): void;
 };
 const Toggle = {
-	[Symbol.hasInstance]: (value: any): boolean =>
-		value instanceof Signal && value.toggle === ToggleUtils.toggle,
+	[Symbol.hasInstance](instance: any): instance is Toggle {
+		return instance.toggle === Toggle.toggle && instance instanceof Signal;
+	},
+
+	on(this: Signal<boolean>): void {
+		this.set(true);
+	},
+
+	off(this: Signal<boolean>): void {
+		this.set(false);
+	},
+
+	toggle(this: Signal<boolean>): void {
+		this.update((value) => !value);
+	},
 };
+
+const { on, off, toggle: toggleFn } = Toggle;
+
+function toggle(initial = false, equal?: TEqual<boolean>): Toggle {
+	const instance = signal(initial, equal) as Toggle;
+	instance.on = on;
+	instance.off = off;
+	instance.toggle = toggleFn;
+	return instance;
+}
 
 export { toggle, Toggle };

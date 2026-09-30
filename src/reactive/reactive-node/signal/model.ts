@@ -27,7 +27,9 @@ type Signal<T> = TReactive<T> & {
 const Signal = {
 	batch: <R>(fn: () => R): R => ReactiveNode.batch(fn),
 	untracked: <R>(fn: () => R): R => ReactiveNode.untracked(fn),
-	[Symbol.hasInstance]: (value: any): boolean => typeof value === 'function' && value.set === set,
+	[Symbol.hasInstance](instance: any): instance is Signal<any> {
+		return typeof instance === 'function' && instance.set === set;
+	},
 };
 
 export { Signal, signal };

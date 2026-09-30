@@ -16,8 +16,9 @@ function computed<T>(compute: () => T, equal?: TEqual<T>): Computed<T> {
 
 type Computed<T> = TReactive<T>;
 const Computed = {
-	[Symbol.hasInstance]: (value: any): boolean =>
-		typeof value === 'function' && value[NODE] !== undefined && value.set !== set,
+	[Symbol.hasInstance](instance: any): instance is Computed<any> {
+		return typeof instance === 'function' && instance[NODE] !== undefined && instance.set !== set;
+	},
 };
 
 export { Computed, computed };

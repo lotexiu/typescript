@@ -1,6 +1,6 @@
 import { computed } from '@tsr-node/computed/model';
 import { signal } from '@tsr-node/signal/model';
-import { debouncedValue } from '@ts/composables/debounced-value/model';
+import { debouncedValue } from '@tsr/debounced-value/model';
 import { Mask } from '@ts/mask/model';
 import { toggle } from '@tsr/toggle/model';
 import { TInputField, TInputFieldConfig } from './types';
@@ -22,7 +22,7 @@ function inputField<T = string>(config: TInputFieldConfig<T> = {}): TInputField<
 	const value = computed(() => parse(raw()));
 
 	const committed = debouncedValue(value(), debounce);
-	value.subscribe((next) => committed.value.set(next));
+	value.subscribe((next) => committed.set(next));
 
 	function setText(next: string): void {
 		// `Mask.apply` unapplies internally first, so it's safe to feed it text that already
