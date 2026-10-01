@@ -92,6 +92,10 @@ type TMemoizeFn<Args extends any[], Return> = TFn<Args, Return> & {
 	cache: Map<string, any>;
 };
 
+type TLazy<T> = (() => T) | T;
+
+type TUpdateFn<T> = TFn<[value: T], T>;
+
 export {
 	TFn,
 	TFnDeclaration,
@@ -112,4 +116,6 @@ export {
 	TOnceFn,
 	TScheduleOnceFn,
 	TMemoizeFn,
+	TLazy,
+	TUpdateFn,
 };

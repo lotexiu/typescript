@@ -1,6 +1,7 @@
+import { TReactiveSet, TReactiveUpdate } from '@tsr/types';
 import { NODE } from '../declarations';
 import { ReactiveNode } from '../model';
-import { TEqual, TReactive, TWithNode } from '../types';
+import { TEqual, TReactive } from '../types';
 import { ReactiveNodeUtils } from '../utils';
 
 const { set, update, notify, subscribe, dispose } = ReactiveNodeUtils;
@@ -20,8 +21,8 @@ function signal<T>(initial?: T, equal?: TEqual<T | undefined>): Signal<T | undef
 }
 
 type Signal<T> = TReactive<T> & {
-	set(next: T): boolean;
-	update(fn: (value: T) => T): boolean;
+	set: TReactiveSet<T>;
+	update: TReactiveUpdate<T>;
 	notify(): void;
 };
 const Signal = {

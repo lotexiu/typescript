@@ -165,6 +165,10 @@ class FunctionUtils {
 		};
 		return handler;
 	}
+
+	static toFunction<T>(value: () => T | T): () => T {
+		return typeof value == 'function' ? value : () => value;
+	}
 }
 
 export { FunctionUtils };

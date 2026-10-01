@@ -2,10 +2,11 @@ import { Computed, computed } from '@tsr-node/computed/model';
 import { Signal } from '@tsr-node/signal/model';
 import { TField, TFieldGet, TFieldSet } from './types';
 import { INTERNAL } from '@tsn-object/declarations';
+import { TReactiveSet, TReactiveUpdate } from '@tsr/types';
 
 type Field<V> = Computed<V> & {
-	set(value: V): boolean;
-	update(fn: (value: V) => V): boolean;
+	set: TReactiveSet<V>;
+	update: TReactiveUpdate<V>;
 };
 const Field = {
 	[Symbol.hasInstance](instance: any): instance is Field<any> {
