@@ -2,6 +2,7 @@ import { Timeout } from '@tsn-class/declarations';
 import {
 	TDebounceFn,
 	TFn,
+	TLazy,
 	TMemoizeFn,
 	TOnceFn,
 	TScheduleOnceFn,
@@ -33,7 +34,7 @@ class FunctionUtils {
 	/** Delays calling `fn` until `delay` ms have passed with no further calls — each call reschedules with the latest arguments. */
 	static debounce<Args extends any[]>(
 		fn: TFn<Args>,
-		delay: number | TFn<[], number>
+		delay: TLazy<number>
 	): TDebounceFn<Args> {
 		let timeoutId: Timeout | undefined;
 		function handler(this: any, ...args: Args) {

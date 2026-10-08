@@ -1,7 +1,8 @@
+import { TLazy } from '@tsn-function/types';
 import { FunctionUtils } from '@tsn-function/utils';
 import { Computed, computed } from '@tsr-node/computed/model';
 import { Signal, signal } from '@tsr-node/signal/model';
-import { TEqual, TReactive } from '@tsr-node/types';
+import { TEqual } from '@tsr-node/types';
 
 /**
  * A signal for the live value, with `debounced` holding the last value that
@@ -18,7 +19,7 @@ const DebouncedValue = {
 
 function debouncedValue<T>(
 	initial: T,
-	delay: TReactive<number> | number,
+	delay: TLazy<number>,
 	equal?: TEqual<T>
 ): DebouncedValue<T> {
 	const instance = signal(initial, equal) as DebouncedValue<T>;

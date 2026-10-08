@@ -1,8 +1,7 @@
 import { signal } from '@tsr-node/signal/model';
-import { TSelection, TSelectionMode } from './types';
+import { TSelection } from './types';
 import { INTERNAL } from '@tsn-object/declarations';
 import { computed, Computed } from '@tsr-node/computed/model';
-import { TLazy } from '@tsn-function/types';
 
 type Selection<T> = Computed<T[]> & {
 	has: (...values: T[]) => boolean;
@@ -50,7 +49,7 @@ const Selection = {
 
 const { has, select, deselect, toggle, clear } = Selection;
 
-function selection<T>(mode: TLazy<TSelectionMode> = 'single', initial: Iterable<T> = []) {
+function selection<T>(initial: Iterable<T> = []) {
 	const internal = signal<Set<T>>(new Set([...initial]));
 	const instance = computed<T[]>(() => [...internal()]) as TSelection<T>;
 	instance.has = has;
