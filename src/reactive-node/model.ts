@@ -1,6 +1,6 @@
 import { LocaleError } from "@ts/locale/error";
-import { TListeners, TValueListener, TValueUnsubscribe } from "@tsr/subscription/types";
-import { ListenerUtils } from "@tsr/subscription/utils";
+import { TListeners, TValueListener, TValueUnsubscribe } from "@ts/composables/subscription/types";
+import { ListenerUtils } from "@ts/composables/subscription/utils";
 import { NODE_FLAGS, SIGNAL_LOCALES } from "./declarations";
 import { ReactiveLink } from "./link/model";
 import { TEqual } from "./types";

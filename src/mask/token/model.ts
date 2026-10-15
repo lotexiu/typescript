@@ -1,4 +1,4 @@
-import { readonlyValue } from '@tsr/readonly-value/model';
+import { readonlyValue } from '@ts/composables/readonly-value/model';
 
 class TMaskStaticToken {
 	constructor(readonly value: string) {}

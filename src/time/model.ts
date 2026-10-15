@@ -2,7 +2,7 @@ import { computed } from '@tsr-node/computed/model';
 import { signal } from '@tsr-node/signal/model';
 import { CALENDAR_CELLS } from './declarations';
 import { TCalendarDay } from './types';
-import { field } from '@tsr/field/model';
+import { field } from '@ts/composables/field/model';
 
 class Time {
 	// Mutado no lugar pelos `field`s (`setFullYear`, `setMonth`, ...) + `notify()`.

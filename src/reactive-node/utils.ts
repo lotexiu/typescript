@@ -1,4 +1,4 @@
-import { TValueListener, TValueUnsubscribe } from '@tsr/subscription/types';
+import { TValueListener, TValueUnsubscribe } from '@ts/composables/subscription/types';
 import { NODE } from './declarations';
 import { TWithNode } from './types';
 import { Computed } from './computed/model';

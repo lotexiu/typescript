@@ -2,7 +2,7 @@ import { Computed, computed } from '@tsr-node/computed/model';
 import { Signal } from '@tsr-node/signal/model';
 import { TField, TFieldGet, TFieldSet } from './types';
 import { INTERNAL } from '@tsn-object/declarations';
-import { TReactiveSet, TReactiveUpdate } from '@tsr/types';
+import { TReactiveSet, TReactiveUpdate } from '@tsr-node/types';
 
 type Field<V> = Computed<V> & {
 	set: TReactiveSet<V>;

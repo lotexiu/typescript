@@ -1,5 +1,5 @@
-import { readonlyValue } from "@tsr/readonly-value/model";
-import { TReadOnlyValue } from "@tsr/readonly-value/types";
+import { readonlyValue } from "@ts/composables/readonly-value/model";
+import { TReadOnlyValue } from "@ts/composables/readonly-value/types";
 
 class ParserGate {
 	public readonly symetric: boolean

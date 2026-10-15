@@ -1,4 +1,4 @@
-import { TReactiveSet, TReactiveUpdate } from '@tsr/types';
+import { TReactiveSet, TReactiveUpdate } from '@tsr-node/types';
 import { NODE } from '../declarations';
 import { ReactiveNode } from '../model';
 import { TEqual, TReactive } from '../types';
