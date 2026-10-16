@@ -1,7 +1,6 @@
 import { TListeners, TValueListener, TValueUnsubscribe } from './types';
 import { ListenerUtils } from './utils';
 
-// Emissor de eventos sem valor guardado — para estado (valor atual + derivados), usar `signal`.
 class Subscription<T = void> {
 	#listeners: TListeners<T> = undefined;
 
