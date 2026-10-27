@@ -2,7 +2,7 @@ import { TFn } from '@tsn-function/types';
 import { FunctionUtils } from '@tsn-function/utils';
 import { signal } from '@tsr-node/signal/model';
 
-async function task<Args extends any[], T, E = unknown>(
+function task<Args extends any[], T, E = unknown>(
 	fn: TFn<Args, Promise<T>>,
 	debounceValue = 0
 ) {

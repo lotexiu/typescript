@@ -1,7 +1,7 @@
 import { TUpdateFn } from "@tsn-function/types";
-import { TValueListener, TValueUnsubscribe } from "@ts/composables/subscription/types";
 import { NODE } from "./declarations";
 import { ReactiveNode } from "./model";
+import { TValueListener, TValueUnsubscribe } from "@ts/subscription/types";
 
 type TEqual<T> = (a: T, b: T) => boolean;
 

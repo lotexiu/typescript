@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-104 arquivos, 429 declarações top-level.
+113 arquivos, 472 declarações top-level.
 
 ---
 ## src/types.ts
@@ -74,6 +74,168 @@ _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/
 ## src/chunk/utils.ts
 
 #### `ChunkUtils` — class _(exported, L3)_
+
+## src/composables/active-index/model.ts
+
+#### `NONE` — const _(local, L8)_
+
+`-1` means no item is active.
+
+#### `ActiveIndex` — type _(exported, L18)_
+
+Index arithmetic (next/prev, wraparound) over a list whose length can change —
+e.g. options narrowed by a text filter. Doesn't know what the list contains;
+resolving `activeIndex()` to an item is the caller's job.
+
+The value read is always inside `[0, length)` or `-1`: if the list shrinks below
+the stored index, the read is clamped to the last item.
+
+#### `ActiveIndex` — const _(exported, L25)_
+
+#### `activeIndex` — function _(exported, L71)_
+
+## src/composables/active-index/types.ts
+
+#### `TActiveIndex` — type _(exported, L6)_
+
+## src/composables/bit-flag/model.ts
+
+#### `BitFlag` — type _(exported, L5)_
+
+#### `BitFlag` — const _(exported, L14)_
+
+#### `disable` — const _(local, L49)_
+
+#### `disabled` — const _(local, L49)_
+
+#### `enable` — const _(local, L49)_
+
+#### `enabled` — const _(local, L49)_
+
+#### `toggle` — const _(local, L49)_
+
+#### `reset` — const _(local, L49)_
+
+#### `bitFlag` — function _(exported, L51)_
+
+## src/composables/debounced-value/model.ts
+
+#### `DebouncedValue` — type _(exported, L11)_
+
+A signal for the live value, with `debounced` holding the last value that
+stayed unchanged for `delay` ms. `dispose()` drops the subscription that feeds `debounced`.
+
+#### `DebouncedValue` — const _(exported, L14)_
+
+#### `debouncedValue` — function _(exported, L20)_
+
+## src/composables/field/model.ts
+
+#### `Field` — type _(exported, L7)_
+
+#### `Field` — const _(exported, L11)_
+
+#### `field` — function _(exported, L31)_
+
+## src/composables/field/types.ts
+
+#### `TFieldGet` — type _(exported, L5)_
+
+#### `TFieldSet` — type _(exported, L7)_
+
+#### `TField` — type _(exported, L9)_
+
+## src/composables/readonly-value/model.ts
+
+#### `readonlyValue` — function _(exported, L1)_
+
+## src/composables/readonly-value/types.ts
+
+#### `TReadOnlyValue` — type _(exported, L1)_
+
+## src/composables/selection/model.ts
+
+#### `Selection` — type _(exported, L6)_
+
+#### `Selection` — const _(exported, L13)_
+
+#### `has` — const _(local, L50)_
+
+#### `select` — const _(local, L50)_
+
+#### `deselect` — const _(local, L50)_
+
+#### `toggle` — const _(local, L50)_
+
+#### `clear` — const _(local, L50)_
+
+#### `selection` — function _(exported, L52)_
+
+## src/composables/selection/types.ts
+
+#### `TSelection` — type _(exported, L5)_
+
+## src/composables/sort/model.ts
+
+#### `sort` — function _(exported, L4)_
+
+## src/composables/sort/types.ts
+
+#### `TSortDirection` — type _(exported, L3)_
+
+#### `TSortConfig` — type _(exported, L5)_
+
+#### `TSort` — type _(exported, L11)_
+
+## src/composables/task/model.ts
+
+#### `task` — function _(exported, L5)_
+
+## src/composables/toggle/model.ts
+
+#### `Toggle` — type _(exported, L4)_
+
+#### `Toggle` — const _(exported, L9)_
+
+#### `on` — const _(local, L27)_
+
+#### `off` — const _(local, L27)_
+
+#### `toggleFn` — const _(local, L27)_
+
+#### `toggle` — function _(exported, L29)_
+
+## src/composables/ui-interaction/model.ts
+
+#### `UIInteraction` — type _(exported, L3)_
+
+#### `UIInteraction` — const _(exported, L10)_
+
+#### `blur` — const _(local, L36)_
+
+#### `focus` — const _(local, L36)_
+
+#### `active` — const _(local, L36)_
+
+#### `unactive` — const _(local, L36)_
+
+#### `uiInteraction` — function _(exported, L37)_
+
+## src/composables/variant/model.ts
+
+#### `variant` — function _(exported, L6)_
+
+#### `Variant` — type _(exported, L13)_
+
+#### `Variant` — const _(exported, L17)_
+
+## src/composables/variant/types.ts
+
+#### `TVariantDerive` — type _(exported, L2)_
+
+Resolves the value for a given variant name — the function a `VariantCell` is constructed with.
+
+#### `TVariant` — type _(exported, L3)_
 
 ## src/global/types.ts
 
@@ -937,9 +1099,13 @@ The wrapped function `scheduleOnce()` returns — `clear()` cancels a pending ca
 
 #### `TMemoizeFn` — type _(exported, L91)_
 
+#### `TLazy` — type _(exported, L95)_
+
+#### `TUpdateFn` — type _(exported, L97)_
+
 ## src/natives/function/utils.ts
 
-#### `FunctionUtils` — class _(exported, L12)_
+#### `FunctionUtils` — class _(exported, L13)_
 
 ## src/natives/math/locale.ts
 
@@ -947,7 +1113,7 @@ The wrapped function `scheduleOnce()` returns — `clear()` cancels a pending ca
 
 ## src/natives/math/types.ts
 
-#### `IDigitSum` — type _(local, L3)_
+#### `TClamp` — type _(exported, L1)_
 
 ## src/natives/math/utils.ts
 
@@ -1155,55 +1321,7 @@ Reverses a string literal type character by character.
 
 #### `ParserRoot` — class _(exported, L77)_
 
-## src/reactive/utils.ts
-
-#### `ReactiveUtils` — class _(exported, L7)_
-
-## src/reactive/bit-flag/model.ts
-
-#### `disable` — const _(local, L6)_
-
-#### `disabled` — const _(local, L6)_
-
-#### `enable` — const _(local, L6)_
-
-#### `enabled` — const _(local, L6)_
-
-#### `toggle` — const _(local, L6)_
-
-#### `reset` — const _(local, L6)_
-
-#### `bitFlag` — function _(exported, L8)_
-
-#### `BitFlag` — type _(exported, L21)_
-
-#### `BitFlag` — const _(exported, L30)_
-
-## src/reactive/bit-flag/utils.ts
-
-#### `BitFlagUtils` — class _(exported, L3)_
-
-## src/reactive/field/model.ts
-
-#### `field` — function _(exported, L9)_
-
-#### `Field` — type _(exported, L21)_
-
-#### `Field` — const _(exported, L25)_
-
-## src/reactive/field/types.ts
-
-#### `TFieldGet` — type _(exported, L5)_
-
-#### `TFieldSet` — type _(exported, L7)_
-
-#### `TField` — type _(exported, L9)_
-
-## src/reactive/field/utils.ts
-
-#### `FieldUtils` — class _(exported, L4)_
-
-## src/reactive/reactive-node/declarations.ts
+## src/reactive-node/declarations.ts
 
 #### `NODE` — const _(exported, L6)_
 
@@ -1215,7 +1333,7 @@ Reverses a string literal type character by character.
 
 #### `SIGNAL_LOCALES` — const _(exported, L19)_
 
-## src/reactive/reactive-node/model.ts
+## src/reactive-node/model.ts
 
 #### `DIRTY` — const _(local, L9)_
 
@@ -1245,23 +1363,27 @@ Reverses a string literal type character by character.
 
 - `@internal`
 
-## src/reactive/reactive-node/types.ts
+## src/reactive-node/types.ts
 
-#### `TEqual` — type _(exported, L5)_
+#### `TEqual` — type _(exported, L6)_
 
-#### `TReactive` — type _(exported, L7)_
+#### `TReactive` — type _(exported, L8)_
 
-#### `TWithNode` — type _(exported, L16)_
+#### `TReactiveSet` — type _(exported, L14)_
+
+#### `TReactiveUpdate` — type _(exported, L16)_
+
+#### `TWithNode` — type _(exported, L21)_
 
 - `@internal`
 
-## src/reactive/reactive-node/utils.ts
+## src/reactive-node/utils.ts
 
 #### `ReactiveNodeUtils` — class _(exported, L10)_
 
 - `@internal`
 
-## src/reactive/reactive-node/computed/model.ts
+## src/reactive-node/computed/model.ts
 
 #### `computed` — function _(exported, L8)_
 
@@ -1269,71 +1391,41 @@ Reverses a string literal type character by character.
 
 #### `Computed` — const _(exported, L18)_
 
-## src/reactive/reactive-node/link/model.ts
+## src/reactive-node/link/model.ts
 
 #### `ReactiveLink` — class _(exported, L6)_
 
 - `@internal`
 
-## src/reactive/reactive-node/signal/model.ts
-
-#### `signal` — function _(exported, L8)_
+## src/reactive-node/signal/model.ts
 
 #### `signal` — function _(exported, L9)_
 
 #### `signal` — function _(exported, L10)_
 
-#### `Signal` — type _(exported, L22)_
+#### `signal` — function _(exported, L11)_
 
-#### `Signal` — const _(exported, L27)_
+#### `Signal` — type _(exported, L23)_
 
-## src/reactive/readonly-value/model.ts
+#### `Signal` — const _(exported, L28)_
 
-#### `readonlyValue` — function _(exported, L1)_
+## src/service/model.ts
 
-## src/reactive/readonly-value/types.ts
+#### `compileRoutes` — function _(local, L10)_
 
-#### `TReadOnlyValue` — type _(exported, L1)_
+## src/service/types.ts
 
-## src/reactive/subscription/declarations.ts
+#### `TRequestMethod` — type _(exported, L3)_
 
-#### `SUBSCRIPTION_LOCALES` — const _(exported, L3)_
+#### `THttpFn` — type _(exported, L4)_
 
-## src/reactive/subscription/model.ts
+#### `TTriggerType` — type _(exported, L5)_
 
-#### `Subscription` — class _(exported, L5)_
+#### `TInterceptorOptions` — type _(exported, L7)_
 
-## src/reactive/subscription/types.ts
+#### `TCompiledRoute` — type _(exported, L13)_
 
-#### `TValueListener` — type _(exported, L1)_
-
-#### `TValueUnsubscribe` — type _(exported, L3)_
-
-#### `TSubscription` — type _(exported, L5)_
-
-#### `TListeners` — type _(exported, L10)_
-
-## src/reactive/subscription/utils.ts
-
-#### `ListenerUtils` — class _(exported, L11)_
-
-- `@internal`
-
-## src/reactive/variant/model.ts
-
-#### `variant` — function _(exported, L6)_
-
-#### `Variant` — type _(exported, L13)_
-
-#### `Variant` — const _(exported, L17)_
-
-## src/reactive/variant/types.ts
-
-#### `TVariantDerive` — type _(exported, L2)_
-
-Resolves the value for a given variant name — the function a `VariantCell` is constructed with.
-
-#### `TVariant` — type _(exported, L3)_
+#### `TCompiledInterceptor` — type _(exported, L18)_
 
 ## src/state/keyboard/model.ts
 
@@ -1350,6 +1442,30 @@ Resolves the value for a given variant name — the function a `VariantCell` is 
 ## src/stopwatch/model.ts
 
 #### `StopWatch` — class _(exported, L7)_
+
+## src/subscription/declarations.ts
+
+#### `SUBSCRIPTION_LOCALES` — const _(exported, L3)_
+
+## src/subscription/model.ts
+
+#### `Subscription` — class _(exported, L4)_
+
+## src/subscription/types.ts
+
+#### `TValueListener` — type _(exported, L1)_
+
+#### `TValueUnsubscribe` — type _(exported, L3)_
+
+#### `TSubscription` — type _(exported, L5)_
+
+#### `TListeners` — type _(exported, L9)_
+
+## src/subscription/utils.ts
+
+#### `ListenerUtils` — class _(exported, L11)_
+
+- `@internal`
 
 ## src/theme/model.ts
 

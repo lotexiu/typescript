@@ -2,11 +2,14 @@
 
 _Gerado por `scripts/doc/generate.ts`._
 
-0 erro(s), 35 aviso(s).
+4 erro(s), 38 aviso(s).
 
 ## Erros
 
-_Nenhum._
+- `src/service/model.ts:10` **unclosed-scope** — escopo "block" aberto em 191 nunca foi fechado
+- `src/service/model.ts:14` **unclosed-scope** — escopo "block" aberto em 310 nunca foi fechado
+- `src/service/model.ts:23` **unclosed-scope** — escopo "paren" aberto em 490 nunca foi fechado
+- `src/service/model.ts:23` **unclosed-scope** — escopo "bracket" aberto em 492 nunca foi fechado
 
 ## Avisos
 
@@ -44,4 +47,7 @@ _Nenhum._
 - `src/parser/node/model.ts:30` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/parser/node/model.ts:46` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/parser/node/model.ts:49` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
-- `src/reactive/reactive-node/model.ts:40` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/reactive-node/model.ts:40` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/service/model.ts:45` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/service/model.ts:51` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/service/model.ts:88` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
