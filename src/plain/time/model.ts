@@ -1,10 +1,9 @@
+import { RegexUtils } from '@tsn/regex/utils';
 import { Duration } from '../duration/model';
-import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from '../declarations';
+import { ISO_TIME, MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from '../declarations';
+import { PlainUtils } from '../utils';
 import { TDurationParts, TTimeParts } from '../types';
 
-const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,3}))?)?$/;
-const pad = (value: number, size = 2) => String(value).padStart(size, '0');
-const inRange = (value: number, max: number) => Number.isInteger(value) && value >= 0 && value <= max;
 
 /** Hora do dia **sem data nem fuso**, imutável (`Temporal.PlainTime`). Passar de 24h dá a volta (23:30 + 1h = 00:30). */
 class PlainTime {
@@ -16,7 +15,7 @@ class PlainTime {
 	) {}
 
 	static isValid(hour: number, minute = 0, second = 0, millisecond = 0): boolean {
-		return inRange(hour, 23) && inRange(minute, 59) && inRange(second, 59) && inRange(millisecond, 999);
+		return PlainUtils.inRange(hour, 23) && PlainUtils.inRange(minute, 59) && PlainUtils.inRange(second, 59) && PlainUtils.inRange(millisecond, 999);
 	}
 
 	static tryFrom({ hour, minute = 0, second = 0, millisecond = 0 }: TTimeParts): PlainTime | undefined {
@@ -76,7 +75,7 @@ class PlainTime {
 	}
 
 	toString(): string {
-		return `${pad(this.hour)}:${pad(this.minute)}:${pad(this.second)}${this.millisecond ? `.${pad(this.millisecond, 3).replace(/0+$/, '')}` : ''}`;
+		return `${PlainUtils.pad(this.hour)}:${PlainUtils.pad(this.minute)}:${PlainUtils.pad(this.second)}${this.millisecond ? `.${RegexUtils.trimTrailingZeros(PlainUtils.pad(this.millisecond, 3))}` : ''}`;
 	}
 
 	toJSON(): string {

@@ -2,10 +2,8 @@ import { computed } from "@tsr-node/computed/model";
 import { Signal, signal } from "@tsr-node/signal/model";
 import Color, { ColorTypes } from "colorjs.io";
 import { ColorSpace } from "colorjs.io/fn";
-import { NEUTRAL_CHROMA, ON_COLOR_TONES, TONE_STOPS } from "./declarations";
+import { MID_TONE, NEUTRAL_CHROMA, ON_COLOR_TONES, TONE_STOPS } from "./declarations";
 import { TPaletteDerive, TToneStop } from "./types";
-
-const MID_TONE = 50;
 
 abstract class Palette {
 	readonly name: Signal<string>;

@@ -56,6 +56,15 @@ const REGEX_PATTERNS = {
 	UNICODE: {
 		HIGH_SURROGATE: '[\\uD800-\\uDBFF]',
 	},
+	ID: {
+		UUID: '[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}',
+	},
+	NUMBER: {
+		DIGITS_ONLY: '\\d+',
+		NON_DIGIT: '\\D',
+		LEADING_ZEROS: '0+(?=\\d)',
+		TRAILING_ZEROS: '0+',
+	},
 } as const
 
 export {

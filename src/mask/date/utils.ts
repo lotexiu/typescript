@@ -1,17 +1,8 @@
 import { PlainDate } from '@ts/plain/date/model';
 import type { TMaskCodec, TMaskDefinition } from '../types';
-import type { TDateOrder, TMaskDateConfig } from './types';
-
-const YEAR_DIGITS = 4;
-const PAIR = 2;
-const TOTAL_DIGITS = YEAR_DIGITS + PAIR * 2;
-
-/** Onde cada campo fica nos 8 dígitos digitados. */
-const LAYOUT: Readonly<Record<TDateOrder, Readonly<Record<'year' | 'month' | 'day', readonly [number, number]>>>> = {
-	ymd: { year: [0, 4], month: [4, 6], day: [6, 8] },
-	dmy: { day: [0, 2], month: [2, 4], year: [4, 8] },
-	mdy: { month: [0, 2], day: [2, 4], year: [4, 8] },
-};
+import { RegexUtils } from '@tsn/regex/utils';
+import { LAYOUT, PAIR, TOTAL_DIGITS, YEAR_DIGITS } from './declarations';
+import type { TMaskDateConfig } from './types';
 
 class MaskDateUtils {
 	/** Máscara de data: ordem e separador são **parâmetros** (nada de região embutida). Valor tipado = `PlainDate`; checa o calendário. */
@@ -22,7 +13,7 @@ class MaskDateUtils {
 
 		const codec: TMaskCodec<PlainDate> = {
 			parse(unmasked) {
-				if (unmasked.length !== TOTAL_DIGITS || !/^\d+$/.test(unmasked)) return undefined;
+				if (unmasked.length !== TOTAL_DIGITS || !RegexUtils.isDigits(unmasked)) return undefined;
 				const part = (field: 'year' | 'month' | 'day') => Number(unmasked.slice(...layout[field]));
 				return PlainDate.tryFrom({ year: part('year'), month: part('month'), day: part('day') });
 			},

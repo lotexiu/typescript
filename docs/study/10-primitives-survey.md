@@ -41,3 +41,15 @@ Helpers **escritos à mão** que se repetem entre projetos: `delay/sleep`, `capi
 **C — por domínio:** máquina de estados/turnos, agendador, A*/grade, ruído, disjuntor/bulkhead.
 **D — baixo valor por nome:** predicados triviais (`isString`…), `camelCase` e afins (ficam em `StringUtils` quando precisarem).
 Coleções (`keyBy`, `pick/omit`, `mapValues`, `cloneDeep`, `isEqual`, `countBy`, `difference/intersection/union`, `compact`, `minBy/maxBy/sumBy`) entram junto da A, em `ArrayUtils`/funções de objeto.
+
+## 5. Estado (2026-10-28)
+Feito do grupo **A**: `Decimal`, `Random`, `IdUtils`, `ResultUtils`, `Semaphore`/`Mutex`/`AsyncUtils.timeout`, `PriorityQueue` (vetores do Decimal e do Random conferidos contra Python).
+Próximo (B): formatar/ler data por padrão, `startOf/endOf`/intervalo em `PlainDate`, `retry` com backoff+jitter+cancelamento, calculadora de expressão, recorrência, mutex entre threads (`SharedArrayBuffer` + `Atomics`).
+
+## 6. Classe × função × composto (critério)
+1. **Tem estado que muda, ou invariante a proteger?** → **classe** em `model.ts` (primitivo). Ex.: `Random` (4 palavras), `Semaphore` (fila), `PriorityQueue`, `MaskEngine` (regras + cache), valores imutáveis com invariante (`Decimal`, `PlainDate`: data inválida não existe). **Especialização de uma classe também é classe**: `Mutex extends Semaphore` herda `acquire/run/available/pending` sem repassar nada; composição só criaria delegação à toa.
+2. **Só transforma entrada em saída?** → **função**, `static` em `XUtils`. Ex.: `ChecksumUtils`, `IdUtils`, `ResultUtils`, `CalendarUtils`, `RegexUtils`, `MaskCheckUtils`.
+3. **Junta várias classes/funções/utils num objeto fácil de usar?** → **composto**: fábrica que devolve closures (o formato dos composables: `signal`, `field`, `ticker`, `task`, `selection`). Vantagem prática: `const { next, prev } = activeIndex(...)` funciona, porque nada depende de `this`.
+   - Método de classe **perde o `this`** ao ser desestruturado (`const { run } = mutex` → `TypeError`, os campos `#` não existem fora da instância). Quem precisa desse uso deve ser composto, ou a classe deve expor o método já ligado.
+
+Dado puro (`TResult`, `TRandomState`, regra de recorrência) atravessa `postMessage`/JSON inteiro; instância de classe perde os métodos ao ser clonada para um worker. Rust: classe com estado → `struct` + `impl`; util → funções livres; composto → função construtora que devolve um struct de closures/traits.

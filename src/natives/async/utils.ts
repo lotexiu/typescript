@@ -1,6 +1,25 @@
+import { TimeoutError } from './error';
+
 export class AsyncUtils {
 	static sleep(ms: number): Promise<void> {
 		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	/**
+	 * Falha com `TimeoutError` se o trabalho passar de `ms`. Se receber uma função, ela ganha um `AbortSignal` que é abortado
+	 * no estouro (para cancelar `fetch` etc.); se receber uma promessa, ela segue rodando — só o resultado é descartado.
+	 */
+	static timeout<T>(work: Promise<T> | ((signal: AbortSignal) => Promise<T>), ms: number): Promise<T> {
+		const controller = new AbortController();
+		const promise = typeof work === 'function' ? work(controller.signal) : work;
+		return new Promise<T>((resolve, reject) => {
+			const timer = setTimeout(() => {
+				const error = new TimeoutError(ms);
+				controller.abort(error);
+				reject(error);
+			}, ms);
+			promise.then(resolve, reject).finally(() => clearTimeout(timer));
+		});
 	}
 
 	static async retry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {

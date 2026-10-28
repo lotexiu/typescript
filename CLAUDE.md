@@ -448,6 +448,9 @@ densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` 
   convenção do autor com arquivos desse nome. Marcar `@internal` se for detalhe de implementação
   que não deve vazar pro `src/index.ts` gerado.
 
+- **Papel de cada arquivo (reforço, 2026-10-28):** `model.ts` = **só a classe** (e no máximo um tipo pequeno, de preferência em `types.ts`); nada de `const` nem função solta no topo. `declarations.ts` = constantes, enums, tabelas, regex compilado. `utils.ts` = **classe utilitária** com os auxiliares puros como `static` (o que era função solta no model vai para lá) e, se fizer sentido, propriedades `static readonly` que expõem constantes (`IdUtils.urlAlphabet`, `RegexUtils.patterns`) em vez de o consumidor importar o `declarations`. Cuidado com ciclo `model ↔ utils`: se o util precisa instanciar a classe (construtor privado), o método fica na classe; o `utils` só importa a classe como `import type`. Os composables (`signal`, `field`, `ticker`...) seguem o formato próprio de fábrica (`function x()` no `model.ts`) e não entram nesta regra.
+- **Regex nunca é literal dentro de função, nem constante no topo de `utils.ts`/`model.ts`.** Um literal dentro de função é recriado a cada chamada. Regex reutilizável e genérico (UUID, só dígitos, zeros à esquerda...) vira *padrão em string* em `REGEX_PATTERNS` + regex compilado uma vez como `static readonly #x` em `RegexUtils` (com um método público). Regex específico de um módulo (formato ISO do `plain/`, texto decimal) fica compilado em constante no `declarations.ts` daquele módulo. Regex com flag `g`/`y` guarda `lastIndex` entre `test`/`exec`: só use `g` com `replace`. Não há compartilhamento entre threads a considerar (cada worker avalia o módulo e tem a sua cópia).
+
 ---
 
 ## Decisões técnicas — o que NÃO fazer
@@ -548,3 +551,10 @@ Vetores: `vectors/plain.json`.
 Atualizar em pequenas edições conforme as coisas surgem — não reescrever em bloco. Quando algo parecer incomum, inconsistente, ou duas coisas disagreeing sem razão clara: registrar aqui (ou perguntar ao autor primeiro se for decisão viva). O objetivo é que sessões futuras não precisem redescobrir o que já foi resolvido.
 
 **No começo de uma conversa nova, depois de um período sem trabalhar no projeto:** não assumir que a "Estrutura de módulos", a presença de testes/docs, ou uma seção "X foi removido" ainda reflete o código — o autor reescreve em escala periodicamente e esse arquivo só é atualizado quando alguém lembra de pedir. Uma checagem rápida (`ls src/`, grep pelo símbolo em questão) antes de agir sobre uma afirmação estrutural evita propagar informação stale — ver "⚠️ Este arquivo pode estar desatualizado" no topo.
+## Primitivos agnósticos (2026-10-28) — levantamento em `docs/study/10-primitives-survey.md`
+
+Uma pasta por módulo, testes espelhados em `src/.test`, vetores neutros em `vectors/*.json` calculados **fora do TypeScript** (Python) para valer também no port Rust.
+`Random` (`random/`, xoshiro128** + splitmix32, estado serializável, `int` inclusivo, `shuffle/pick/weighted/bytes`; **não criptográfico**) · `IdUtils` (`id/`: `uuid` v4 e `short` estilo nanoid, fonte de bytes trocável) ·
+`Decimal` (`decimal/`, BigInt + escala, exato, arredondamento sempre explícito, `fromMinor/toMinor`, `allocate` sem perder centavos; sem zero negativo) · `ResultUtils` (`result/`, `{ ok, value | error }`) ·
+`PriorityQueue` (`priority-queue/`, heap estável) · `Semaphore`/`Mutex` (`semaphore/`, `mutex/`: **concorrência assíncrona dentro de uma thread**, FIFO, `AbortSignal`; não protegem entre workers — isso pediria `SharedArrayBuffer` + `Atomics`) ·
+`AsyncUtils.timeout` + `TimeoutError` (`natives/async/error.ts`) · `RegexUtils.isUuid/isDigits/stripNonDigits/trimLeadingZeros/trimTrailingZeros`.

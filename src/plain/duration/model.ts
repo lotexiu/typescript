@@ -1,10 +1,6 @@
-import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from '../declarations';
+import { RegexUtils } from '@tsn/regex/utils';
+import { ISO_DURATION, MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND, UNIT_MS } from '../declarations';
 import { TDurationParts, TDurationUnit } from '../types';
-
-const UNIT_MS: Readonly<Record<TDurationUnit, number>> = { days: MS_PER_DAY, hours: MS_PER_HOUR, minutes: MS_PER_MINUTE, seconds: MS_PER_SECOND, milliseconds: 1 };
-
-/** `PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente. */
-const ISO = /^([+-])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:[.,](\d{1,3}))?S)?)?$/;
 
 /**
  * Duração imutável, em milissegundos inteiros, no vocabulário do Temporal (`Temporal.Duration`).
@@ -39,7 +35,7 @@ class Duration {
 	}
 
 	static tryParse(text: string): Duration | undefined {
-		const match = ISO.exec(text.trim());
+		const match = ISO_DURATION.exec(text.trim());
 		if (!match || match.slice(2, 7).every((part) => part === undefined)) return undefined;
 		const [, sign, days = '0', hours = '0', minutes = '0', seconds = '0', fraction = ''] = match;
 		const ms = Number(days) * MS_PER_DAY + Number(hours) * MS_PER_HOUR + Number(minutes) * MS_PER_MINUTE + Number(seconds) * MS_PER_SECOND + Number(fraction.padEnd(3, '0') || 0);
@@ -116,7 +112,7 @@ class Duration {
 
 	toString(): string {
 		if (this.blank) return 'PT0S';
-		const time = [this.hours && `${this.hours}H`, this.minutes && `${this.minutes}M`, (this.seconds || this.milliseconds) && `${this.seconds}${this.milliseconds ? `.${String(this.milliseconds).padStart(3, '0').replace(/0+$/, '')}` : ''}S`].filter(Boolean).join('');
+		const time = [this.hours && `${this.hours}H`, this.minutes && `${this.minutes}M`, (this.seconds || this.milliseconds) && `${this.seconds}${this.milliseconds ? `.${RegexUtils.trimTrailingZeros(String(this.milliseconds).padStart(3, '0'))}` : ''}S`].filter(Boolean).join('');
 		return `${this.sign < 0 ? '-' : ''}P${this.days ? `${this.days}D` : ''}${time ? `T${time}` : ''}`;
 	}
 

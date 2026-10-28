@@ -1,4 +1,5 @@
 import { REGEX_PATTERNS } from '@tsn/regex/declarations';
+import { RegexUtils } from '@tsn/regex/utils';
 import type { TMaskCodec, TMaskCodecId, TMaskDefinition, TMaskRule } from './types';
 
 const { DIGITS, LETTERS, SYMBOLS } = REGEX_PATTERNS;
@@ -58,7 +59,7 @@ const pair = (value: number) => String(value).padStart(PAIR, '0');
 /** Dígitos digitados "da direita": `…hhmmss` (os 2 últimos são segundos, os 2 anteriores minutos, o resto horas). Tipado = milissegundos. */
 const duration: TMaskCodec<number> = {
 	parse(unmasked) {
-		if (!/^\d+$/.test(unmasked)) return undefined;
+		if (!RegexUtils.isDigits(unmasked)) return undefined;
 		const seconds = Number(unmasked.slice(-PAIR));
 		const minutes = Number(unmasked.slice(-PAIR * 2, -PAIR) || 0);
 		const hours = Number(unmasked.slice(0, -PAIR * 2) || 0);
@@ -75,7 +76,7 @@ const duration: TMaskCodec<number> = {
 };
 
 const integer: TMaskCodec<number> = {
-	parse: (unmasked) => (/^\d+$/.test(unmasked) ? Number(unmasked) : undefined),
+	parse: (unmasked) => (RegexUtils.isDigits(unmasked) ? Number(unmasked) : undefined),
 	format: (value) => (Number.isInteger(value) && value >= 0 ? String(value) : undefined),
 };
 

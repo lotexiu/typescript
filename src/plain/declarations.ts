@@ -1,3 +1,5 @@
+import type { TDurationUnit } from './types';
+
 /** @internal */
 const MS_PER_SECOND = 1000;
 /** @internal */
@@ -29,4 +31,19 @@ const YEARS_PER_ERA = 400;
 /** @internal */
 const EPOCH_ISO_WEEKDAY = 4;
 
-export { MS_PER_SECOND, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY, MIN_YEAR, MAX_YEAR, MONTHS_PER_YEAR, DAYS_PER_WEEK, DAYS_IN_MONTH, EPOCH_SHIFT_DAYS, DAYS_PER_ERA, YEARS_PER_ERA, EPOCH_ISO_WEEKDAY };
+/** @internal Mês 3 (março) é o início do ano nos cálculos de dias-desde-a-época. */
+const MARCH = 3;
+/** @internal */
+const MONTHS_FROM_MARCH = 9;
+
+/** @internal Quantos ms vale cada unidade fixa de `Duration`. */
+const UNIT_MS: Readonly<Record<TDurationUnit, number>> = { days: MS_PER_DAY, hours: MS_PER_HOUR, minutes: MS_PER_MINUTE, seconds: MS_PER_SECOND, milliseconds: 1 };
+
+/** @internal `2026-10-28` */
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+/** @internal `08:30`, `08:30:15`, `08:30:15.250` */
+const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,3}))?)?$/;
+/** @internal `PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente. */
+const ISO_DURATION = /^([+-])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:[.,](\d{1,3}))?S)?)?$/;
+
+export { MARCH, MONTHS_FROM_MARCH, UNIT_MS, ISO_DATE, ISO_TIME, ISO_DURATION, MS_PER_SECOND, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY, MIN_YEAR, MAX_YEAR, MONTHS_PER_YEAR, DAYS_PER_WEEK, DAYS_IN_MONTH, EPOCH_SHIFT_DAYS, DAYS_PER_ERA, YEARS_PER_ERA, EPOCH_ISO_WEEKDAY };

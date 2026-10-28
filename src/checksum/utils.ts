@@ -1,9 +1,5 @@
+import { ASCII_DIGIT_ZERO, IBAN_MODULUS, LETTER_A_VALUE, LUHN_MODULUS } from './declarations';
 import { TCharValue, TDigitRule, TWeightedSpec } from './types';
-
-const ASCII_DIGIT_ZERO = 48;
-const LETTER_A_VALUE = 10;
-const IBAN_MODULUS = 97;
-const LUHN_MODULUS = 10;
 
 /**
  * Dígitos verificadores como dados + funções puras. Nada aqui conhece documento, país ou formato:

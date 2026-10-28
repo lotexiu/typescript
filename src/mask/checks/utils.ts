@@ -2,8 +2,7 @@ import { ChecksumUtils } from '@ts/checksum/utils';
 import type { TWeightedSpec } from '@ts/checksum/types';
 import { PlainDate } from '@ts/plain/date/model';
 import { TMaskCheck, TMaskIssue } from '../types';
-
-const MOD97_VALID_REMAINDER = 1;
+import { MOD97_VALID_REMAINDER } from './declarations';
 
 /** Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro motivo de falha, ou `undefined`. */
 class MaskCheckUtils {

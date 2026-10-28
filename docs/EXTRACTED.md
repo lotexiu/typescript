@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-133 arquivos, 571 declarações top-level.
+160 arquivos, 609 declarações top-level.
 
 ---
 ## src/types.ts
@@ -85,6 +85,24 @@ _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/
 
 Lógica pura de calendário (sem DOM): a base de qualquer date-picker. Substitui o antigo `Time.calendarDays`.
 
+## src/checksum/declarations.ts
+
+#### `ASCII_DIGIT_ZERO` — const _(exported, L2)_
+
+- `@internal`
+
+#### `LETTER_A_VALUE` — const _(exported, L4)_
+
+- `@internal` Valor de `A` quando letras entram no cálculo (`A`=10, `B`=11...).
+
+#### `IBAN_MODULUS` — const _(exported, L6)_
+
+- `@internal`
+
+#### `LUHN_MODULUS` — const _(exported, L8)_
+
+- `@internal`
+
 ## src/checksum/types.ts
 
 #### `TDigitRule` — type _(exported, L8)_
@@ -105,15 +123,7 @@ Cálculo de dígito verificador por soma ponderada, descrito só com dados (port
 
 ## src/checksum/utils.ts
 
-#### `ASCII_DIGIT_ZERO` — const _(local, L3)_
-
-#### `LETTER_A_VALUE` — const _(local, L4)_
-
-#### `IBAN_MODULUS` — const _(local, L5)_
-
-#### `LUHN_MODULUS` — const _(local, L6)_
-
-#### `ChecksumUtils` — class _(exported, L13)_
+#### `ChecksumUtils` — class _(exported, L9)_
 
 Dígitos verificadores como dados + funções puras. Nada aqui conhece documento, país ou formato:
 quem descreve um documento é quem consome (um pacote de dados de região, ou o próprio app), passando um `TWeightedSpec`.
@@ -127,13 +137,15 @@ Entradas inválidas devolvem `undefined`/`false` (erro como valor), nunca lança
 
 #### `ChunkUtils` — class _(exported, L3)_
 
+## src/composables/active-index/declarations.ts
+
+#### `NONE` — const _(exported, L2)_
+
+- `@internal` `-1` means no item is active.
+
 ## src/composables/active-index/model.ts
 
-#### `NONE` — const _(local, L8)_
-
-`-1` means no item is active.
-
-#### `ActiveIndex` — type _(exported, L18)_
+#### `ActiveIndex` — type _(exported, L16)_
 
 Index arithmetic (next/prev, wraparound) over a list whose length can change —
 e.g. options narrowed by a text filter. Doesn't know what the list contains;
@@ -142,9 +154,9 @@ resolving `activeIndex()` to an item is the caller's job.
 The value read is always inside `[0, length)` or `-1`: if the list shrinks below
 the stored index, the read is clamped to the last item.
 
-#### `ActiveIndex` — const _(exported, L25)_
+#### `ActiveIndex` — const _(exported, L23)_
 
-#### `activeIndex` — function _(exported, L79)_
+#### `activeIndex` — function _(exported, L77)_
 
 ## src/composables/active-index/types.ts
 
@@ -305,6 +317,45 @@ Resolves the value for a given variant name — the function a `VariantCell` is 
 
 #### `TVariant` — type _(exported, L3)_
 
+## src/decimal/declarations.ts
+
+#### `DECIMAL_RADIX` — const _(exported, L2)_
+
+- `@internal`
+
+#### `MAX_EXPONENT` — const _(exported, L4)_
+
+- `@internal` Limite do expoente aceito em `1e999`, para não alocar números gigantes por engano.
+
+#### `DECIMAL_TEXT` — const _(exported, L6)_
+
+- `@internal`
+
+## src/decimal/model.ts
+
+#### `Decimal` — class _(exported, L11)_
+
+Número decimal **exato** (inteiro grande + escala): `0.1 + 0.2` dá `0.3`. Imutável, sem dependências, sem `Number` no meio.
+A escala é a quantidade de casas e é preservada (`1.50` continua `1.50`); `+`, `−`, `×` são exatos, e só `divide`/`toScale`
+arredondam — sempre com o modo explícito. Para dinheiro: `Decimal.fromMinor(1999n, 2)` = `19.99`, `toMinor(2)` volta a `1999n`.
+Sem moeda, locale ou imposto: isso é de quem usa.
+
+## src/decimal/types.ts
+
+#### `TRoundingMode` — type _(exported, L8)_
+
+Como arredondar quando o resultado não cabe na escala pedida:
+`up` = para longe do zero · `down` = para o zero (trunca) · `ceil` = para +∞ · `floor` = para −∞ ·
+`half-up` = meio vai para longe do zero (o "arredonda normal") · `half-down` = meio vai para o zero · `half-even` = meio vai para o par (bancário).
+
+#### `TDecimalInput` — type _(exported, L10)_
+
+## src/decimal/utils.ts
+
+#### `DecimalUtils` — class _(exported, L5)_
+
+Aritmética de `bigint` por trás do `Decimal` (não conhece `Decimal`).
+
 ## src/global/types.ts
 
 #### `TargetImpl` — type _(exported, L5)_
@@ -314,6 +365,50 @@ The shape `_Global.register` expects: an optional function-valued override for e
 ## src/global/utils.ts
 
 #### `GlobalUtils` — class _(exported, L4)_
+
+## src/id/declarations.ts
+
+#### `UUID_BYTES` — const _(exported, L2)_
+
+- `@internal`
+
+#### `UUID_V4_VERSION` — const _(exported, L4)_
+
+- `@internal`
+
+#### `UUID_VARIANT` — const _(exported, L6)_
+
+- `@internal`
+
+#### `URL_ALPHABET` — const _(exported, L8)_
+
+- `@internal` Alfabeto seguro para URL (64 símbolos): sem ambiguidade de codificação. Acesse por `IdUtils.urlAlphabet`.
+
+#### `DEFAULT_SHORT_SIZE` — const _(exported, L10)_
+
+- `@internal`
+
+#### `MAX_ALPHABET` — const _(exported, L12)_
+
+- `@internal`
+
+#### `HEX_TABLE` — const _(exported, L15)_
+
+- `@internal` Byte → 2 dígitos hexadecimais (tabela pronta, sem `toString(16)` por byte).
+
+## src/id/types.ts
+
+#### `TByteSource` — type _(exported, L2)_
+
+Fonte de bytes: por padrão `crypto.getRandomValues`; passe `Random.bytes` para ids reproduzíveis.
+
+#### `TShortIdOptions` — type _(exported, L4)_
+
+## src/id/utils.ts
+
+#### `IdUtils` — class _(exported, L6)_
+
+Geração de identificadores. A formatação é pura; só `bytes` (fonte de aleatoriedade) é trocável.
 
 ## src/language/declarations.ts
 
@@ -921,45 +1016,45 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 ## src/mask/declarations.ts
 
-#### `DIGITS` — const _(local, L4)_
+#### `DIGITS` — const _(local, L5)_
 
-#### `LETTERS` — const _(local, L4)_
+#### `LETTERS` — const _(local, L5)_
 
-#### `SYMBOLS` — const _(local, L4)_
+#### `SYMBOLS` — const _(local, L5)_
 
-#### `defaultRules` — function _(exported, L7)_
+#### `defaultRules` — function _(exported, L8)_
 
 Regras de caractere padrão. Cada engine começa com estas (e pode somar as suas).
 
-#### `MINUTES_OR_SECONDS_MAX` — const _(local, L21)_
+#### `MINUTES_OR_SECONDS_MAX` — const _(local, L22)_
 
-#### `CLOCK_MIN_DIGITS` — const _(local, L22)_
+#### `CLOCK_MIN_DIGITS` — const _(local, L23)_
 
-#### `HOURS_MAX` — const _(local, L23)_
+#### `HOURS_MAX` — const _(local, L24)_
 
-#### `MASK_PRESETS` — const _(exported, L26)_
+#### `MASK_PRESETS` — const _(exported, L27)_
 
 Presets **neutros** (sem nada de país/região). Presets de região vêm de pacotes de região, via `Mask.preset`.
 
-#### `SECONDS_PER_MINUTE` — const _(local, L52)_
+#### `SECONDS_PER_MINUTE` — const _(local, L53)_
 
-#### `MINUTES_PER_HOUR` — const _(local, L53)_
+#### `MINUTES_PER_HOUR` — const _(local, L54)_
 
-#### `MS_PER_SECOND` — const _(local, L54)_
+#### `MS_PER_SECOND` — const _(local, L55)_
 
-#### `PAIR` — const _(local, L55)_
+#### `PAIR` — const _(local, L56)_
 
-#### `pair` — const _(local, L56)_
+#### `pair` — const _(local, L57)_
 
-#### `duration` — const _(local, L59)_
+#### `duration` — const _(local, L60)_
 
 Dígitos digitados "da direita": `…hhmmss` (os 2 últimos são segundos, os 2 anteriores minutos, o resto horas). Tipado = milissegundos.
 
-#### `integer` — const _(local, L77)_
+#### `integer` — const _(local, L78)_
 
-#### `text` — const _(local, L82)_
+#### `text` — const _(local, L83)_
 
-#### `MASK_CODECS` — const _(exported, L84)_
+#### `MASK_CODECS` — const _(exported, L85)_
 
 ## src/mask/model.ts
 
@@ -1009,17 +1104,39 @@ Máscara registrável: um padrão (string) + opções. É só dado.
 
 #### `TMaskParsed` — type _(exported, L60)_
 
+## src/mask/checks/declarations.ts
+
+#### `MOD97_VALID_REMAINDER` — const _(exported, L2)_
+
+- `@internal` Resto que um número com dígitos verificadores mod 97 (IBAN etc.) deixa quando válido.
+
 ## src/mask/checks/utils.ts
 
-#### `MOD97_VALID_REMAINDER` — const _(local, L6)_
-
-#### `MaskCheckUtils` — class _(exported, L9)_
+#### `MaskCheckUtils` — class _(exported, L8)_
 
 Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro motivo de falha, ou `undefined`.
 
 ## src/mask/compiled-pattern/model.ts
 
 #### `MaskCompiledPattern` — class _(exported, L5)_
+
+## src/mask/date/declarations.ts
+
+#### `YEAR_DIGITS` — const _(exported, L4)_
+
+- `@internal`
+
+#### `PAIR` — const _(exported, L6)_
+
+- `@internal`
+
+#### `TOTAL_DIGITS` — const _(exported, L8)_
+
+- `@internal` Dígitos digitados numa data completa (aaaammdd).
+
+#### `LAYOUT` — const _(exported, L11)_
+
+- `@internal` Onde cada campo fica nos 8 dígitos digitados.
 
 ## src/mask/date/types.ts
 
@@ -1029,23 +1146,11 @@ Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro moti
 
 ## src/mask/date/utils.ts
 
-#### `YEAR_DIGITS` — const _(local, L5)_
-
-#### `PAIR` — const _(local, L6)_
-
-#### `TOTAL_DIGITS` — const _(local, L7)_
-
-#### `LAYOUT` — const _(local, L10)_
-
-Onde cada campo fica nos 8 dígitos digitados.
-
-#### `MaskDateUtils` — class _(exported, L16)_
+#### `MaskDateUtils` — class _(exported, L7)_
 
 ## src/mask/engine/model.ts
 
-#### `reverseText` — const _(local, L10)_
-
-#### `MaskEngine` — class _(exported, L16)_
+#### `MaskEngine` — class _(exported, L15)_
 
 Motor de máscaras de caracteres, **por instância**: cada uma tem as próprias regras (as padrão + as que somar),
 cache de padrões compilados e reatividade. A `Mask` estática usa uma instância padrão.
@@ -1056,18 +1161,30 @@ cache de padrões compilados e reatividade. A `Mask` estática usa uma instânci
 
 Só o que o motor de caracteres entende (o resto de `TMaskOptions` é do formatador).
 
+## src/mask/engine/utils.ts
+
+#### `MaskEngineUtils` — class _(exported, L1)_
+
+## src/mask/formatter/declarations.ts
+
+#### `OK` — const _(exported, L4)_
+
+- `@internal`
+
 ## src/mask/formatter/model.ts
 
-#### `OK` — const _(local, L7)_
-
-#### `MaskFormatter` — class _(exported, L13)_
+#### `MaskFormatter` — class _(exported, L12)_
 
 Uma máscara pronta para uso: padrão + opções, com os **três valores** do mesmo dado:
 `masked` (o que se mostra), `unmasked` (só o que o usuário digitou) e `typed` (número, ms, ... via codec).
 
-## src/mask/number/utils.ts
+## src/mask/number/declarations.ts
 
-#### `DEFAULT_GROUP_SIZE` — const _(local, L3)_
+#### `DEFAULT_GROUP_SIZE` — const _(exported, L2)_
+
+- `@internal`
+
+## src/mask/number/utils.ts
 
 #### `MaskNumberUtils` — class _(exported, L6)_
 
@@ -1090,6 +1207,12 @@ Número "da direita para a esquerda" a partir dos dígitos digitados (`1234567`,
 #### `TMatrixBuffer` — type _(exported, L1)_
 
 #### `TMatrixBufferCtor` — type _(exported, L12)_
+
+## src/mutex/model.ts
+
+#### `Mutex` — class _(exported, L4)_
+
+Exclusão mútua assíncrona: um `Semaphore` de 1 permissão.
 
 ## src/natives/types.ts
 
@@ -1171,9 +1294,13 @@ Maps a tuple type `List` to a new tuple type where each element is the value of 
 
 #### `ArrayUtils` — class _(exported, L1)_
 
+## src/natives/async/error.ts
+
+#### `TimeoutError` — class _(exported, L1)_
+
 ## src/natives/async/utils.ts
 
-#### `AsyncUtils` — class _(exported, L1)_
+#### `AsyncUtils` — class _(exported, L3)_
 
 ## src/natives/bitwise/utils.ts
 
@@ -1521,57 +1648,81 @@ Reverses a string literal type character by character.
 
 ## src/plain/declarations.ts
 
-#### `MS_PER_SECOND` — const _(exported, L2)_
+#### `MS_PER_SECOND` — const _(exported, L4)_
 
 - `@internal`
 
-#### `MS_PER_MINUTE` — const _(exported, L4)_
+#### `MS_PER_MINUTE` — const _(exported, L6)_
 
 - `@internal`
 
-#### `MS_PER_HOUR` — const _(exported, L6)_
+#### `MS_PER_HOUR` — const _(exported, L8)_
 
 - `@internal`
 
-#### `MS_PER_DAY` — const _(exported, L8)_
+#### `MS_PER_DAY` — const _(exported, L10)_
 
 - `@internal`
 
-#### `MIN_YEAR` — const _(exported, L11)_
+#### `MIN_YEAR` — const _(exported, L13)_
 
 - `@internal`
 
-#### `MAX_YEAR` — const _(exported, L13)_
+#### `MAX_YEAR` — const _(exported, L15)_
 
 - `@internal`
 
-#### `MONTHS_PER_YEAR` — const _(exported, L15)_
+#### `MONTHS_PER_YEAR` — const _(exported, L17)_
 
 - `@internal`
 
-#### `DAYS_PER_WEEK` — const _(exported, L17)_
+#### `DAYS_PER_WEEK` — const _(exported, L19)_
 
 - `@internal`
 
-#### `DAYS_IN_MONTH` — const _(exported, L19)_
+#### `DAYS_IN_MONTH` — const _(exported, L21)_
 
 - `@internal`
 
-#### `EPOCH_SHIFT_DAYS` — const _(exported, L23)_
+#### `EPOCH_SHIFT_DAYS` — const _(exported, L25)_
 
 - `@internal`
 
-#### `DAYS_PER_ERA` — const _(exported, L25)_
+#### `DAYS_PER_ERA` — const _(exported, L27)_
 
 - `@internal`
 
-#### `YEARS_PER_ERA` — const _(exported, L27)_
+#### `YEARS_PER_ERA` — const _(exported, L29)_
 
 - `@internal`
 
-#### `EPOCH_ISO_WEEKDAY` — const _(exported, L30)_
+#### `EPOCH_ISO_WEEKDAY` — const _(exported, L32)_
 
 - `@internal`
+
+#### `MARCH` — const _(exported, L35)_
+
+- `@internal` Mês 3 (março) é o início do ano nos cálculos de dias-desde-a-época.
+
+#### `MONTHS_FROM_MARCH` — const _(exported, L37)_
+
+- `@internal`
+
+#### `UNIT_MS` — const _(exported, L40)_
+
+- `@internal` Quantos ms vale cada unidade fixa de `Duration`.
+
+#### `ISO_DATE` — const _(exported, L43)_
+
+- `@internal` `2026-10-28`
+
+#### `ISO_TIME` — const _(exported, L45)_
+
+- `@internal` `08:30`, `08:30:15`, `08:30:15.250`
+
+#### `ISO_DURATION` — const _(exported, L47)_
+
+- `@internal` `PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente.
 
 ## src/plain/types.ts
 
@@ -1593,21 +1744,15 @@ Soma de calendário: meses/anos "prendem" o dia ao último dia do mês (31/jan +
 
 1 = segunda ... 7 = domingo (ISO 8601, como o Temporal).
 
+## src/plain/utils.ts
+
+#### `PlainUtils` — class _(exported, L4)_
+
+Auxiliares puros compartilhados por `PlainDate`, `PlainTime` e `Duration`.
+
 ## src/plain/date/model.ts
 
-#### `ISO_DATE` — const _(local, L4)_
-
-#### `MARCH` — const _(local, L5)_
-
-#### `MONTHS_FROM_MARCH` — const _(local, L6)_
-
-#### `isLeap` — const _(local, L8)_
-
-#### `daysInMonth` — const _(local, L9)_
-
-#### `isInt` — const _(local, L10)_
-
-#### `PlainDate` — class _(exported, L17)_
+#### `PlainDate` — class _(exported, L12)_
 
 Data de calendário **sem horário nem fuso**, imutável, no vocabulário do `Temporal.PlainDate`.
 Validação de verdade (bissexto, dia por mês): uma data inválida **não existe** — `tryFrom` devolve `undefined`,
@@ -1615,13 +1760,7 @@ Validação de verdade (bissexto, dia por mês): uma data inválida **não exist
 
 ## src/plain/duration/model.ts
 
-#### `UNIT_MS` — const _(local, L4)_
-
-#### `ISO` — const _(local, L7)_
-
-`PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente.
-
-#### `Duration` — class _(exported, L14)_
+#### `Duration` — class _(exported, L10)_
 
 Duração imutável, em milissegundos inteiros, no vocabulário do Temporal (`Temporal.Duration`).
 Só unidades fixas (dias, horas, minutos, segundos, ms): "1 mês" não é uma duração fixa — use `PlainDate.add`.
@@ -1629,15 +1768,86 @@ Os componentes (`hours`, `minutes`...) são do **valor absoluto**; o sinal vem e
 
 ## src/plain/time/model.ts
 
-#### `ISO_TIME` — const _(local, L5)_
-
-#### `pad` — const _(local, L6)_
-
-#### `inRange` — const _(local, L7)_
-
-#### `PlainTime` — class _(exported, L10)_
+#### `PlainTime` — class _(exported, L9)_
 
 Hora do dia **sem data nem fuso**, imutável (`Temporal.PlainTime`). Passar de 24h dá a volta (23:30 + 1h = 00:30).
+
+## src/priority-queue/model.ts
+
+#### `PriorityQueue` — class _(exported, L7)_
+
+Fila de prioridade (heap binário). Sai primeiro o menor segundo `compare`; empates saem na **ordem de chegada** (estável).
+Base de agendadores, timers, Dijkstra/A*. `push`/`pop` custam O(log n), `peek` O(1).
+
+## src/priority-queue/types.ts
+
+#### `TCompare` — type _(exported, L2)_
+
+Negativo → `a` sai antes; positivo → `b` sai antes (como `Array.sort`).
+
+#### `TEntry` — type _(exported, L5)_
+
+- `@internal` Item + ordem de chegada (desempate estável).
+
+## src/random/declarations.ts
+
+#### `UINT32_RANGE` — const _(exported, L2)_
+
+- `@internal`
+
+#### `SPLITMIX_INCREMENT` — const _(exported, L4)_
+
+- `@internal`
+
+#### `SPLITMIX_MUL_A` — const _(exported, L6)_
+
+- `@internal`
+
+#### `SPLITMIX_MUL_B` — const _(exported, L8)_
+
+- `@internal`
+
+#### `FNV_OFFSET` — const _(exported, L10)_
+
+- `@internal`
+
+#### `FNV_PRIME` — const _(exported, L12)_
+
+- `@internal`
+
+#### `STATE_WORDS` — const _(exported, L14)_
+
+- `@internal`
+
+#### `BYTES_PER_WORD` — const _(exported, L16)_
+
+- `@internal`
+
+## src/random/model.ts
+
+#### `Random` — class _(exported, L10)_
+
+Gerador pseudoaleatório **determinístico** (xoshiro128**, estado de 4×32 bits, semente via splitmix32).
+Mesma semente → mesma sequência em qualquer plataforma/linguagem (só aritmética de inteiros de 32 bits):
+serve para jogos, simulação, testes reproduzíveis e replays. **Não** é criptográfico — para segredos use `IdUtils`.
+
+## src/random/types.ts
+
+#### `TRandomState` — type _(exported, L2)_
+
+Estado completo do gerador: 4 palavras de 32 bits. Guardar e restaurar reproduz a sequência exatamente.
+
+#### `TRandomSeed` — type _(exported, L5)_
+
+Semente: número (usa os 32 bits baixos do inteiro) ou texto (hash FNV-1a de 32 bits).
+
+#### `TWeighted` — type _(exported, L7)_
+
+## src/random/utils.ts
+
+#### `RandomUtils` — class _(exported, L4)_
+
+Aritmética de 32 bits usada pelo `Random` (só inteiros: dá o mesmo resultado em qualquer plataforma).
 
 ## src/reactive-node/declarations.ts
 
@@ -1726,6 +1936,38 @@ Hora do dia **sem data nem fuso**, imutável (`Temporal.PlainTime`). Passar de 2
 #### `Signal` — type _(exported, L24)_
 
 #### `Signal` — const _(exported, L29)_
+
+## src/result/types.ts
+
+#### `TOk` — type _(exported, L1)_
+
+#### `TErr` — type _(exported, L2)_
+
+#### `TResult` — type _(exported, L5)_
+
+Erro como valor: `if (result.ok) result.value else result.error`.
+
+## src/result/utils.ts
+
+#### `ResultUtils` — class _(exported, L3)_
+
+## src/semaphore/model.ts
+
+#### `Semaphore` — class _(exported, L8)_
+
+Semáforo assíncrono, justo (FIFO): no máximo `permits` tarefas ao mesmo tempo. `run(fn)` garante a devolução mesmo se `fn` lançar.
+Vale **dentro de uma thread** (várias tarefas assíncronas pendentes); não protege nada entre workers — isso exigiria `SharedArrayBuffer` + `Atomics`.
+Aceita `AbortSignal`: quem está na fila e é cancelado sai dela e rejeita com `signal.reason`.
+
+## src/semaphore/types.ts
+
+#### `TRelease` — type _(exported, L2)_
+
+Devolve a permissão. Chamar de novo não faz nada (idempotente).
+
+#### `TWaiter` — type _(exported, L5)_
+
+- `@internal` Quem está na fila esperando uma permissão.
 
 ## src/service/model.ts
 
@@ -1818,17 +2060,19 @@ Candidate tones for `Palette.onColor` — the darkest and the lightest the scale
 
 #### `NEUTRAL_CHROMA` — const _(exported, L5)_
 
+#### `MID_TONE` — const _(exported, L8)_
+
+- `@internal` Tom do meio da escala tonal.
+
 ## src/theme/palette/model.ts
 
-#### `MID_TONE` — const _(local, L8)_
+#### `Palette` — class _(exported, L8)_
 
-#### `Palette` — class _(exported, L10)_
-
-#### `CustomPalette` — class _(exported, L78)_
+#### `CustomPalette` — class _(exported, L76)_
 
 Palette defined by hand-picked colors per tone; tones in between are interpolated (in oklch) from the nearest picked ones.
 
-#### `TonalPalette` — class _(exported, L112)_
+#### `TonalPalette` — class _(exported, L110)_
 
 ## src/theme/palette/presets.ts
 

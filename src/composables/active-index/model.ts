@@ -3,9 +3,7 @@ import { signal } from '@tsr-node/signal/model';
 import { TActiveIndex, TActiveIndexOptions } from './types';
 import { INTERNAL } from '@tsn-object/declarations';
 import { TReactive } from '@tsr-node/types';
-
-/** `-1` means no item is active. */
-const NONE = -1;
+import { NONE } from './declarations';
 
 /**
  * Index arithmetic (next/prev, wraparound) over a list whose length can change —

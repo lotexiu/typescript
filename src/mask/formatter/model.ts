@@ -3,8 +3,7 @@ import { MASK_CODECS } from '../declarations';
 import { MaskEngine } from '../engine/model';
 import { MaskNumberUtils } from '../number/utils';
 import { TMaskCheckResult, TMaskCodec, TMaskDefinition, TMaskParsed } from '../types';
-
-const OK: TMaskCheckResult = { ok: true };
+import { OK } from './declarations';
 
 /**
  * Uma máscara pronta para uso: padrão + opções, com os **três valores** do mesmo dado:

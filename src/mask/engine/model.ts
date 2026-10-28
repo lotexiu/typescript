@@ -6,8 +6,7 @@ import { defaultRules } from '../declarations';
 import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from '../token/model';
 import { TMaskPad, TMaskRule } from '../types';
 import type { TEngineOptions } from './types';
-
-const reverseText = (text: string) => [...text].reverse().join('');
+import { MaskEngineUtils } from './utils';
 
 /**
  * Motor de máscaras de caracteres, **por instância**: cada uma tem as próprias regras (as padrão + as que somar),
@@ -107,7 +106,7 @@ class MaskEngine {
 	#reverse(pattern: MaskCompiledPattern): MaskCompiledPattern {
 		let reversed = this.#reversedCache.get(pattern);
 		if (!reversed) {
-			const tokens = [...pattern.tokens].reverse().map((token) => (token instanceof TMaskStaticToken ? new TMaskStaticToken(reverseText(token.value)) : token));
+			const tokens = [...pattern.tokens].reverse().map((token) => (token instanceof TMaskStaticToken ? new TMaskStaticToken(MaskEngineUtils.reverse(token.value)) : token));
 			const ruleTokens = [...pattern.ruleTokens].reverse();
 			reversed = new MaskCompiledPattern(`${pattern.source}\u0000reversed`, tokens, ruleTokens, tokens.filter((t) => t instanceof TMaskStaticToken), pattern.flags);
 			this.#reversedCache.set(pattern, reversed);
@@ -176,16 +175,16 @@ class MaskEngine {
 	apply(value: string, mask: string, options: TEngineOptions = {}): string {
 		const { reversed, pad } = options;
 		const patterns = this.#patterns(mask, reversed);
-		let raw = this.#extract(patterns, reversed ? reverseText(value) : value);
-		if (reversed) raw = reverseText(raw); // volta à ordem de leitura para o preenchimento
+		let raw = this.#extract(patterns, reversed ? MaskEngineUtils.reverse(value) : value);
+		if (reversed) raw = MaskEngineUtils.reverse(raw); // volta à ordem de leitura para o preenchimento
 		raw = MaskEngine.pad(raw, pad, reversed);
-		return reversed ? reverseText(this.#fill(patterns, reverseText(raw))) : this.#fill(patterns, raw);
+		return reversed ? MaskEngineUtils.reverse(this.#fill(patterns, MaskEngineUtils.reverse(raw))) : this.#fill(patterns, raw);
 	}
 
 	unapply(value: string, mask: string, options: TEngineOptions = {}): string {
 		const patterns = this.#patterns(mask, options.reversed);
-		const raw = this.#extract(patterns, options.reversed ? reverseText(value) : value);
-		return options.reversed ? reverseText(raw) : raw;
+		const raw = this.#extract(patterns, options.reversed ? MaskEngineUtils.reverse(value) : value);
+		return options.reversed ? MaskEngineUtils.reverse(raw) : raw;
 	}
 
 	valid(value: string, mask: string): boolean {

@@ -1,13 +1,8 @@
-import { DAYS_IN_MONTH, DAYS_PER_ERA, DAYS_PER_WEEK, EPOCH_ISO_WEEKDAY, EPOCH_SHIFT_DAYS, MAX_YEAR, MIN_YEAR, MONTHS_PER_YEAR, YEARS_PER_ERA } from '../declarations';
+import { DAYS_IN_MONTH, DAYS_PER_ERA, DAYS_PER_WEEK, EPOCH_ISO_WEEKDAY, EPOCH_SHIFT_DAYS, ISO_DATE, MARCH, MAX_YEAR, MIN_YEAR, MONTHS_FROM_MARCH, MONTHS_PER_YEAR, YEARS_PER_ERA } from '../declarations';
+import { PlainUtils } from '../utils';
 import { TDateAdd, TDateParts, TIsoWeekday } from '../types';
 
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
-const MARCH = 3;
-const MONTHS_FROM_MARCH = 9;
 
-const isLeap = (year: number) => (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-const daysInMonth = (year: number, month: number) => (month === 2 && isLeap(year) ? 29 : DAYS_IN_MONTH[month - 1]);
-const isInt = (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value);
 
 /**
  * Data de calendário **sem horário nem fuso**, imutável, no vocabulário do `Temporal.PlainDate`.
@@ -22,7 +17,7 @@ class PlainDate {
 	) {}
 
 	static isValid(year: number, month: number, day: number): boolean {
-		return isInt(year) && isInt(month) && isInt(day) && year >= MIN_YEAR && year <= MAX_YEAR && month >= 1 && month <= MONTHS_PER_YEAR && day >= 1 && day <= daysInMonth(year, month);
+		return PlainUtils.isInt(year) && PlainUtils.isInt(month) && PlainUtils.isInt(day) && year >= MIN_YEAR && year <= MAX_YEAR && month >= 1 && month <= MONTHS_PER_YEAR && day >= 1 && day <= PlainUtils.daysInMonth(year, month);
 	}
 
 	static tryFrom({ year, month, day }: TDateParts): PlainDate | undefined {
@@ -86,11 +81,11 @@ class PlainDate {
 	}
 
 	get inLeapYear(): boolean {
-		return isLeap(this.year);
+		return PlainUtils.isLeap(this.year);
 	}
 
 	get daysInMonth(): number {
-		return daysInMonth(this.year, this.month);
+		return PlainUtils.daysInMonth(this.year, this.month);
 	}
 
 	get daysInYear(): number {
@@ -111,7 +106,7 @@ class PlainDate {
 		const totalMonths = this.year * MONTHS_PER_YEAR + (this.month - 1) + years * MONTHS_PER_YEAR + months;
 		const year = Math.floor(totalMonths / MONTHS_PER_YEAR);
 		const month = (totalMonths % MONTHS_PER_YEAR + MONTHS_PER_YEAR) % MONTHS_PER_YEAR + 1;
-		const moved = PlainDate.from({ year, month, day: Math.min(this.day, daysInMonth(year, month)) });
+		const moved = PlainDate.from({ year, month, day: Math.min(this.day, PlainUtils.daysInMonth(year, month)) });
 		return weeks || days ? PlainDate.fromEpochDays(moved.toEpochDays() + weeks * DAYS_PER_WEEK + days) : moved;
 	}
 
