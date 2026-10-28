@@ -63,6 +63,12 @@ class ReactiveNode<T> {
 		return this.#value;
 	}
 
+	/** Counter bumped on every real change (`set` with a new value, `notify()`, or a recompute that produced a different value). Never tracked. */
+	version(): number {
+		if (this.#compute !== undefined && this.#checkedAtWriteCount !== writeCount) this.#refresh();
+		return this.#version;
+	}
+
 	#refresh(): void {
 		if (this.#checkedAtWriteCount === writeCount) return;
 		const flags = this.#flags;

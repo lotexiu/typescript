@@ -66,6 +66,11 @@ type TDebounceFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
 };
 
+/** Options for `throttle()` — `trailing` replays the last ignored call once the interval ends. */
+type TThrottleOptions = {
+	trailing?: boolean;
+};
+
 /** The wrapped function `throttle()` returns — callable like `T`, plus `clear()` to reset its interval tracking. */
 type TThrottleFn<Args extends any[]> = TFn<Args, void> & {
 	clear: () => void;
@@ -112,6 +117,7 @@ export {
 	TReplaceConstructor,
 	TDebounceFn,
 	TThrottleFn,
+	TThrottleOptions,
 	TStepFn,
 	TOnceFn,
 	TScheduleOnceFn,

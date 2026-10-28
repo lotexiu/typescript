@@ -1,12 +1,6 @@
-import { MS_CONVERTIONS } from "./declarations";
 import { TDateSetValue, TDateSetChecker } from "./types";
 
 class DateUtils {
-	static formatMS(ms: number) {
-		const [unit, _, factor] = MS_CONVERTIONS.find(([_, threshold]) => ms < threshold) ?? MS_CONVERTIONS.at(-1)!;
-		return `${Math.round(ms * factor)} ${unit}`;
-	}
-
 	static set(date: Date, value: TDateSetValue) {
 		const { year, month, day, hour, minute, second, millisecond } = value;
 		if (year !== undefined) date.setFullYear(year);

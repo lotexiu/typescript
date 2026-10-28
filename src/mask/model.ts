@@ -1,196 +1,83 @@
-import { REGEX_PATTERNS } from '@tsn/regex/declarations';
-import { RegexUtils } from '@tsn/regex/utils';
-import { computed } from '@tsr-node/computed/model';
-import { signal } from '@tsr-node/signal/model';
-import { MaskCompiledPattern } from './compiled-pattern/model';
-import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from './token/model';
-import { TMaskRule } from './types';
+import { MaskEngine } from './engine';
+import type { TEngineOptions } from './engine';
+import { MASK_PRESETS } from './declarations';
+import type { PlainDate } from '@ts/plain/date';
+import { maskDate } from './date';
+import type { TMaskDateConfig } from './date';
+import { MaskFormatter } from './formatter';
+import { TMaskDefinition, TMaskNumber, TMaskRule } from './types';
 
-const { DIGITS, LETTERS, SYMBOLS } = REGEX_PATTERNS;
-
+/**
+ * Porta única de formatação por máscara. A API estática antiga (`apply/unapply/valid`, regras globais) continua igual
+ * e usa uma instância padrão; para algo mais rico use `Mask.of(...)`:
+ *
+ * ```ts
+ * Mask.of('duration-clock').format(1_936_000)            // "32:16"
+ * Mask.of('duration-clock').parse('1:05:07').typed       // 3_907_000 (ms)
+ * Mask.of({ number: { scale: 2, decimal: ',', group: '.' } }).apply('1234567') // "12.345,67"
+ * Mask.of({ pattern: 'NN-NN', rules: { N: { match: ['[A-Z0-9]'] } } })         // regra só desta máscara
+ * ```
+ */
 class Mask {
-	static readonly #cache = new Map<string, MaskCompiledPattern>();
-	static readonly #patternCache = new Map<string, MaskCompiledPattern[]>();
+	static readonly #default = new MaskEngine();
+	static readonly #presets = new Map<string, TMaskDefinition>(Object.entries(MASK_PRESETS));
 
-	static readonly #rules = signal<Map<string, TMaskRule>>(new Map());
-	static readonly rules = computed(() => [...Mask.#rules().values()]);
-	static readonly ruleKeys = computed(() => [...Mask.#rules().keys()]);
-	static readonly ruleMatcher = computed(() => {
-		const keys = Mask.ruleKeys().map((key) => RegexUtils.escapeReservedKeys(key));
-		return new RegExp(`(${keys.join('|')})(?:\\{(\\d+)(?:,(\\d*))?}|(\\*)|(\\?))?`, 'g');
-	});
-
-	static {
-		Mask.resetRulesToDefault();
-		Mask.#rules.subscribe(() => {
-			Mask.#cache.clear();
-			Mask.#patternCache.clear();
-		});
-	}
+	static readonly rules = Mask.#default.rules;
+	static readonly ruleKeys = Mask.#default.ruleKeys;
+	static readonly ruleMatcher = Mask.#default.ruleMatcher;
 
 	static resetRulesToDefault() {
-		const rules = Mask.#rules();
-		rules.clear();
-		rules.set('0', { match: [DIGITS.BASIC] });
-		rules.set('A', { match: [DIGITS.BASIC, LETTERS.EXTENDED.ALL], flags: 'v' });
-		rules.set('W', { match: [LETTERS.EXTENDED.ALL], flags: 'v' });
-		rules.set('U', { match: [LETTERS.EXTENDED.UPPERCASE], flags: 'v' });
-		rules.set('L', { match: [LETTERS.EXTENDED.LOWERCASE], flags: 'v' });
-		rules.set('S', { match: [SYMBOLS.ALL], flags: 'v' });
-		rules.set('C', { match: [SYMBOLS.CURRENCY], flags: 'v' });
-		rules.set('E', { match: [SYMBOLS.EMOJI], flags: 'v' });
-		rules.set('X', { match: ['.'], flags: 'v' });
-		Mask.#rules.notify();
+		Mask.#default.resetRulesToDefault();
 	}
 
 	static clearRules() {
-		Mask.#rules().clear();
-		Mask.#rules.notify();
+		Mask.#default.clearRules();
 	}
 
 	static setRule(key: string, rule: TMaskRule) {
-		Mask.#rules().set(key, rule);
-		Mask.#rules.notify();
+		Mask.#default.setRule(key, rule);
 	}
 
-	static #compile(mask: string): MaskCompiledPattern[] {
-		const wholeCached = Mask.#patternCache.get(mask);
-		if (wholeCached) return wholeCached;
-
-		const patterns = mask.split('||');
-		const compiledPatterns: MaskCompiledPattern[] = [];
-
-		for (const pattern of patterns) {
-			/* Already Compiled */
-			const cached = Mask.#cache.get(pattern);
-			if (cached) {
-				compiledPatterns.push(cached);
-				continue;
-			}
-			/* Compiling Pattern */
-			let maskPos = 0;
-			let tokens: TMaskToken[] = [];
-			let ruleTokens: TMaskRuleToken[] = [];
-			let staticTokens: TMaskStaticToken[] = [];
-			let flags = new Set<string>();
-
-			for (const match of pattern.matchAll(Mask.ruleMatcher())) {
-				const [_, key, min = 1, max, star, question] = match;
-				const rule = Mask.#rules().get(key)!;
-
-				if (maskPos < match.index) {
-					const staticToken = new TMaskStaticToken(pattern.slice(maskPos, match.index));
-					tokens.push(staticToken);
-					staticTokens.push(staticToken);
-				}
-				maskPos = match.index + match[0].length;
-
-				const ruleToken = new TMaskRuleToken(
-					rule.match.join('|'),
-					question ? 0
-					: star ? 0
-					: Number(min),
-					question ? 1
-					: star ? Infinity
-					: max === undefined ? Number(min)
-					: max === '' ? Infinity
-					: Number(max),
-					rule.flags
-				);
-				tokens.push(ruleToken);
-				ruleTokens.push(ruleToken);
-				for (const flag of rule.flags ?? '') flags.add(flag);
-			}
-			if (maskPos < pattern.length) {
-				const staticToken = new TMaskStaticToken(pattern.slice(maskPos));
-				tokens.push(staticToken);
-				staticTokens.push(staticToken);
-			}
-			/* Compiled Pattern */
-			const compiledPattern = new MaskCompiledPattern(
-				pattern,
-				tokens,
-				ruleTokens,
-				staticTokens,
-				[...flags.values()].join('')
-			);
-			Mask.#cache.set(pattern, compiledPattern);
-			compiledPatterns.push(compiledPattern);
-		}
-		Mask.#patternCache.set(mask, compiledPatterns);
-		return compiledPatterns;
+	static apply(value: string, mask: string, options?: TEngineOptions) {
+		return Mask.#default.apply(value, mask, options);
 	}
 
-	static apply(value: string, mask: string) {
-		const raw = Mask.unapply(value, mask);
-		const rawChars = RegexUtils.hasAstralChar(raw) ? [...raw] : null;
-		let best = '';
-
-		for (const pattern of Mask.#compile(mask)) {
-			let formatted = '';
-			let pendingLiteral = '';
-			let index = 0;
-			let truncated = false;
-
-			for (const token of pattern.tokens) {
-				if (token instanceof TMaskStaticToken) {
-					pendingLiteral += token.value;
-					continue;
-				}
-				if (index >= (rawChars ?? raw).length) {
-					truncated = true;
-					break;
-				}
-				const takenChars = (rawChars ?? raw).slice(index, index + token.max);
-				formatted +=
-					pendingLiteral +
-					(typeof takenChars === 'string' ? takenChars : (takenChars as string[]).join(''));
-				pendingLiteral = '';
-				index += takenChars.length;
-			}
-			if (!truncated) formatted += pendingLiteral;
-			if (formatted.length > best.length) best = formatted;
-		}
-
-		return best;
-	}
-
-	static unapply(value: string, mask: string) {
-		let best = '';
-		const chars = RegexUtils.hasAstralChar(value) ? [...value] : value;
-
-		for (const pattern of Mask.#compile(mask)) {
-			const ruleTokens = pattern.ruleTokens;
-			if (!ruleTokens.length) continue;
-
-			let ruleIndex = 0;
-			let count = 0;
-			let raw = '';
-
-			for (let i = 0; i < chars.length && ruleIndex < ruleTokens.length; i++) {
-				const char = chars[i];
-				const rule = ruleTokens[ruleIndex];
-				if (!rule.match().test(char)) continue;
-
-				raw += char;
-				if (++count >= rule.max) {
-					ruleIndex++;
-					count = 0;
-				}
-			}
-
-			if (raw.length > best.length) best = raw;
-		}
-
-		return best;
+	static unapply(value: string, mask: string, options?: TEngineOptions) {
+		return Mask.#default.unapply(value, mask, options);
 	}
 
 	static valid(value: string, mask: string): boolean {
-		return Mask.#compile(mask).some((pattern) => pattern.validWithMask().test(value));
+		return Mask.#default.valid(value, mask);
 	}
 
 	static validWithoutMask(value: string, mask: string): boolean {
-		return Mask.#compile(mask).some((pattern) => pattern.validWithoutMask().test(value));
+		return Mask.#default.validWithoutMask(value, mask);
+	}
+
+	/** Registra (ou substitui) um preset — só dados. É assim que pacotes de região/domínio trazem os seus. */
+	static preset(id: string, definition: TMaskDefinition): void {
+		Mask.#presets.set(id, definition);
+	}
+
+	static hasPreset(id: string): boolean {
+		return Mask.#presets.has(id);
+	}
+
+	/** Uma máscara pronta: id de um preset, um padrão (`'000.000'`) ou uma definição completa. */
+	static of<T = string>(spec: string | TMaskDefinition): MaskFormatter<T> {
+		const definition: TMaskDefinition = typeof spec === 'string' ? (Mask.#presets.get(spec) ?? { pattern: spec }) : spec;
+		const engine = definition.rules ? new MaskEngine(definition.rules, Mask.#default) : Mask.#default;
+		return new MaskFormatter<T>(engine, definition);
+	}
+
+	/** Data digitada só com números, com **calendário validado**; ordem e separador são parâmetros. Tipado = `PlainDate`. */
+	static date(config: TMaskDateConfig): MaskFormatter<PlainDate> {
+		return Mask.of<PlainDate>(maskDate(config));
+	}
+
+	/** Atalho para números "da direita" (valor monetário, quantidade...): separadores e casas são parâmetros. */
+	static number(config: TMaskNumber): MaskFormatter<number> {
+		return Mask.of<number>({ number: config });
 	}
 }
 

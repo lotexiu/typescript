@@ -1,36 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DateUtils } from '@tsn-date/utils';
 
-describe('DateUtils.formatMS', () => {
-	it('formats sub-millisecond durations as nanoseconds', () => {
-		expect(DateUtils.formatMS(0.0005)).toBe('500 ns');
-	});
-
-	it('formats durations under 1ms as microseconds', () => {
-		expect(DateUtils.formatMS(0.5)).toBe('500 µs');
-	});
-
-	it('formats durations under 1s as milliseconds', () => {
-		expect(DateUtils.formatMS(500)).toBe('500 ms');
-	});
-
-	it('formats durations under a minute as seconds', () => {
-		expect(DateUtils.formatMS(3000)).toBe('3 s');
-	});
-
-	it('formats durations under an hour as minutes', () => {
-		expect(DateUtils.formatMS(120000)).toBe('2 min');
-	});
-
-	it('formats durations under a day as hours', () => {
-		expect(DateUtils.formatMS(7200000)).toBe('2 hour');
-	});
-
-	it('falls back to the largest unit (week) beyond the last threshold', () => {
-		expect(DateUtils.formatMS(20000000000)).toBe('33 week');
-	});
-});
-
 describe('DateUtils.set', () => {
 	it('sets each provided field independently', () => {
 		const date = new Date(2024, 5, 15, 10, 30, 45, 500);

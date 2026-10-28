@@ -124,3 +124,21 @@ describe('Time calendar computations', () => {
 		expect(t.totalDays()).toBe(31);
 	});
 });
+
+describe('Time.refresh', () => {
+	it('moves every field to the given date and notifies', () => {
+		const time = new Time(new Date(2020, 0, 1, 10, 0, 0));
+		const seen: number[] = [];
+		time.hour.subscribe((h) => seen.push(h));
+		time.refresh(new Date(2021, 5, 15, 22, 30, 0));
+		expect(time.year()).toBe(2021);
+		expect(time.minutes()).toBe(30);
+		expect(seen).toEqual([22]);
+	});
+
+	it('defaults to "now"', () => {
+		const time = new Time(new Date(2000, 0, 1));
+		time.refresh();
+		expect(time.year()).toBeGreaterThanOrEqual(2025);
+	});
+});

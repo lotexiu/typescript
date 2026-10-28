@@ -7,7 +7,7 @@ class Cache<V> {
 	private readonly options: Required<CacheOptions>;
 
 	constructor(options: CacheOptions = {}) {
-		this.options = { keySeparator: '||', batch: false, ...options };
+		this.options = { keySeparator: '||', batch: false, maxEntries: Infinity, ...options };
 		if (!this.options.batch) return;
 		this.batchCache = new Map();
 		this.batchKeyCache = new Map();
@@ -44,8 +44,18 @@ class Cache<V> {
 		return Array.isArray(cached) ? [...cached] : cached;
 	}
 
+	/** Returns the cached value, or builds it with `create`, stores it and returns it (also caches `undefined` results). */
+	getOrSet(key: string, create: () => V): V {
+		if (this.valueCache.has(key)) return this.get(key) as V;
+		const value = create();
+		this.set(key, value);
+		return value;
+	}
+
 	set(key: string, value: V): void {
+		this.valueCache.delete(key); // re-insert: Map order doubles as recency
 		this.valueCache.set(key, value);
+		this.#evict();
 		if (!this.batchKeyCache) return;
 		const batchKeys = this.batchKeyCache.get(key);
 		if (!batchKeys) return;
@@ -59,7 +69,13 @@ class Cache<V> {
 
 	get<const Keys extends TCacheGetParam>(...keys: Keys): TCacheReturn<Keys, V> {
 		if (keys.length === 1) {
-			return this.valueCache.get(keys[0]) as TCacheReturn<Keys, V>;
+			const key = keys[0];
+			const value = this.valueCache.get(key);
+			if (this.options.maxEntries !== Infinity && this.valueCache.has(key)) {
+				this.valueCache.delete(key);
+				this.valueCache.set(key, value as V);
+			}
+			return value as TCacheReturn<Keys, V>;
 		}
 		if (!this.options.batch) {
 			return keys.map((key) => this.valueCache.get(key)) as TCacheReturn<Keys, V>;
@@ -79,6 +95,13 @@ class Cache<V> {
 
 		this.batchCache!.set(batchKey, values as V[]);
 		return [...values] as TCacheReturn<Keys, V>;
+	}
+
+	#evict(): void {
+		const { maxEntries } = this.options;
+		while (this.valueCache.size > maxEntries) {
+			this.delete(this.valueCache.keys().next().value!);
+		}
 	}
 
 	clear(): void {

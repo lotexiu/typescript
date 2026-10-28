@@ -309,3 +309,38 @@ describe('FunctionUtils.scheduleOnce', () => {
 		expect(fn).toHaveBeenCalledTimes(2);
 	});
 });
+
+describe('FunctionUtils.throttle (trailing)', () => {
+	beforeEach(() => vi.useFakeTimers());
+	afterEach(() => vi.useRealTimers());
+
+	it('replays the last ignored call when the interval ends', () => {
+		const fn = vi.fn();
+		const throttled = FunctionUtils.throttle(fn, 100, { trailing: true });
+		throttled(1);
+		throttled(2);
+		throttled(3);
+		expect(fn.mock.calls).toEqual([[1]]);
+		vi.advanceTimersByTime(100);
+		expect(fn.mock.calls).toEqual([[1], [3]]);
+	});
+
+	it('does not replay anything without `trailing`', () => {
+		const fn = vi.fn();
+		const throttled = FunctionUtils.throttle(fn, 100);
+		throttled(1);
+		throttled(2);
+		vi.advanceTimersByTime(500);
+		expect(fn.mock.calls).toEqual([[1]]);
+	});
+
+	it('clear() drops the pending trailing call', () => {
+		const fn = vi.fn();
+		const throttled = FunctionUtils.throttle(fn, 100, { trailing: true });
+		throttled(1);
+		throttled(2);
+		throttled.clear();
+		vi.advanceTimersByTime(500);
+		expect(fn.mock.calls).toEqual([[1]]);
+	});
+});

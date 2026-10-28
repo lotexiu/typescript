@@ -85,6 +85,11 @@ class Time {
 		if (date) this.#date.set(date);
 	}
 
+	/** Moves this instance to `date` (default: right now), notifying every field. */
+	refresh(date: Date = new Date()): void {
+		this.#date.set(date);
+	}
+
 	// Leem a data atual a cada chamada (antes eram `bind` na data inicial, que ficava velha
 	// quando o construtor trocava a data ou quando ela era substituída).
 	getTime(): number {

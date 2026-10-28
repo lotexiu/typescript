@@ -29,6 +29,10 @@ class ReactiveNodeUtils {
 		this[NODE].dispose();
 	}
 
+	static version<T>(this: TWithNode<T>): number {
+		return this[NODE].version();
+	}
+
 	static node<T>(value: Computed<T> | Signal<T>) {
 		const instance: TWithNode<T> = value as any;
 		return instance[NODE];

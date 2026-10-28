@@ -7,6 +7,12 @@ type TActiveIndex = ActiveIndex &
 	TInternal<{
 		length: TReactive<number>;
 		internal: Signal<number>;
+		wrap: boolean;
 	}>;
 
-export { TActiveIndex };
+type TActiveIndexOptions = {
+	/** `true` (default): moving past either end wraps around. `false`: stops at the ends. */
+	wrap?: boolean;
+};
+
+export { TActiveIndex, TActiveIndexOptions };

@@ -4,7 +4,12 @@ import { INTERNAL } from '@tsn-object/declarations';
 import { computed, Computed } from '@tsr-node/computed/model';
 
 type Selection<T> = Computed<T[]> & {
+	/** Number of selected values. */
+	size: Computed<number>;
+	isEmpty: Computed<boolean>;
 	has: (...values: T[]) => boolean;
+	/** Replaces the whole selection (a single notification). */
+	set: (values: Iterable<T>) => void;
 	select: (...values: T[]) => void;
 	deselect: (...values: T[]) => void;
 	toggle: (...values: T[]) => void;
@@ -40,6 +45,14 @@ const Selection = {
 		internal.notify();
 	},
 
+	set<T>(this: TSelection<T>, values: Iterable<T>): void {
+		const internal = this[INTERNAL];
+		const next = [...values];
+		internal().clear();
+		next.forEach((value) => internal().add(value));
+		internal.notify();
+	},
+
 	clear<T>(this: TSelection<T>): void {
 		const internal = this[INTERNAL];
 		internal().clear();
@@ -47,7 +60,7 @@ const Selection = {
 	},
 };
 
-const { has, select, deselect, toggle, clear } = Selection;
+const { has, select, deselect, toggle, set, clear } = Selection;
 
 function selection<T>(initial: Iterable<T> = []) {
 	const internal = signal<Set<T>>(new Set([...initial]));
@@ -56,7 +69,10 @@ function selection<T>(initial: Iterable<T> = []) {
 	instance.select = select;
 	instance.deselect = deselect;
 	instance.toggle = toggle;
+	instance.set = set;
 	instance.clear = clear;
+	instance.size = computed(() => internal().size);
+	instance.isEmpty = computed(() => internal().size === 0);
 	instance[INTERNAL] = internal;
 	return instance;
 }

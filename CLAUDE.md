@@ -488,6 +488,61 @@ densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` 
 
 ---
 
+## Ajustes de 2026-10-28 (vindos de um app de teste: tela de Android TV em `apps/react-desk/src/tv/`)
+
+Tudo agnóstico (sem DOM/CSS), pensando no port futuro para Rust — só lógica e configuração. **Há testes** (`src/.test/`, 505 hoje; o trecho "não há `*.test.ts`" lá em cima está desatualizado). Itens sem commit, a revisar.
+
+**Corrigido**
+- `ChunkUtils`: métodos agora `static` (eram de instância; `byWorkers` usava `this` e quebrava extraído). Teste atualizado para `ChunkUtils.bySize(...)`.
+- `src/theme/model.ts` tinha um bloco de CSS colado no fim (erro de sintaxe — quebrava o build). Removido.
+- **Removido a pedido:** `DateUtils.formatMS` (+ `MS_CONVERTIONS`, `TMSConvertion(s)`, `TTimeUnit`) e a `DateUtils.clock` que eu havia criado — formatação de tempo deve ser resolvida pela `Mask`/um preset, não por funções de formato fixo.
+- `MathUtils.random(min, max, true)`: o `max` é **exclusivo** (documentado no JSDoc; comportamento mantido).
+- `activeIndex`: pedido de índice com a lista vazia (`set(0)` antes dos dados chegarem) deixou de ser perdido — a leitura continua `-1` até haver itens.
+
+**Adicionado**
+- `signal`/`computed` ganharam `version()` (contador sem rastreio): adaptadores de UI comparam números mesmo quando o valor é mutado no lugar. `TReactive` ganhou `version(): number`.
+- `ticker(ms, { autoStart })` — timer como estado (`count`, `running`, `start/stop/reset/dispose`). `Time.refresh(date?)`.
+- Cor/tema: `ColorUtils` (`toHex/toString/withAlpha/contrast/mix`) + tipo `TColor`; `Palette.get(tone: number)` aceita qualquer tom (o tipo `TToneStop` é só a convenção) e `CustomPalette` interpola tons não definidos; `Palette.onColor(bg)` (contraste WCAG), `.derive({ hueShift, chromaScale, chroma, name })`, `.neutral()`; `ThemeStyle.resolve(mode, schemes?)` devolve papéis por slot (`neutral` → `background/surface1..3/onSurface/muted/outline/outlineSoft`; os demais → `main/onMain/container/onContainer/bright`; `schemes` soma papéis); `Theme.roles` (computed de style+mode) e `Theme.bindStyle(source)`.
+- `activeIndex(length, { wrap })`; `selection`: `size`, `isEmpty`, `set(values)`; `uiInteraction`: `hover/unhover`; `ValueHistory`: `canUndo/canRedo` (`canUndo` é verdadeiro até em `index 0`, que ainda pode ir para `-1`).
+- `FunctionUtils.throttle(fn, ms, { trailing })` — reexecuta a última chamada ignorada (padrão continua só *leading*).
+- `DateUtils.duration(ms)` (só decompõe em dias/horas/min/s/ms — **provisório**, a formatação/preset de duração ainda será desenhada); `ArrayUtils.partition/range/zip`.
+- `Cache`: `getOrSet(key, create)` e `maxEntries` (descarta o menos recente); `StopWatch.measure(fn)` (cronometra uma chamada avulsa) e `average` (`avarage` ficou como alias deprecated).
+
+**Não adicionado de propósito**: bind de DOM para `KeyboardState`/`MouseState` (pertence a um adaptador), hook de React (idem — ver `version()`), grid 2-D de foco (específico de UI).
+
+---
+
+## Escopo: nada regional no núcleo (2026-10-28)
+
+Documentos, formatos e regras que dependem de país/região (CPF, CNPJ, IE, CEP, DDD, moeda local…) **não** entram nesta lib. O núcleo só traz o **motor** genérico (`ChecksumUtils`, `Mask`, presets registráveis). Regras de região vivem em **pacotes separados e opcionais** que consomem o núcleo (ex.: `packages/br` → `@lotexiu/br`, caso de uso/vetores de teste, sem prioridade). Nenhum país em código, comentário ou vetor de teste daqui.
+
+---
+
+## `Mask` v2 (2026-10-28) — `src/mask/`
+
+`Mask` continua sendo a porta única; a API estática antiga (`apply/unapply/valid`, `setRule`...) não mudou. Camadas:
+`engine.ts` (`MaskEngine`, **por instância**: regras + cache de padrões; `reversed` = preencher o padrão invertido) · `checks.ts` (`MaskChecks`, checagens **como dados**) ·
+`number.ts` (`MaskNumber`) · `codecs.ts` (texto ↔ valor tipado) · `formatter.ts` (`MaskFormatter`: `apply/unapply/valid/check/parse/format`, os 3 valores) · `declarations.ts` (regras padrão + `MASK_PRESETS` **neutros**) · `model.ts` (fachada `Mask` + `Mask.of`, `Mask.number`, `Mask.preset`).
+Nada regional aqui (ver "Escopo"). Vetores de teste em `vectors/mask.json`.
+**Armadilha do gerador de `index.ts`:** um `type X =` cuja primeira linha de união começa com `|` é **ignorado** (não vai para o índice); comece a união pelo primeiro membro.
+
+---
+
+## Tempo: `src/plain/` (2026-10-28)
+
+`Duration`, `PlainDate`, `PlainTime`, `CalendarGrid` — **vocabulário do Temporal**, imutáveis, sem `Date` por baixo, sem fuso. Uma data inválida não existe (`tryFrom/tryParse` → `undefined`; `from/parse` → `RangeError`). Anos 1–9999.
+Integra com `Mask.date(...)`. Constantes em `plain/declarations.ts` são `@internal`. `Time` (antigo, mutável, em `src/time/`) é **legado**: não evoluir, migrar usos para `plain/`. `DateUtils.duration`/`clock`/`formatMS` foram **removidos**.
+`StopWatch` ganhou `pause()/resume()/paused` (o tempo parado não conta; `lap()` pausado fecha a volta no instante da pausa).
+Vetores: `vectors/plain.json`.
+
+---
+
+## Estudos de evolução (2026-10-28)
+
+`docs/study/` reúne pesquisa (bibliotecas e referências de várias linguagens) e propostas para `Mask`/formatação, headless, tempo/cor/tema e preparação para Rust — **propostas aguardando decisão, nada implementado**. Começar por `docs/study/README.md`.
+
+---
+
 ## Mantendo este arquivo
 
 Atualizar em pequenas edições conforme as coisas surgem — não reescrever em bloco. Quando algo parecer incomum, inconsistente, ou duas coisas disagreeing sem razão clara: registrar aqui (ou perguntar ao autor primeiro se for decisão viva). O objetivo é que sessões futuras não precisem redescobrir o que já foi resolvido.

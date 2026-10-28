@@ -155,3 +155,11 @@ describe('MathUtils.random', () => {
 		}
 	});
 });
+
+describe('MathUtils.random', () => {
+	it('excludes `max`, also for integers', () => {
+		const seen = new Set<number>();
+		for (let i = 0; i < 2000; i++) seen.add(MathUtils.random(0, 3, true));
+		expect([...seen].sort()).toEqual([0, 1, 2]);
+	});
+});

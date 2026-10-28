@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts`._
 
-4 erro(s), 38 aviso(s).
+4 erro(s), 41 aviso(s).
 
 ## Erros
 
@@ -47,6 +47,9 @@ _Gerado por `scripts/doc/generate.ts`._
 - `src/parser/node/model.ts:30` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/parser/node/model.ts:46` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/parser/node/model.ts:49` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/plain/date.ts:18` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/plain/duration.ts:19` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
+- `src/plain/time.ts:11` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/reactive-node/model.ts:40` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/service/model.ts:45` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)
 - `src/service/model.ts:51` **prefer-hash-private** — `private` do TypeScript — prefira `#nome` (privado real de runtime)

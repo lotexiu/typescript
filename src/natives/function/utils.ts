@@ -8,6 +8,7 @@ import {
 	TScheduleOnceFn,
 	TStepFn,
 	TThrottleFn,
+	TThrottleOptions,
 } from './types';
 
 class FunctionUtils {
@@ -65,21 +66,50 @@ class FunctionUtils {
 		};
 	}
 
-	/** Calls `fn` immediately, then ignores further calls until `interval` ms have passed. */
+	/**
+	 * Calls `fn` immediately, then ignores further calls until `interval` ms have passed.
+	 * With `trailing: true` the last ignored call is replayed when the interval ends, so the final value is never lost.
+	 */
 	static throttle<Args extends any[]>(
 		fn: TFn<Args, void>,
-		interval: number = 50
+		interval: number = 50,
+		options: TThrottleOptions = {}
 	): TThrottleFn<Args> {
+		const { trailing = false } = options;
 		let lastTime = 0;
+		let timeoutId: Timeout | undefined;
+		let pending: { self: any; args: Args } | undefined;
+
+		function cancelTrailing() {
+			if (timeoutId !== undefined) clearTimeout(timeoutId);
+			timeoutId = undefined;
+			pending = undefined;
+		}
+
+		function invoke(self: any, args: Args) {
+			lastTime = Date.now();
+			fn.apply(self, args);
+		}
+
 		function handler(this: any, ...args: Args) {
-			const now = Date.now();
-			if (now - lastTime >= interval) {
-				fn.apply(this, args);
-				lastTime = now;
+			const remaining = interval - (Date.now() - lastTime);
+			if (remaining <= 0) {
+				cancelTrailing();
+				invoke(this, args);
+				return;
 			}
+			if (!trailing) return;
+			pending = { self: this, args };
+			timeoutId ??= setTimeout(() => {
+				const call = pending!;
+				timeoutId = undefined;
+				pending = undefined;
+				invoke(call.self, call.args);
+			}, remaining);
 		}
 		handler.clear = () => {
 			lastTime = 0;
+			cancelTrailing();
 		};
 		return handler;
 	}

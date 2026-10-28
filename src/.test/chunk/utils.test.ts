@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ChunkUtils } from '@ts/chunk/utils';
 
-const chunk = new ChunkUtils();
+const chunk = ChunkUtils;
 
 describe('ChunkUtils.bySize', () => {
 	it('splits the array into chunks of the given size', () => {
@@ -61,5 +61,13 @@ describe('ChunkUtils.byWorkersCompact', () => {
 
 	it('returns an empty array for workers <= 0', () => {
 		expect(chunk.byWorkersCompact([1, 2, 3], 0)).toEqual([]);
+	});
+});
+
+describe('ChunkUtils (extracted methods)', () => {
+	it('works when a method is destructured away from the class', () => {
+		const { byWorkers, byWorkersCompact } = ChunkUtils;
+		expect(byWorkers([1, 2, 3, 4], 2)).toEqual([[1, 2], [3, 4]]);
+		expect(byWorkersCompact([1, 2, 3, 4], 2)).toEqual([[0, 2], [2, 4]]);
 	});
 });

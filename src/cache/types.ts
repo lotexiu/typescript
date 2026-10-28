@@ -1,6 +1,8 @@
 type CacheOptions = {
 	batch?: boolean;
 	keySeparator?: string;
+	/** Keeps at most this many entries; the least recently read/written one is dropped first. Unlimited when omitted. */
+	maxEntries?: number;
 };
 
 type TCacheGetParam = [key: string, ...keys: string[]];

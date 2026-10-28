@@ -1,0 +1,54 @@
+{
+  "$comment": "Vetores neutros (sem país/região) da Mask v2. apply: texto digitado -> mascarado. typed: valor tipado esperado. check: ok | motivo.",
+  "pattern-reversed": [
+    { "name": "milhar variável", "pattern": "0{1,3}.0{3}.0{3}", "reversed": true, "input": "1234567", "masked": "1.234.567" },
+    { "name": "milhar curto", "pattern": "0{1,3}.0{3}.0{3}", "reversed": true, "input": "123", "masked": "123" },
+    { "name": "milhar de 4", "pattern": "0{1,3}.0{3}.0{3}", "reversed": true, "input": "1234", "masked": "1.234" },
+    { "name": "lixo é ignorado", "pattern": "0{1,3}.0{3}", "reversed": true, "input": "a1b2c3d4", "masked": "1.234" },
+    { "name": "para frente continua igual", "pattern": "0000 0000", "input": "12345", "masked": "1234 5" }
+  ],
+  "duration-clock": [
+    { "input": "3216", "masked": "32:16", "typed": 1936000, "ok": true },
+    { "input": "537", "masked": "5:37", "typed": 337000, "ok": true },
+    { "input": "16", "masked": "0:16", "typed": 16000, "ok": true },
+    { "input": "0", "masked": "0:00", "typed": 0, "ok": true },
+    { "input": "10507", "masked": "1:05:07", "typed": 3907000, "ok": true },
+    { "input": "2500000", "masked": "250:00:00", "typed": 900000000, "ok": true },
+    { "input": "6016", "masked": "60:16", "typed": 3616000, "ok": false, "reason": "range", "note": "minutos > 59" },
+    { "input": "3260", "masked": "32:60", "typed": 1980000, "ok": false, "reason": "range", "note": "segundos > 59" }
+  ],
+  "duration-format": [
+    { "typed": 1936000, "masked": "32:16" },
+    { "typed": 3907000, "masked": "1:05:07" },
+    { "typed": 0, "masked": "0:00" },
+    { "typed": 7000, "masked": "0:07" },
+    { "typed": 36000000, "masked": "10:00:00" }
+  ],
+  "time-hm": [
+    { "input": "0930", "masked": "09:30", "ok": true },
+    { "input": "2359", "masked": "23:59", "ok": true },
+    { "input": "2460", "masked": "24:60", "ok": false, "reason": "range" },
+    { "input": "2360", "masked": "23:60", "ok": false, "reason": "range" }
+  ],
+  "number": [
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "input": "1234567", "masked": "12.345,67", "typed": 12345.67 },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "input": "5", "masked": "0,05", "typed": 0.05 },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "input": "12", "masked": "0,12", "typed": 0.12 },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "input": "100", "masked": "1,00", "typed": 1 },
+    { "config": { "scale": 2, "decimal": ".", "group": "," }, "input": "123456789", "masked": "1,234,567.89", "typed": 1234567.89 },
+    { "config": { "scale": 0, "decimal": ",", "group": "." }, "input": "1234567", "masked": "1.234.567", "typed": 1234567 },
+    { "config": { "scale": 3, "decimal": ".", "group": " " }, "input": "1500", "masked": "1.500", "typed": 1.5 },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "input": "000123", "masked": "1,23", "typed": 1.23, "note": "zeros à esquerda não aparecem" }
+  ],
+  "number-format": [
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "typed": 1234.5, "masked": "1.234,50" },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "typed": 0, "masked": "0,00" },
+    { "config": { "scale": 2, "decimal": ",", "group": "." }, "typed": 1000000, "masked": "1.000.000,00" },
+    { "config": { "scale": 0, "decimal": ",", "group": "." }, "typed": 42, "masked": "42" }
+  ],
+  "card-groups": [
+    { "input": "4111111111111111", "masked": "4111 1111 1111 1111", "ok": true },
+    { "input": "4111111111111112", "masked": "4111 1111 1111 1112", "ok": false, "reason": "check-digit" },
+    { "input": "411111111111", "masked": "4111 1111 1111", "ok": false, "reason": "pattern", "note": "incompleto" }
+  ]
+}

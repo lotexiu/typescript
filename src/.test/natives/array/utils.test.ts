@@ -85,3 +85,19 @@ describe('ArrayUtils.sortBy', () => {
 		expect(result).toEqual([1, 2, 3]);
 	});
 });
+
+describe('ArrayUtils.partition / range / zip', () => {
+	it('partition splits by predicate and keeps order', () => {
+		expect(ArrayUtils.partition([1, 2, 3, 4, 5], (n) => n % 2 === 0)).toEqual([[2, 4], [1, 3, 5]]);
+	});
+
+	it('range counts up, down and ignores a zero step', () => {
+		expect(ArrayUtils.range(0, 4)).toEqual([0, 1, 2, 3]);
+		expect(ArrayUtils.range(5, 0, -2)).toEqual([5, 3, 1]);
+		expect(ArrayUtils.range(0, 3, 0)).toEqual([]);
+	});
+
+	it('zip pairs by index and stops at the shortest', () => {
+		expect(ArrayUtils.zip([1, 2, 3], ['a', 'b'])).toEqual([[1, 'a'], [2, 'b']]);
+	});
+});

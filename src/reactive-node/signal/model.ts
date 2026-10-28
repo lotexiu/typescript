@@ -4,7 +4,7 @@ import { ReactiveNode } from '../model';
 import { TEqual, TReactive } from '../types';
 import { ReactiveNodeUtils } from '../utils';
 
-const { set, update, notify, subscribe, dispose } = ReactiveNodeUtils;
+const { set, update, notify, subscribe, dispose, version } = ReactiveNodeUtils;
 
 function signal<T>(initial: T, equal?: TEqual<T>): Signal<T>;
 function signal<T>(initial?: T, equal?: TEqual<T | undefined>): Signal<T | undefined>;
@@ -17,6 +17,7 @@ function signal<T>(initial?: T, equal?: TEqual<T | undefined>): Signal<T | undef
 	instance.notify = notify;
 	instance.subscribe = subscribe;
 	instance.dispose = dispose;
+	instance.version = version;
 	return instance;
 }
 

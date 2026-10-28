@@ -64,6 +64,7 @@ class MathUtils {
 		return start + (stop - start) * amount;
 	}
 
+	/** Random in `[min, max)` — `max` is exclusive, also with `integer = true` (`random(0, 3, true)` yields 0, 1 or 2). */
 	static random(min: number, max: number, integer = false): number {
 		const res = Math.random() * (max - min) + min;
 		return integer ? Math.floor(res) : res;

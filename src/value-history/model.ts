@@ -12,6 +12,10 @@ class ValueHistory<T> {
 	readonly current = computed(() => this.#at(this.index()));
 	readonly next = computed(() => this.#at(this.index() + 1));
 
+	/** `undo()` would move (it can step back to `index === -1`, the state before the first entry). */
+	readonly canUndo = computed(() => this.index() >= 0);
+	readonly canRedo = computed(() => this.index() < this.#entries().length - 1);
+
 	readonly length = computed(() => this.#entries().length);
 	readonly history = computed(() => this.#entries().map((value, index) => ({ index, value })));
 

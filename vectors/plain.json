@@ -1,0 +1,47 @@
+{
+  "$comment": "Vetores neutros de tempo (calendário gregoriano, ISO 8601). Datas conferidas à mão / com o Temporal.",
+  "epoch-days": [
+    { "date": "1970-01-01", "days": 0, "weekday": 4 },
+    { "date": "1969-12-31", "days": -1, "weekday": 3 },
+    { "date": "2000-01-01", "days": 10957, "weekday": 6 },
+    { "date": "2024-02-29", "days": 19782, "weekday": 4 },
+    { "date": "2026-10-28", "days": 20754, "weekday": 3 },
+    { "date": "0001-01-01", "days": -719162, "weekday": 1 },
+    { "date": "9999-12-31", "days": 2932896, "weekday": 5 }
+  ],
+  "add": [
+    { "date": "2024-01-31", "amount": { "months": 1 }, "result": "2024-02-29", "note": "bissexto: prende ao último dia" },
+    { "date": "2023-01-31", "amount": { "months": 1 }, "result": "2023-02-28" },
+    { "date": "2024-02-29", "amount": { "years": 1 }, "result": "2025-02-28" },
+    { "date": "2024-02-29", "amount": { "years": 4 }, "result": "2028-02-29" },
+    { "date": "2024-03-31", "amount": { "months": -1 }, "result": "2024-02-29" },
+    { "date": "2024-12-15", "amount": { "months": 2 }, "result": "2025-02-15", "note": "vira o ano" },
+    { "date": "2025-01-15", "amount": { "months": -2 }, "result": "2024-11-15" },
+    { "date": "2024-02-28", "amount": { "days": 2 }, "result": "2024-03-01" },
+    { "date": "2023-02-28", "amount": { "days": 1 }, "result": "2023-03-01" },
+    { "date": "2024-12-31", "amount": { "days": 1 }, "result": "2025-01-01" },
+    { "date": "2024-03-01", "amount": { "days": -1 }, "result": "2024-02-29" },
+    { "date": "2026-10-28", "amount": { "weeks": 2 }, "result": "2026-11-11" },
+    { "date": "2026-01-31", "amount": { "months": 1, "days": 1 }, "result": "2026-03-01", "note": "meses primeiro (28/fev), depois dias" }
+  ],
+  "invalid-dates": ["2025-02-29", "2024-04-31", "2024-13-01", "2024-00-10", "2024-01-00", "0000-01-01", "2024-1-5", "20240105", "2024-02-30", ""],
+  "duration": [
+    { "parts": { "hours": 1, "minutes": 5, "seconds": 7 }, "iso": "PT1H5M7S", "ms": 3907000 },
+    { "parts": { "minutes": 90 }, "iso": "PT1H30M", "ms": 5400000 },
+    { "parts": { "milliseconds": 7250 }, "iso": "PT7.25S", "ms": 7250 },
+    { "parts": { "days": 1, "hours": 1, "minutes": 1, "seconds": 1 }, "iso": "P1DT1H1M1S", "ms": 90061000 },
+    { "parts": { "days": 2 }, "iso": "P2D", "ms": 172800000 },
+    { "parts": {}, "iso": "PT0S", "ms": 0 },
+    { "parts": { "seconds": -5 }, "iso": "-PT5S", "ms": -5000 },
+    { "parts": { "milliseconds": 1 }, "iso": "PT0.001S", "ms": 1 }
+  ],
+  "invalid-durations": ["", "P", "PT", "1H", "PT1X", "P1M", "PT-5S", "T5S"],
+  "grid": [
+    { "year": 2026, "month": 10, "weekStart": 1, "weeks": 6, "first": "2026-09-28", "last": "2026-11-08", "cells": 42, "inMonth": 31 },
+    { "year": 2026, "month": 10, "weekStart": 7, "weeks": 6, "first": "2026-09-27", "last": "2026-11-07", "cells": 42, "inMonth": 31 },
+    { "year": 2026, "month": 10, "weekStart": 1, "weeks": "auto", "first": "2026-09-28", "last": "2026-11-01", "cells": 35, "inMonth": 31 },
+    { "year": 2026, "month": 2, "weekStart": 7, "weeks": "auto", "first": "2026-02-01", "last": "2026-02-28", "cells": 28, "inMonth": 28, "note": "fev/2026 começa no domingo e tem 28 dias: 4 semanas exatas" },
+    { "year": 2026, "month": 2, "weekStart": 1, "weeks": "auto", "first": "2026-01-26", "last": "2026-03-01", "cells": 35, "inMonth": 28 },
+    { "year": 2024, "month": 2, "weekStart": 1, "weeks": "auto", "first": "2024-01-29", "last": "2024-03-03", "cells": 35, "inMonth": 29 }
+  ]
+}

@@ -1,6 +1,6 @@
 import { Computed, computed } from '@tsr-node/computed/model';
 import { signal } from '@tsr-node/signal/model';
-import { TActiveIndex } from './types';
+import { TActiveIndex, TActiveIndexOptions } from './types';
 import { INTERNAL } from '@tsn-object/declarations';
 import { TReactive } from '@tsr-node/types';
 
@@ -27,16 +27,16 @@ const ActiveIndex = {
 		return typeof instance === 'function' && instance.next === ActiveIndex.next && instance instanceof Computed;
 	},
 
-	/** `NONE` clears the active item; any other value wraps into `[0, length)`. */
+	/** `NONE` clears the active item; any other value wraps (or clamps, with `wrap: false`) into `[0, length)`. */
 	set(this: TActiveIndex, value: number) {
-		const { length, internal } = this[INTERNAL];
-		internal.set(value === NONE ? NONE : ActiveIndex.resolve(value, length()));
+		const { length, internal, wrap } = this[INTERNAL];
+		internal.set(value === NONE ? NONE : ActiveIndex.fit(value, length(), wrap));
 	},
 
 	/** `fn` receives the value as read (already clamped), not the raw stored one. */
 	update(this: TActiveIndex, fn: (value: number) => number) {
-		const { length, internal } = this[INTERNAL];
-		internal.set(ActiveIndex.resolve(fn(this()), length()));
+		const { length, internal, wrap } = this[INTERNAL];
+		internal.set(ActiveIndex.fit(fn(this()), length(), wrap));
 	},
 
 	next(this: TActiveIndex) {
@@ -54,6 +54,14 @@ const ActiveIndex = {
 		internal.set(NONE);
 	},
 
+	/** Brings a requested index inside the list: wraps around, or (without `wrap`) stops at the first/last item. */
+	fit(value: number, length: number, wrap: boolean) {
+		// empty list: keep the request (reads still give NONE) so it takes effect when items show up
+		if (length <= 0) return value < 0 ? NONE : value;
+		if (wrap) return ActiveIndex.resolve(value, length);
+		return Math.min(Math.max(value, 0), length - 1);
+	},
+
 	/** Wraps `value` into `[0, length)`; an empty list has nothing to point at. */
 	resolve(value: number, length: number) {
 		if (length <= 0) return NONE;
@@ -68,7 +76,7 @@ const ActiveIndex = {
 };
 
 const { set, update, next, prev, reset, clamp } = ActiveIndex;
-function activeIndex(length: TReactive<number>) {
+function activeIndex(length: TReactive<number>, options: TActiveIndexOptions = {}) {
 	const internal = signal(NONE);
 	const instance = computed(() => clamp(internal(), length())) as TActiveIndex;
 	instance.set = set;
@@ -79,6 +87,7 @@ function activeIndex(length: TReactive<number>) {
 	instance[INTERNAL] = {
 		internal,
 		length,
+		wrap: options.wrap ?? true,
 	};
 
 	return instance;

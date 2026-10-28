@@ -128,3 +128,19 @@ describe('ValueHistory cacheSize', () => {
 		expect(h.length()).toBe(100);
 	});
 });
+
+describe('ValueHistory canUndo / canRedo', () => {
+	it('follow the position in the stack', () => {
+		const history = new ValueHistory<string>();
+		expect(history.canUndo()).toBe(false);
+		expect(history.canRedo()).toBe(false);
+		history.add('a');
+		history.add('b');
+		expect(history.canUndo()).toBe(true);
+		expect(history.canRedo()).toBe(false);
+		history.undo();
+		expect(history.canRedo()).toBe(true);
+		history.undo(); // -1: before the first entry
+		expect(history.canUndo()).toBe(false);
+	});
+});

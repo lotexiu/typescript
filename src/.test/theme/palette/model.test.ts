@@ -100,3 +100,44 @@ describe('Palette.rangeTo', () => {
 		expect(mapped.space.id).toBe('srgb');
 	});
 });
+
+describe('Palette (any tone, onColor, derive, neutral)', () => {
+	it('TonalPalette accepts tones between the stops', () => {
+		const palette = new TonalPalette('#1a5fb4', 'blue');
+		expect(palette.get(17).to('oklch').coords[0]).toBeCloseTo(0.17, 5);
+	});
+
+	it('CustomPalette interpolates tones that were not given and clamps outside the range', () => {
+		const palette = new CustomPalette('test', { 0: '#000000', 100: '#ffffff' });
+		const mid = palette.get(50).to('srgb').coords;
+		expect(mid[0]).toBeGreaterThan(0.1);
+		expect(mid[0]).toBeLessThan(0.9);
+		expect(palette.get(0).toString({ format: 'hex' })).toBe('#000');
+		const only = new CustomPalette('one', { 50: '#808080' });
+		expect(only.get(10).toString({ format: 'hex' })).toBe(only.get(90).toString({ format: 'hex' }));
+	});
+
+	it('onColor picks the readable tone: light over dark, dark over light', () => {
+		const palette = new TonalPalette('#1a5fb4', 'blue');
+		expect(palette.onColor(palette.get(20)).to('oklch').coords[0]).toBeCloseTo(1, 1);
+		expect(palette.onColor(palette.get(90)).to('oklch').coords[0]).toBeCloseTo(0.1, 1);
+	});
+
+	it('derive shifts the hue (wrapping) and scales/replaces the chroma', () => {
+		const palette = new TonalPalette('#1a5fb4', 'blue');
+		const [, chroma, hue] = palette.get(50).to('oklch').coords;
+		const shifted = palette.derive({ hueShift: 200, chromaScale: 0.5, name: 'shifted' });
+		const [, c2, h2] = shifted.get(50).to('oklch').coords;
+		expect(shifted.name()).toBe('shifted');
+		expect(c2).toBeCloseTo((chroma ?? 0) * 0.5, 4);
+		expect(h2).toBeCloseTo(((hue ?? 0) + 200) % 360, 3);
+		expect(palette.derive().name()).toBe('blue');
+	});
+
+	it('neutral keeps the hue but drops the chroma', () => {
+		const palette = new TonalPalette('#1a5fb4', 'blue');
+		const [, c, h] = palette.neutral().get(50).to('oklch').coords;
+		expect(c).toBeCloseTo(0.03, 4);
+		expect(h).toBeCloseTo(palette.get(50).to('oklch').coords[2] ?? 0, 3);
+	});
+});

@@ -133,3 +133,40 @@ describe('Cache batching', () => {
 		expect(cache.getBatch('a||b')).toEqual([undefined, 2]);
 	});
 });
+
+describe('Cache getOrSet / maxEntries', () => {
+	it('getOrSet builds once and then serves from the cache', () => {
+		const cache = new Cache<number>();
+		let builds = 0;
+		const make = () => ++builds;
+		expect(cache.getOrSet('a', make)).toBe(1);
+		expect(cache.getOrSet('a', make)).toBe(1);
+		expect(builds).toBe(1);
+	});
+
+	it('getOrSet also caches undefined results', () => {
+		const cache = new Cache<undefined | number>();
+		let builds = 0;
+		cache.getOrSet('a', () => (builds++, undefined));
+		cache.getOrSet('a', () => (builds++, undefined));
+		expect(builds).toBe(1);
+	});
+
+	it('maxEntries drops the least recently used entry', () => {
+		const cache = new Cache<number>({ maxEntries: 2 });
+		cache.set('a', 1);
+		cache.set('b', 2);
+		cache.get('a'); // a is now the most recent
+		cache.set('c', 3);
+		expect(cache.has('b')).toBe(false);
+		expect(cache.has('a')).toBe(true);
+		expect(cache.has('c')).toBe(true);
+		expect(cache.size).toBe(2);
+	});
+
+	it('without maxEntries nothing is evicted', () => {
+		const cache = new Cache<number>();
+		for (let i = 0; i < 500; i++) cache.set(String(i), i);
+		expect(cache.size).toBe(500);
+	});
+});

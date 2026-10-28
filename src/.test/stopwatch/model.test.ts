@@ -84,3 +84,84 @@ describe('StopWatch', () => {
 		expect(sw.estimated()).toBe(150 * (5 - 2));
 	});
 });
+
+describe('StopWatch.measure / average', () => {
+	it('records one lap per measured call, without start()', () => {
+		const sw = new StopWatch();
+		expect(sw.measure(() => 42)).toBe(42);
+		sw.measure(() => 1);
+		expect(sw.laps()).toHaveLength(2);
+		expect(sw.average()).toBe(sw.duration() / 2);
+	});
+
+	it('still records the lap when fn throws', () => {
+		const sw = new StopWatch();
+		expect(() => sw.measure(() => { throw new Error('x'); })).toThrow('x');
+		expect(sw.laps()).toHaveLength(1);
+	});
+
+	it('avarage stays as an alias of average', () => {
+		const sw = new StopWatch();
+		expect(sw.avarage).toBe(sw.average);
+	});
+});
+
+describe('StopWatch pause / resume', () => {
+	afterEach(() => vi.restoreAllMocks());
+
+	it('o tempo parado não conta', () => {
+		let now = 1000;
+		vi.spyOn(performance, 'now').mockImplementation(() => now);
+		const sw = new StopWatch();
+		sw.start();
+		now = 1300;
+		sw.pause();
+		now = 5300; // 4 s parado
+		expect(sw.current()).toBe(300);
+		sw.resume();
+		now = 5400;
+		expect(sw.current()).toBe(400);
+		expect(sw.paused()).toBe(false);
+	});
+
+	it('pause/resume repetidos e fora de hora são inofensivos', () => {
+		let now = 0;
+		vi.spyOn(performance, 'now').mockImplementation(() => now);
+		const sw = new StopWatch();
+		sw.pause(); // não iniciado
+		sw.resume();
+		sw.start();
+		now = 100;
+		sw.pause();
+		now = 150;
+		sw.pause(); // já pausado: mantém o primeiro instante
+		now = 200;
+		sw.resume();
+		sw.resume();
+		now = 300;
+		expect(sw.current()).toBe(200);
+	});
+
+	it('lap durante a pausa fecha a volta no instante da pausa', () => {
+		let now = 0;
+		vi.spyOn(performance, 'now').mockImplementation(() => now);
+		const sw = new StopWatch();
+		sw.start();
+		now = 500;
+		sw.pause();
+		now = 9000;
+		sw.lap();
+		expect(sw.laps()).toEqual([500]);
+		sw.resume();
+		now = 9100;
+		expect(sw.current()).toBe(100);
+	});
+
+	it('start zera a pausa', () => {
+		const sw = new StopWatch();
+		sw.start();
+		sw.pause();
+		sw.start();
+		expect(sw.paused()).toBe(false);
+	});
+});
