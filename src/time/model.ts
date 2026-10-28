@@ -1,7 +1,4 @@
-import { computed } from '@tsr-node/computed/model';
 import { signal } from '@tsr-node/signal/model';
-import { CALENDAR_CELLS } from './declarations';
-import { TCalendarDay } from './types';
 import { field } from '@ts/composables/field/model';
 
 class Time {
@@ -53,33 +50,6 @@ class Time {
 		(date) => date.getDay(),
 		(date, value) => date.setDate(date.getDate() + value - date.getDay())
 	);
-
-	readonly firstDay = computed(() => new Date(this.year(), this.month(), 1).getDay());
-	readonly totalDays = computed(() => new Date(this.year(), this.month() + 1, 0).getDate());
-	readonly totalWeeks = computed(() => Math.ceil(this.totalDays() / 7));
-
-	readonly calendarDays = computed(() => {
-		const year = this.year();
-		const month = this.month();
-		const firstDay = this.firstDay();
-		const totalDays = this.totalDays();
-		const today = this.day();
-		const lastDayFromPrevMonth = new Date(year, month, 0).getDate();
-		const calendarDays: TCalendarDay[] = [];
-		for (let i = 0; i < firstDay; i++) {
-			calendarDays.push({ day: lastDayFromPrevMonth - firstDay + i + 1, month: month - 1 });
-		}
-		for (let i = 0; i < totalDays; i++) {
-			const calendarDay: TCalendarDay = { day: i + 1, month };
-			if (today === i + 1) calendarDay.today = true;
-			calendarDays.push(calendarDay);
-		}
-		const nextMonthDays = CALENDAR_CELLS - calendarDays.length;
-		for (let i = 0; i < nextMonthDays; i++) {
-			calendarDays.push({ day: i + 1, month: month + 1 });
-		}
-		return calendarDays;
-	});
 
 	constructor(date?: Date) {
 		if (date) this.#date.set(date);

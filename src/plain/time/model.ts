@@ -1,6 +1,6 @@
-import { Duration } from './duration';
-import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from './declarations';
-import { TDurationParts, TTimeParts } from './types';
+import { Duration } from '../duration/model';
+import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from '../declarations';
+import { TDurationParts, TTimeParts } from '../types';
 
 const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,3}))?)?$/;
 const pad = (value: number, size = 2) => String(value).padStart(size, '0');

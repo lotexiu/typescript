@@ -29,7 +29,7 @@
 
 ### Status — modelo de tempo **implementado** (2026-10-28), no vocabulário do Temporal
 `src/plain/`: `Duration` (unidades fixas, ISO 8601 `PT1H5M7S`, sinal à parte), `PlainDate` (valida de verdade, anos 1–9999, `add` com meses que "prendem" o dia, dias desde a época, dia da semana/do ano),
-`PlainTime` (volta de 24h, `until` sem volta), `CalendarGrid.month(ano, mês, { weekStart, weeks })` (base de date-picker; substitui o `buildCalendarDays` do a20).
+`PlainTime` (volta de 24h, `until` sem volta), `CalendarUtils.month(ano, mês, { weekStart, weeks })` (base de date-picker; substitui o `buildCalendarDays` do a20).
 Sem `Date` por baixo, sem fuso, imutáveis, `tryX` devolve `undefined` e `from` lança `RangeError` com a causa. Escolhi **os nomes do Temporal** de propósito: ele já saiu no Firefox 139 e no Chrome 144 (Safari ainda não), então é o que as pessoas vão aprender (ver `08`); estes tipos funcionam onde ele não chega e a troca é quase mecânica.
 Integrado à `Mask`: `Mask.date({ order, separator })` (valor tipado `PlainDate`, calendário validado). `StopWatch` ganhou `pause()/resume()`.
 **Fora, de propósito:** fuso/`Instant` (virá como *provider*), meses/anos em `Duration`, `PlainDateTime`. **Removido:** `DateUtils.duration` (substituído por `Duration`). `Time` (o antigo, mutável) fica como legado.

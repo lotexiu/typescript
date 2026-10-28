@@ -1,13 +1,11 @@
 import { RegexUtils } from '@tsn/regex/utils';
 import { computed } from '@tsr-node/computed/model';
 import { signal } from '@tsr-node/signal/model';
-import { MaskCompiledPattern } from './compiled-pattern/model';
-import { defaultRules } from './declarations';
-import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from './token/model';
-import { TMaskPad, TMaskRule } from './types';
-
-/** Só o que o motor de caracteres entende (o resto de `TMaskOptions` é do formatador). */
-type TEngineOptions = Readonly<{ reversed?: boolean; pad?: TMaskPad }>;
+import { MaskCompiledPattern } from '../compiled-pattern/model';
+import { defaultRules } from '../declarations';
+import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from '../token/model';
+import { TMaskPad, TMaskRule } from '../types';
+import type { TEngineOptions } from './types';
 
 const reverseText = (text: string) => [...text].reverse().join('');
 
@@ -206,4 +204,3 @@ class MaskEngine {
 }
 
 export { MaskEngine };
-export type { TEngineOptions };

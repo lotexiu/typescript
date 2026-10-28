@@ -47,7 +47,7 @@ Você delegou a decisão. Cada uma tem: **decisão · por quê (evidência) · c
 ## Ordem de execução
 1. ~~Checksum + `@lotexiu/br`~~ **feito** (motor no núcleo; `br` fica como pacote opcional de exemplo, sem expandir).
 2. ~~`Mask` v2~~ **fase A feita** (reversed/pad/number/3 valores/regras por instância/checks/presets registráveis — ver `02` §3.5); faltam calendário, blocos nomeados, cursor, normalização. Original: (reversed/pad/3 valores/regras por instância/blocos/checks/presets registráveis) — **região-agnóstica**, testada com vetores neutros (duração, número, data, alfanumérico).
-3. ~~`Duration`/`CivilDate`/`CivilTime` + `StopWatch` com pausa~~ **feito** como `Duration`/`PlainDate`/`PlainTime`/`CalendarGrid` (nomes do Temporal, ver `08` e `04`); `StopWatch` com pausa.
+3. ~~`Duration`/`CivilDate`/`CivilTime` + `StopWatch` com pausa~~ **feito** como `Duration`/`PlainDate`/`PlainTime`/`CalendarUtils` (nomes do Temporal, ver `08` e `04`); `StopWatch` com pausa.
 4. `collection → navigation/selection → listbox → select`, depois modelo de tabela (sort/page/filter/select).
 5. `@lotexiu/angular`.
 6. Tema v2. 7. Primitivas de D8. *(IE por UF: só se `@lotexiu/br` ganhar prioridade — fora do núcleo, ver D2.)*

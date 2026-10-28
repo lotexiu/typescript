@@ -265,7 +265,10 @@ Um pattern (`mask.split('||')`) compila para uma lista de `TMaskToken` (literal)
 - `valid` — detecta astral chars via `_Regex.hasAstralChar` e avança por `codePointAt`/`String.fromCodePoint` em vez de `value[index]` cego quando precisa
 - `unapply` — `for...of` correto para code points
 
-### `caretPositionAfterFormat` — não existe no módulo ativo
+### `caretPositionAfterFormat` — agora é `MaskFormatter.caret(typedText, typedCaret, nextText?)` (2026-10-28)
+Função pura: o cursor segue os caracteres **de dado**, não os literais (da direita para a esquerda, conta a partir do fim). A ligação com o `<input>` (evento, IME, colar) é de um adaptador — ver `docs/study/09-gap-analysis.md`. Abaixo, o histórico da versão antiga:
+
+### (histórico) `caretPositionAfterFormat` — não existe no módulo ativo
 Vivia em `MaskUtils.caretPositionAfterFormat(previousDisplay, previousCaret, nextDisplay, mask)`: contava chars "raw" antes do caret no texto antigo e achava onde esse count era atingido no novo texto (parte DOM ficava no consumidor). Essa implementação só existe hoje em `src/.old-mask/` (arquivado, fora do build — ver "Estrutura de módulos"). Se o comportamento ainda for necessário, precisa ser reportado para o novo `Mask` — não assumir que já foi.
 
 ---
@@ -521,17 +524,14 @@ Documentos, formatos e regras que dependem de país/região (CPF, CNPJ, IE, CEP,
 ## `Mask` v2 (2026-10-28) — `src/mask/`
 
 `Mask` continua sendo a porta única; a API estática antiga (`apply/unapply/valid`, `setRule`...) não mudou. Camadas:
-`engine.ts` (`MaskEngine`, **por instância**: regras + cache de padrões; `reversed` = preencher o padrão invertido) · `checks.ts` (`MaskChecks`, checagens **como dados**) ·
-`number.ts` (`MaskNumber`) · `codecs.ts` (texto ↔ valor tipado) · `formatter.ts` (`MaskFormatter`: `apply/unapply/valid/check/parse/format`, os 3 valores) · `declarations.ts` (regras padrão + `MASK_PRESETS` **neutros**) · `model.ts` (fachada `Mask` + `Mask.of`, `Mask.number`, `Mask.preset`).
-Nada regional aqui (ver "Escopo"). Vetores de teste em `vectors/mask.json`.
-**Armadilha do gerador de `index.ts`:** um `type X =` cuja primeira linha de união começa com `|` é **ignorado** (não vai para o índice); comece a união pelo primeiro membro.
-
----
+`engine/` (`MaskEngine`, **por instância**: regras + cache de padrões; `reversed` = preencher o padrão invertido) · `checks/utils.ts` (`MaskCheckUtils`, checagens **como dados**) ·
+`number/utils.ts` (`MaskNumberUtils`) · `date/utils.ts` (`MaskDateUtils.definition`: ordem/separador como parâmetro) · `MASK_CODECS` (texto ↔ valor tipado) em `declarations.ts` · `formatter/model.ts` (`MaskFormatter`: `apply/unapply/valid/check/parse/format/caret`, os 3 valores) · `declarations.ts` (regras padrão + `MASK_PRESETS` **neutros** + codecs) · `model.ts` (fachada `Mask` + `Mask.of`, `Mask.number`, `Mask.date`, `Mask.preset`).
+Cada parte é uma **pasta** com `model.ts`/`utils.ts`/`types.ts` (como `token/` e `compiled-pattern/`), não um arquivo solto.
 
 ## Tempo: `src/plain/` (2026-10-28)
 
-`Duration`, `PlainDate`, `PlainTime`, `CalendarGrid` — **vocabulário do Temporal**, imutáveis, sem `Date` por baixo, sem fuso. Uma data inválida não existe (`tryFrom/tryParse` → `undefined`; `from/parse` → `RangeError`). Anos 1–9999.
-Integra com `Mask.date(...)`. Constantes em `plain/declarations.ts` são `@internal`. `Time` (antigo, mutável, em `src/time/`) é **legado**: não evoluir, migrar usos para `plain/`. `DateUtils.duration`/`clock`/`formatMS` foram **removidos**.
+`Duration`, `PlainDate`, `PlainTime` (uma pasta cada: `plain/<nome>/model.ts`; `declarations.ts`/`types.ts` compartilhados) e `CalendarUtils` (`src/calendar/utils.ts`, grade de mês/dias da semana/intervalo; substituiu `Time.calendarDays` e `CalendarGrid`) — **vocabulário do Temporal**, imutáveis, sem `Date` por baixo, sem fuso. Uma data inválida não existe (`tryFrom/tryParse` → `undefined`; `from/parse` → `RangeError`). Anos 1–9999.
+Integra com `Mask.date(...)`. Constantes em `plain/declarations.ts` são `@internal`. `Time` (antigo, mutável, em `src/time/`) é **legado**: não evoluir, migrar usos para `plain/`; ele **não tem mais** lógica de calendário (`firstDay/totalDays/totalWeeks/calendarDays` saíram). `DateUtils.duration`/`clock`/`formatMS` foram **removidos**.
 `StopWatch` ganhou `pause()/resume()/paused` (o tempo parado não conta; `lap()` pausado fecha a volta no instante da pausa).
 Vetores: `vectors/plain.json`.
 

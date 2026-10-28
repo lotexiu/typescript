@@ -1,9 +1,9 @@
-import { TMaskNumber } from './types';
+import { TMaskNumber } from '../types';
 
 const DEFAULT_GROUP_SIZE = 3;
 
 /** Número "da direita para a esquerda" a partir dos dígitos digitados (`1234567`, escala 2 → `12.345,67`). Só não negativos. */
-class MaskNumber {
+class MaskNumberUtils {
 	static digits(text: string): string {
 		return text.replace(/\D/g, '');
 	}
@@ -14,7 +14,7 @@ class MaskNumber {
 		const split = padded.length - config.scale;
 		const integer = padded.slice(0, split).replace(/^0+(?=\d)/, '');
 		const fraction = padded.slice(split);
-		const grouped = config.group ? MaskNumber.group(integer, config.group, config.groupSize ?? DEFAULT_GROUP_SIZE) : integer;
+		const grouped = config.group ? MaskNumberUtils.group(integer, config.group, config.groupSize ?? DEFAULT_GROUP_SIZE) : integer;
 		return config.scale > 0 ? `${grouped}${config.decimal}${fraction}` : grouped;
 	}
 
@@ -40,4 +40,4 @@ class MaskNumber {
 	}
 }
 
-export { MaskNumber };
+export { MaskNumberUtils };

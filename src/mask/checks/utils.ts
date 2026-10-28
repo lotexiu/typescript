@@ -1,15 +1,15 @@
 import { ChecksumUtils } from '@ts/checksum/utils';
 import type { TWeightedSpec } from '@ts/checksum/types';
-import { PlainDate } from '@ts/plain/date';
-import { TMaskCheck, TMaskIssue } from './types';
+import { PlainDate } from '@ts/plain/date/model';
+import { TMaskCheck, TMaskIssue } from '../types';
 
 const MOD97_VALID_REMAINDER = 1;
 
 /** Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro motivo de falha, ou `undefined`. */
-class MaskChecks {
+class MaskCheckUtils {
 	static run(unmasked: string, checks: readonly TMaskCheck[] = []): TMaskIssue | undefined {
 		for (const check of checks) {
-			const issue = MaskChecks.one(unmasked, check);
+			const issue = MaskCheckUtils.one(unmasked, check);
 			if (issue) return issue;
 		}
 		return undefined;
@@ -18,7 +18,7 @@ class MaskChecks {
 	static one(unmasked: string, check: TMaskCheck): TMaskIssue | undefined {
 		switch (check.type) {
 			case 'range':
-				return MaskChecks.range(unmasked.slice(check.from, check.to), check.min, check.max);
+				return MaskCheckUtils.range(unmasked.slice(check.from, check.to), check.min, check.max);
 			case 'enum': {
 				const part = unmasked.slice(check.from, check.to);
 				return part === '' || check.values.includes(part) ? undefined : 'enum';
@@ -26,9 +26,9 @@ class MaskChecks {
 			case 'length':
 				return unmasked.length < (check.min ?? 0) || unmasked.length > (check.max ?? Infinity) ? 'length' : undefined;
 			case 'weighted':
-				return MaskChecks.weighted(unmasked, check.specs);
+				return MaskCheckUtils.weighted(unmasked, check.specs);
 			case 'date':
-				return MaskChecks.date(unmasked, check);
+				return MaskCheckUtils.date(unmasked, check);
 			case 'luhn':
 				return ChecksumUtils.luhnValid(unmasked) ? undefined : 'check-digit';
 			case 'mod97':
@@ -65,4 +65,4 @@ class MaskChecks {
 	}
 }
 
-export { MaskChecks };
+export { MaskCheckUtils };

@@ -1,21 +1,12 @@
-import { DAYS_PER_WEEK } from './declarations';
-import { PlainDate } from './date';
-import { TIsoWeekday } from './types';
+import { PlainDate } from '@ts/plain/date/model';
+import { DAYS_PER_WEEK } from '@ts/plain/declarations';
+import type { TIsoWeekday } from '@ts/plain/types';
+import { FIXED_WEEKS } from './declarations';
+import type { TCalendarCell, TMonthGridOptions } from './types';
 
-type TCalendarCell = Readonly<{ date: PlainDate; inMonth: boolean }>;
-
-type TMonthGridOptions = Readonly<{
-	/** Primeiro dia da semana na grade: 1 = segunda (padrão, ISO) ... 7 = domingo. */
-	weekStart?: TIsoWeekday;
-	/** `6` (padrão): sempre 42 células, a grade não "pula" de altura entre meses. `'auto'`: só as semanas necessárias. */
-	weeks?: number | 'auto';
-}>;
-
-const FIXED_WEEKS = 6;
-
-/** Lógica pura de calendário (sem DOM): a base de qualquer date-picker. */
-class CalendarGrid {
-	/** Células de um mês (com os dias dos meses vizinhos que completam as semanas), em ordem de leitura. */
+/** Lógica pura de calendário (sem DOM): a base de qualquer date-picker. Substitui o antigo `Time.calendarDays`. */
+class CalendarUtils {
+	/** Células de um mês (com os dias dos meses vizinhos que completam as semanas), em ordem de leitura. `month` é 1–12. */
 	static month(year: number, month: number, { weekStart = 1, weeks = FIXED_WEEKS }: TMonthGridOptions = {}): TCalendarCell[] {
 		const first = PlainDate.from({ year, month, day: 1 });
 		const lead = (first.dayOfWeek - weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
@@ -38,5 +29,4 @@ class CalendarGrid {
 	}
 }
 
-export { CalendarGrid };
-export type { TCalendarCell, TMonthGridOptions };
+export { CalendarUtils };

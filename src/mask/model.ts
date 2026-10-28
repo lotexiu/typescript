@@ -1,10 +1,10 @@
-import { MaskEngine } from './engine';
-import type { TEngineOptions } from './engine';
+import { MaskEngine } from './engine/model';
+import type { TEngineOptions } from './engine/types';
 import { MASK_PRESETS } from './declarations';
-import type { PlainDate } from '@ts/plain/date';
-import { maskDate } from './date';
-import type { TMaskDateConfig } from './date';
-import { MaskFormatter } from './formatter';
+import type { PlainDate } from '@ts/plain/date/model';
+import { MaskDateUtils } from './date/utils';
+import type { TMaskDateConfig } from './date/types';
+import { MaskFormatter } from './formatter/model';
 import { TMaskDefinition, TMaskNumber, TMaskRule } from './types';
 
 /**
@@ -72,7 +72,7 @@ class Mask {
 
 	/** Data digitada só com números, com **calendário validado**; ordem e separador são parâmetros. Tipado = `PlainDate`. */
 	static date(config: TMaskDateConfig): MaskFormatter<PlainDate> {
-		return Mask.of<PlainDate>(maskDate(config));
+		return Mask.of<PlainDate>(MaskDateUtils.definition(config));
 	}
 
 	/** Atalho para números "da direita" (valor monetário, quantidade...): separadores e casas são parâmetros. */

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Mask } from '@ts/mask/model';
-import { MaskEngine } from '@ts/mask/engine';
-import { MaskChecks } from '@ts/mask/checks';
+import { MaskEngine } from '@ts/mask/engine/model';
+import { MaskCheckUtils } from '@ts/mask/checks/utils';
 import type { TMaskCheck, TMaskNumber } from '@ts/mask/types';
 import vectors from '../../../vectors/mask.json';
 
@@ -99,7 +99,7 @@ describe("preset 'card-groups' (Luhn)", () => {
 });
 
 describe('checks (dados)', () => {
-	const run = (text: string, checks: TMaskCheck[]) => MaskChecks.run(text, checks);
+	const run = (text: string, checks: TMaskCheck[]) => MaskCheckUtils.run(text, checks);
 
 	it('enum e length', () => {
 		expect(run('AB12', [{ type: 'enum', from: 0, to: 2, values: ['AB', 'CD'] }])).toBeUndefined();

@@ -1,5 +1,5 @@
-import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from './declarations';
-import { TDurationParts, TDurationUnit } from './types';
+import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND } from '../declarations';
+import { TDurationParts, TDurationUnit } from '../types';
 
 const UNIT_MS: Readonly<Record<TDurationUnit, number>> = { days: MS_PER_DAY, hours: MS_PER_HOUR, minutes: MS_PER_MINUTE, seconds: MS_PER_SECOND, milliseconds: 1 };
 

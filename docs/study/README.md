@@ -12,6 +12,7 @@ mantendo-a **vaga/agnóstica** (só lógica e configuração; sem HTML/CSS/DOM) 
 | [`05-rust-port.md`](05-rust-port.md) | Regras de hoje que baratem o port | notas |
 | [`06-repo-analysis.md`](06-repo-analysis.md) | **Análise dos ~35 repositórios da máquina** + projetos externos (Grimoire etc.) | evidência |
 | [`08-needs-and-pain-points.md`](08-needs-and-pain-points.md) | **O que as pessoas fazem por falta de recurso / por que evitam libs** + regras de design | evidência |
+| [`09-gap-analysis.md`](09-gap-analysis.md) | **Lacunas nossas × das outras libs → próximo passo** | decisão |
 | [`07-decisions.md`](07-decisions.md) | **Decisões tomadas** (D1–D9) e ordem de execução | decidido |
 
 Legenda dos documentos: **[fonte]** citado de documentação · **[medido]** rodei no código/dist · **[proposta]** recomendação minha

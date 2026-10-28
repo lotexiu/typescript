@@ -1,5 +1,5 @@
-import { DAYS_IN_MONTH, DAYS_PER_ERA, DAYS_PER_WEEK, EPOCH_ISO_WEEKDAY, EPOCH_SHIFT_DAYS, MAX_YEAR, MIN_YEAR, MONTHS_PER_YEAR, YEARS_PER_ERA } from './declarations';
-import { TDateAdd, TDateParts, TIsoWeekday } from './types';
+import { DAYS_IN_MONTH, DAYS_PER_ERA, DAYS_PER_WEEK, EPOCH_ISO_WEEKDAY, EPOCH_SHIFT_DAYS, MAX_YEAR, MIN_YEAR, MONTHS_PER_YEAR, YEARS_PER_ERA } from '../declarations';
+import { TDateAdd, TDateParts, TIsoWeekday } from '../types';
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const MARCH = 3;

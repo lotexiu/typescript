@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-132 arquivos, 573 declarações top-level.
+133 arquivos, 571 declarações top-level.
 
 ---
 ## src/types.ts
@@ -66,6 +66,24 @@ _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/
 #### `TCacheGetParam` — type _(exported, L8)_
 
 #### `TCacheReturn` — type _(exported, L10)_
+
+## src/calendar/declarations.ts
+
+#### `FIXED_WEEKS` — const _(exported, L2)_
+
+- `@internal` Linhas da grade quando o chamador não pede outra coisa: 6 × 7 = 42 células, a altura não muda entre meses.
+
+## src/calendar/types.ts
+
+#### `TCalendarCell` — type _(exported, L4)_
+
+#### `TMonthGridOptions` — type _(exported, L6)_
+
+## src/calendar/utils.ts
+
+#### `CalendarUtils` — class _(exported, L8)_
+
+Lógica pura de calendário (sem DOM): a base de qualquer date-picker. Substitui o antigo `Time.calendarDays`.
 
 ## src/checksum/types.ts
 
@@ -901,56 +919,6 @@ Callback de `AstNode.walk` / `AstRoot.walk` — retornar `false` poda a subárvo
 
 #### `LocaleUtils` — class _(exported, L4)_
 
-## src/mask/checks.ts
-
-#### `MOD97_VALID_REMAINDER` — const _(local, L6)_
-
-#### `MaskChecks` — class _(exported, L9)_
-
-Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro motivo de falha, ou `undefined`.
-
-## src/mask/codecs.ts
-
-#### `SECONDS_PER_MINUTE` — const _(local, L3)_
-
-#### `MINUTES_PER_HOUR` — const _(local, L4)_
-
-#### `MS_PER_SECOND` — const _(local, L5)_
-
-#### `PAIR` — const _(local, L6)_
-
-#### `pair` — const _(local, L7)_
-
-#### `duration` — const _(local, L10)_
-
-Dígitos digitados "da direita": `…hhmmss` (os 2 últimos são segundos, os 2 anteriores minutos, o resto horas). Tipado = milissegundos.
-
-#### `integer` — const _(local, L28)_
-
-#### `text` — const _(local, L33)_
-
-#### `MASK_CODECS` — const _(exported, L35)_
-
-## src/mask/date.ts
-
-#### `TDateOrder` — type _(exported, L4)_
-
-#### `TMaskDateConfig` — type _(exported, L5)_
-
-#### `YEAR_DIGITS` — const _(local, L7)_
-
-#### `PAIR` — const _(local, L8)_
-
-#### `TOTAL_DIGITS` — const _(local, L9)_
-
-#### `LAYOUT` — const _(local, L12)_
-
-Onde cada campo fica nos 8 dígitos digitados.
-
-#### `maskDate` — function _(exported, L19)_
-
-Máscara de data: ordem e separador são **parâmetros** (nada de região embutida). Valor tipado = `PlainDate`; checa o calendário.
-
 ## src/mask/declarations.ts
 
 #### `DIGITS` — const _(local, L4)_
@@ -973,27 +941,25 @@ Regras de caractere padrão. Cada engine começa com estas (e pode somar as suas
 
 Presets **neutros** (sem nada de país/região). Presets de região vêm de pacotes de região, via `Mask.preset`.
 
-## src/mask/engine.ts
+#### `SECONDS_PER_MINUTE` — const _(local, L52)_
 
-#### `TEngineOptions` — type _(exported, L10)_
+#### `MINUTES_PER_HOUR` — const _(local, L53)_
 
-Só o que o motor de caracteres entende (o resto de `TMaskOptions` é do formatador).
+#### `MS_PER_SECOND` — const _(local, L54)_
 
-#### `reverseText` — const _(local, L12)_
+#### `PAIR` — const _(local, L55)_
 
-#### `MaskEngine` — class _(exported, L18)_
+#### `pair` — const _(local, L56)_
 
-Motor de máscaras de caracteres, **por instância**: cada uma tem as próprias regras (as padrão + as que somar),
-cache de padrões compilados e reatividade. A `Mask` estática usa uma instância padrão.
+#### `duration` — const _(local, L59)_
 
-## src/mask/formatter.ts
+Dígitos digitados "da direita": `…hhmmss` (os 2 últimos são segundos, os 2 anteriores minutos, o resto horas). Tipado = milissegundos.
 
-#### `OK` — const _(local, L7)_
+#### `integer` — const _(local, L77)_
 
-#### `MaskFormatter` — class _(exported, L13)_
+#### `text` — const _(local, L82)_
 
-Uma máscara pronta para uso: padrão + opções, com os **três valores** do mesmo dado:
-`masked` (o que se mostra), `unmasked` (só o que o usuário digitou) e `typed` (número, ms, ... via codec).
+#### `MASK_CODECS` — const _(exported, L84)_
 
 ## src/mask/model.ts
 
@@ -1008,14 +974,6 @@ Mask.of('duration-clock').parse('1:05:07').typed       // 3_907_000 (ms)
 Mask.of({ number: { scale: 2, decimal: ',', group: '.' } }).apply('1234567') // "12.345,67"
 Mask.of({ pattern: 'NN-NN', rules: { N: { match: ['[A-Z0-9]'] } } })         // regra só desta máscara
 ```
-
-## src/mask/number.ts
-
-#### `DEFAULT_GROUP_SIZE` — const _(local, L3)_
-
-#### `MaskNumber` — class _(exported, L6)_
-
-Número "da direita para a esquerda" a partir dos dígitos digitados (`1234567`, escala 2 → `12.345,67`). Só não negativos.
 
 ## src/mask/types.ts
 
@@ -1051,9 +1009,69 @@ Máscara registrável: um padrão (string) + opções. É só dado.
 
 #### `TMaskParsed` — type _(exported, L60)_
 
+## src/mask/checks/utils.ts
+
+#### `MOD97_VALID_REMAINDER` — const _(local, L6)_
+
+#### `MaskCheckUtils` — class _(exported, L9)_
+
+Executa as checagens (dados) sobre o valor sem máscara. Devolve o primeiro motivo de falha, ou `undefined`.
+
 ## src/mask/compiled-pattern/model.ts
 
 #### `MaskCompiledPattern` — class _(exported, L5)_
+
+## src/mask/date/types.ts
+
+#### `TDateOrder` — type _(exported, L1)_
+
+#### `TMaskDateConfig` — type _(exported, L2)_
+
+## src/mask/date/utils.ts
+
+#### `YEAR_DIGITS` — const _(local, L5)_
+
+#### `PAIR` — const _(local, L6)_
+
+#### `TOTAL_DIGITS` — const _(local, L7)_
+
+#### `LAYOUT` — const _(local, L10)_
+
+Onde cada campo fica nos 8 dígitos digitados.
+
+#### `MaskDateUtils` — class _(exported, L16)_
+
+## src/mask/engine/model.ts
+
+#### `reverseText` — const _(local, L10)_
+
+#### `MaskEngine` — class _(exported, L16)_
+
+Motor de máscaras de caracteres, **por instância**: cada uma tem as próprias regras (as padrão + as que somar),
+cache de padrões compilados e reatividade. A `Mask` estática usa uma instância padrão.
+
+## src/mask/engine/types.ts
+
+#### `TEngineOptions` — type _(exported, L4)_
+
+Só o que o motor de caracteres entende (o resto de `TMaskOptions` é do formatador).
+
+## src/mask/formatter/model.ts
+
+#### `OK` — const _(local, L7)_
+
+#### `MaskFormatter` — class _(exported, L13)_
+
+Uma máscara pronta para uso: padrão + opções, com os **três valores** do mesmo dado:
+`masked` (o que se mostra), `unmasked` (só o que o usuário digitou) e `typed` (número, ms, ... via codec).
+
+## src/mask/number/utils.ts
+
+#### `DEFAULT_GROUP_SIZE` — const _(local, L3)_
+
+#### `MaskNumberUtils` — class _(exported, L6)_
+
+Número "da direita para a esquerda" a partir dos dígitos digitados (`1234567`, escala 2 → `12.345,67`). Só não negativos.
 
 ## src/mask/token/model.ts
 
@@ -1501,38 +1519,6 @@ Reverses a string literal type character by character.
 
 #### `ParserRoot` — class _(exported, L77)_
 
-## src/plain/calendar.ts
-
-#### `TCalendarCell` — type _(exported, L5)_
-
-#### `TMonthGridOptions` — type _(exported, L7)_
-
-#### `FIXED_WEEKS` — const _(local, L14)_
-
-#### `CalendarGrid` — class _(exported, L17)_
-
-Lógica pura de calendário (sem DOM): a base de qualquer date-picker.
-
-## src/plain/date.ts
-
-#### `ISO_DATE` — const _(local, L4)_
-
-#### `MARCH` — const _(local, L5)_
-
-#### `MONTHS_FROM_MARCH` — const _(local, L6)_
-
-#### `isLeap` — const _(local, L8)_
-
-#### `daysInMonth` — const _(local, L9)_
-
-#### `isInt` — const _(local, L10)_
-
-#### `PlainDate` — class _(exported, L17)_
-
-Data de calendário **sem horário nem fuso**, imutável, no vocabulário do `Temporal.PlainDate`.
-Validação de verdade (bissexto, dia por mês): uma data inválida **não existe** — `tryFrom` devolve `undefined`,
-`from` lança `RangeError` com a causa. Anos de 1 a 9999.
-
 ## src/plain/declarations.ts
 
 #### `MS_PER_SECOND` — const _(exported, L2)_
@@ -1587,32 +1573,6 @@ Validação de verdade (bissexto, dia por mês): uma data inválida **não exist
 
 - `@internal`
 
-## src/plain/duration.ts
-
-#### `UNIT_MS` — const _(local, L4)_
-
-#### `ISO` — const _(local, L7)_
-
-`PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente.
-
-#### `Duration` — class _(exported, L14)_
-
-Duração imutável, em milissegundos inteiros, no vocabulário do Temporal (`Temporal.Duration`).
-Só unidades fixas (dias, horas, minutos, segundos, ms): "1 mês" não é uma duração fixa — use `PlainDate.add`.
-Os componentes (`hours`, `minutes`...) são do **valor absoluto**; o sinal vem em `sign`.
-
-## src/plain/time.ts
-
-#### `ISO_TIME` — const _(local, L5)_
-
-#### `pad` — const _(local, L6)_
-
-#### `inRange` — const _(local, L7)_
-
-#### `PlainTime` — class _(exported, L10)_
-
-Hora do dia **sem data nem fuso**, imutável (`Temporal.PlainTime`). Passar de 24h dá a volta (23:30 + 1h = 00:30).
-
 ## src/plain/types.ts
 
 #### `TDurationUnit` — type _(exported, L2)_
@@ -1632,6 +1592,52 @@ Soma de calendário: meses/anos "prendem" o dia ao último dia do mês (31/jan +
 #### `TIsoWeekday` — type _(exported, L14)_
 
 1 = segunda ... 7 = domingo (ISO 8601, como o Temporal).
+
+## src/plain/date/model.ts
+
+#### `ISO_DATE` — const _(local, L4)_
+
+#### `MARCH` — const _(local, L5)_
+
+#### `MONTHS_FROM_MARCH` — const _(local, L6)_
+
+#### `isLeap` — const _(local, L8)_
+
+#### `daysInMonth` — const _(local, L9)_
+
+#### `isInt` — const _(local, L10)_
+
+#### `PlainDate` — class _(exported, L17)_
+
+Data de calendário **sem horário nem fuso**, imutável, no vocabulário do `Temporal.PlainDate`.
+Validação de verdade (bissexto, dia por mês): uma data inválida **não existe** — `tryFrom` devolve `undefined`,
+`from` lança `RangeError` com a causa. Anos de 1 a 9999.
+
+## src/plain/duration/model.ts
+
+#### `UNIT_MS` — const _(local, L4)_
+
+#### `ISO` — const _(local, L7)_
+
+`PT1H5M7.250S`, `P1DT2H`, `-PT5S` (ISO 8601). Pelo menos um componente.
+
+#### `Duration` — class _(exported, L14)_
+
+Duração imutável, em milissegundos inteiros, no vocabulário do Temporal (`Temporal.Duration`).
+Só unidades fixas (dias, horas, minutos, segundos, ms): "1 mês" não é uma duração fixa — use `PlainDate.add`.
+Os componentes (`hours`, `minutes`...) são do **valor absoluto**; o sinal vem em `sign`.
+
+## src/plain/time/model.ts
+
+#### `ISO_TIME` — const _(local, L5)_
+
+#### `pad` — const _(local, L6)_
+
+#### `inRange` — const _(local, L7)_
+
+#### `PlainTime` — class _(exported, L10)_
+
+Hora do dia **sem data nem fuso**, imutável (`Temporal.PlainTime`). Passar de 24h dá a volta (23:30 + 1h = 00:30).
 
 ## src/reactive-node/declarations.ts
 
@@ -1884,19 +1890,9 @@ Role name → how it is picked from a palette.
 
 Resolved colors of one slot, by role name.
 
-## src/time/declarations.ts
-
-#### `CALENDAR_CELLS` — const _(exported, L5)_
-
-- `@internal`
-
 ## src/time/model.ts
 
-#### `Time` — class _(exported, L7)_
-
-## src/time/types.ts
-
-#### `TCalendarDay` — type _(exported, L1)_
+#### `Time` — class _(exported, L4)_
 
 ## src/value-history/model.ts
 

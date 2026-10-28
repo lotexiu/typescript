@@ -35,7 +35,7 @@ vale conferi-los se algum detalhe (ex.: *roving tabindex*) for decisivo.
 | `ValueHistory` | undo/redo |
 | `KeyboardState`, `MouseState` | estado de teclas/ponteiro (sem bind de DOM, de propósito) |
 | `Mask` | formatação de texto do input |
-| `Time.calendarDays` | grade de mês (base de calendário) |
+| `CalendarUtils.month` (antes `Time.calendarDays`) | grade de mês (base de calendário) |
 
 Falta o que **junta** isso em comportamentos: coleção, navegação com teclado completa, listbox, select, combobox, field/form, calendário.
 
