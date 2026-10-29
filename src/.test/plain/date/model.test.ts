@@ -4,12 +4,12 @@ import type { TDateAdd } from '@ts/plain/types';
 import vectors from '../../../../vectors/plain.json';
 
 describe('PlainDate — dias desde a época e dia da semana', () => {
-	for (const v of vectors['epoch-days']) {
-		it(`${v.date} ↔ ${v.days} (dia da semana ${v.weekday})`, () => {
-			const date = PlainDate.parse(v.date);
-			expect(date.toEpochDays()).toBe(v.days);
-			expect(PlainDate.fromEpochDays(v.days).toString()).toBe(v.date);
-			expect(date.dayOfWeek).toBe(v.weekday);
+	for (const vector of vectors['epoch-days']) {
+		it(`${vector.date} ↔ ${vector.days} (dia da semana ${vector.weekday})`, () => {
+			const date = PlainDate.parse(vector.date);
+			expect(date.toEpochDays()).toBe(vector.days);
+			expect(PlainDate.fromEpochDays(vector.days).toString()).toBe(vector.date);
+			expect(date.dayOfWeek).toBe(vector.weekday);
 		});
 	}
 
@@ -51,9 +51,9 @@ describe('PlainDate — validação (uma data inválida não existe)', () => {
 });
 
 describe('PlainDate — soma de calendário', () => {
-	for (const v of vectors.add) {
-		it(`${v.date} + ${JSON.stringify(v.amount)} = ${v.result}${v.note ? ` (${v.note})` : ''}`, () => {
-			expect(PlainDate.parse(v.date).add(v.amount as TDateAdd).toString()).toBe(v.result);
+	for (const vector of vectors.add) {
+		it(`${vector.date} + ${JSON.stringify(vector.amount)} = ${vector.result}${vector.note ? ` (${vector.note})` : ''}`, () => {
+			expect(PlainDate.parse(vector.date).add(vector.amount as TDateAdd).toString()).toBe(vector.result);
 		});
 	}
 

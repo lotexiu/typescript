@@ -4,10 +4,10 @@ import type { TRandomState } from '@ts/random/types';
 import vectors from '../../../vectors/random.json';
 
 describe('Random — vetores de referência (xoshiro128** + splitmix32, calculados fora do TypeScript)', () => {
-	for (const v of vectors.xoshiro) {
-		it(`semente ${JSON.stringify(v.seed)}`, () => {
-			const random = new Random(v.seed);
-			expect(v.uint32.map(() => random.nextUint32())).toEqual(v.uint32);
+	for (const vector of vectors.xoshiro) {
+		it(`semente ${JSON.stringify(vector.seed)}`, () => {
+			const random = new Random(vector.seed);
+			expect(vector.uint32.map(() => random.nextUint32())).toEqual(vector.uint32);
 		});
 	}
 
@@ -35,10 +35,10 @@ describe('Random — vetores de referência (xoshiro128** + splitmix32, calculad
 
 describe('Random — comportamento', () => {
 	it('clone é independente', () => {
-		const a = new Random(5);
-		const b = a.clone();
-		a.nextUint32();
-		expect(b.nextUint32()).not.toBe(a.nextUint32());
+		const original = new Random(5);
+		const copy = original.clone();
+		original.nextUint32();
+		expect(copy.nextUint32()).not.toBe(original.nextUint32());
 	});
 
 	it('uniform fica em [0, 1)', () => {
@@ -54,7 +54,7 @@ describe('Random — comportamento', () => {
 		const random = new Random(3);
 		const seen = new Set<number>();
 		for (let i = 0; i < 500; i++) seen.add(random.int(-2, 2));
-		expect([...seen].sort((a, b) => a - b)).toEqual([-2, -1, 0, 1, 2]);
+		expect([...seen].sort((left, right) => left - right)).toEqual([-2, -1, 0, 1, 2]);
 		expect(random.int(4, 4)).toBe(4);
 	});
 
@@ -90,8 +90,8 @@ describe('Random — comportamento', () => {
 	it('normal tem a média e o desvio pedidos', () => {
 		const random = new Random(2);
 		const values = Array.from({ length: 6000 }, () => random.normal(10, 2));
-		const mean = values.reduce((a, b) => a + b, 0) / values.length;
-		const deviation = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+		const mean = values.reduce((total, sample) => total + sample, 0) / values.length;
+		const deviation = Math.sqrt(values.reduce((total, sample) => total + (sample - mean) ** 2, 0) / values.length);
 		expect(mean).toBeCloseTo(10, 0);
 		expect(deviation).toBeGreaterThan(1.85);
 		expect(deviation).toBeLessThan(2.15);

@@ -51,7 +51,7 @@ class LanguageUtils {
 	/** `kind`s marcados `trivia` (charClass ou delimited) — filtrados antes da gramática. */
 	static triviaKinds(spec: TLanguageSpec): Set<string> {
 		const kinds = new Set<string>()
-		for (const [name, cc] of Object.entries(spec.charClass)) if (cc.trivia) kinds.add(name)
+		for (const [name, charClass] of Object.entries(spec.charClass)) if (charClass.trivia) kinds.add(name)
 		for (const [name, value] of Object.entries(spec.delimited)) {
 			const all = Array.isArray(value) ? value : [value]
 			if (all.some((one) => one.trivia)) kinds.add(name)
@@ -176,19 +176,19 @@ class LanguageUtils {
 			},
 		}, from, to)
 
-		let i = from
-		while (i < to) {
-			const code = source.charCodeAt(i)
-			const literal = bestLiteralAt.get(i)
+		let position = from
+		while (position < to) {
+			const code = source.charCodeAt(position)
+			const literal = bestLiteralAt.get(position)
 			let bestLength = literal ? literal.length : 0
 			let bestKind: string | null = literal ? literal.kind : null
 
-			for (const [name, cc] of ctx.charClasses) {
-				if (!cc.start(code)) continue
-				const cont = cc.continue ?? cc.start
-				let j = i + 1
-				while (j < to && cont(source.charCodeAt(j))) j++
-				const length = j - i
+			for (const [name, charClass] of ctx.charClasses) {
+				if (!charClass.start(code)) continue
+				const cont = charClass.continue ?? charClass.start
+				let lookahead = position + 1
+				while (lookahead < to && cont(source.charCodeAt(lookahead))) lookahead++
+				const length = lookahead - position
 				if (length > bestLength) {
 					bestLength = length
 					bestKind = name
@@ -196,15 +196,15 @@ class LanguageUtils {
 			}
 
 			if (bestKind === null) {
-				out.push({ kind: "unknown", value: source[i], start: i, end: i + 1 })
-				i += 1
+				out.push({ kind: "unknown", value: source[position], start: position, end: position + 1 })
+				position += 1
 				continue
 			}
-			const end = i + bestLength
+			const end = position + bestLength
 			if (keepTrivia || !ctx.trivia.has(bestKind)) {
-				out.push({ kind: bestKind, value: source.slice(i, end), start: i, end })
+				out.push({ kind: bestKind, value: source.slice(position, end), start: position, end })
 			}
-			i = end
+			position = end
 		}
 	}
 }

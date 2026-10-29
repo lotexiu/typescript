@@ -78,8 +78,8 @@ describe('Palette.opposite', () => {
 describe('Palette.lightness / chroma', () => {
 	it('lightness(get(T)) resolves back to T (self-consistency)', () => {
 		const palette = new TonalPalette('#1a5fb4', 'royal-blue');
-		for (const t of [0, 10, 50, 90, 100] as const) {
-			expect(palette.lightness(palette.get(t))).toBe(t);
+		for (const tone of [0, 10, 50, 90, 100] as const) {
+			expect(palette.lightness(palette.get(tone))).toBe(tone);
 		}
 	});
 
@@ -127,17 +127,17 @@ describe('Palette (any tone, onColor, derive, neutral)', () => {
 		const palette = new TonalPalette('#1a5fb4', 'blue');
 		const [, chroma, hue] = palette.get(50).to('oklch').coords;
 		const shifted = palette.derive({ hueShift: 200, chromaScale: 0.5, name: 'shifted' });
-		const [, c2, h2] = shifted.get(50).to('oklch').coords;
+		const [, shiftedChroma, shiftedHue] = shifted.get(50).to('oklch').coords;
 		expect(shifted.name()).toBe('shifted');
-		expect(c2).toBeCloseTo((chroma ?? 0) * 0.5, 4);
-		expect(h2).toBeCloseTo(((hue ?? 0) + 200) % 360, 3);
+		expect(shiftedChroma).toBeCloseTo((chroma ?? 0) * 0.5, 4);
+		expect(shiftedHue).toBeCloseTo(((hue ?? 0) + 200) % 360, 3);
 		expect(palette.derive().name()).toBe('blue');
 	});
 
 	it('neutral keeps the hue but drops the chroma', () => {
 		const palette = new TonalPalette('#1a5fb4', 'blue');
-		const [, c, h] = palette.neutral().get(50).to('oklch').coords;
-		expect(c).toBeCloseTo(0.03, 4);
-		expect(h).toBeCloseTo(palette.get(50).to('oklch').coords[2] ?? 0, 3);
+		const [, chroma, hue] = palette.neutral().get(50).to('oklch').coords;
+		expect(chroma).toBeCloseTo(0.03, 4);
+		expect(hue).toBeCloseTo(palette.get(50).to('oklch').coords[2] ?? 0, 3);
 	});
 });

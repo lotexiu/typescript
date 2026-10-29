@@ -4,9 +4,9 @@ import { Random } from '@ts/random/model';
 import vectors from '../../../vectors/random.json';
 
 describe('IdUtils.uuid', () => {
-	for (const v of vectors.uuid) {
-		it(`bytes ${v.bytes.slice(0, 3).join(',')}… → ${v.uuid}`, () => {
-			expect(IdUtils.uuid(Uint8Array.from(v.bytes))).toBe(v.uuid);
+	for (const vector of vectors.uuid) {
+		it(`bytes ${vector.bytes.slice(0, 3).join(',')}… → ${vector.uuid}`, () => {
+			expect(IdUtils.uuid(Uint8Array.from(vector.bytes))).toBe(vector.uuid);
 		});
 	}
 
@@ -27,10 +27,10 @@ describe('IdUtils.uuid', () => {
 });
 
 describe('IdUtils.short', () => {
-	for (const v of vectors.short) {
-		it(`alfabeto ${v.alphabet.length} símbolos, ${v.size} chars`, () => {
-			const random = new Random(v.seed);
-			expect(IdUtils.short({ alphabet: v.alphabet, size: v.size, bytes: (size) => random.bytes(size) })).toBe(v.id);
+	for (const vector of vectors.short) {
+		it(`alfabeto ${vector.alphabet.length} símbolos, ${vector.size} chars`, () => {
+			const random = new Random(vector.seed);
+			expect(IdUtils.short({ alphabet: vector.alphabet, size: vector.size, bytes: (size) => random.bytes(size) })).toBe(vector.id);
 		});
 	}
 

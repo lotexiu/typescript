@@ -17,11 +17,11 @@ class IdUtils {
 	/** UUID v4 (RFC 4122). Passe `bytes` (16) para resultado determinístico. */
 	static uuid(bytes: Uint8Array = IdUtils.bytes(UUID_BYTES)): string {
 		if (bytes.length !== UUID_BYTES) throw new RangeError('IdUtils.uuid: são necessários 16 bytes');
-		const b = Uint8Array.from(bytes);
-		b[6] = (b[6] & 0x0f) | UUID_V4_VERSION;
-		b[8] = (b[8] & 0x3f) | UUID_VARIANT;
-		const h = (from: number, to: number) => Array.from(b.slice(from, to), (byte) => HEX_TABLE[byte]).join('');
-		return `${h(0, 4)}-${h(4, 6)}-${h(6, 8)}-${h(8, 10)}-${h(10, 16)}`;
+		const byteArray = Uint8Array.from(bytes);
+		byteArray[6] = (byteArray[6] & 0x0f) | UUID_V4_VERSION;
+		byteArray[8] = (byteArray[8] & 0x3f) | UUID_VARIANT;
+		const hexOf = (from: number, to: number) => Array.from(byteArray.slice(from, to), (byte) => HEX_TABLE[byte]).join('');
+		return `${hexOf(0, 4)}-${hexOf(4, 6)}-${hexOf(6, 8)}-${hexOf(8, 10)}-${hexOf(10, 16)}`;
 	}
 
 	static isUuid(text: string): boolean {

@@ -24,7 +24,7 @@ describe('PALETTES presets', () => {
 
 	it('preset names are unique within each group', () => {
 		for (const group of Object.values(PALETTES)) {
-			const names = group.map((p) => p.name());
+			const names = group.map((palette) => palette.name());
 			expect(new Set(names).size).toBe(names.length);
 		}
 	});

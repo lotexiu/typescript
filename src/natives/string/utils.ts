@@ -41,7 +41,7 @@ class StringUtils {
 	static readonly #IS_PUNCTUATION_EXTENDED = new RegExp(`^${SYMBOLS.PUNCTUATION.EXTENDED}$`, 'u');
 
 	static toKebabCase(str: string): string {
-		return str.replace(StringUtils.#CAMEL_TO_KEBAB, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
+		return str.replace(StringUtils.#CAMEL_TO_KEBAB, (match, offset) => (offset ? '-' : '') + match.toLowerCase());
 	}
 
 	static capitalize<T extends string>(str: T): Capitalize<T> {

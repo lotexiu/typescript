@@ -20,7 +20,7 @@ describe('activeIndex wrap option', () => {
 		index.set(0);
 		index.prev();
 		expect(index()).toBe(0);
-		index.update((v) => v + 10);
+		index.update((current) => current + 10);
 		expect(index()).toBe(2);
 	});
 

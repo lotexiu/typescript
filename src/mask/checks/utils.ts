@@ -37,9 +37,9 @@ class MaskCheckUtils {
 
 	/** Qualquer trecho vazio = ainda incompleto (passa); completo, a data tem de existir. */
 	static date(unmasked: string, { year, month, day }: Extract<TMaskCheck, { type: 'date' }>): TMaskIssue | undefined {
-		const [y, m, d] = [year, month, day].map(({ from, to }) => unmasked.slice(from, to));
-		if (y === '' || m === '' || d === '') return undefined;
-		return PlainDate.isValid(Number(y), Number(m), Number(d)) ? undefined : 'calendar';
+		const [yearText, monthText, dayText] = [year, month, day].map(({ from, to }) => unmasked.slice(from, to));
+		if (yearText === '' || monthText === '' || dayText === '') return undefined;
+		return PlainDate.isValid(Number(yearText), Number(monthText), Number(dayText)) ? undefined : 'calendar';
 	}
 
 	/** Parte vazia passa (ainda não foi digitada); fora da faixa ou não numérica, não. */

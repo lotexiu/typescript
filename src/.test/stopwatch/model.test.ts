@@ -6,7 +6,7 @@ import { StopWatch } from '@ts/stopwatch/model';
 // use the same timestamp, since conceptually both reads happen at the same "now".
 function mockNow(...values: number[]) {
 	const spy = vi.spyOn(performance, 'now');
-	for (const v of values) spy.mockImplementationOnce(() => v);
+	for (const value of values) spy.mockImplementationOnce(() => value);
 	return spy;
 }
 
@@ -14,95 +14,95 @@ describe('StopWatch', () => {
 	afterEach(() => vi.restoreAllMocks());
 
 	it('throws when lap() is called before start()', () => {
-		const sw = new StopWatch();
-		expect(() => sw.lap()).toThrow();
+		const stopwatch = new StopWatch();
+		expect(() => stopwatch.lap()).toThrow();
 	});
 
 	it('current() reports elapsed time since start()', () => {
 		mockNow(1000, 1500);
-		const sw = new StopWatch();
-		sw.start();
-		expect(sw.current()).toBe(500);
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		expect(stopwatch.current()).toBe(500);
 	});
 
 	it('start() resets the laps list', () => {
 		mockNow(0, 100, 100);
-		const sw = new StopWatch();
-		sw.start();
-		sw.lap();
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.lap();
 		mockNow(0);
-		sw.start();
-		expect(sw.laps()).toEqual([]);
+		stopwatch.start();
+		expect(stopwatch.laps()).toEqual([]);
 	});
 
 	it('lap() records the elapsed time and resets the lap clock', () => {
 		mockNow(0, 100, 100, 250, 250);
-		const sw = new StopWatch();
-		sw.start(); // startTime = 0
-		sw.lap(); // current = 100 - 0 = 100, startTime reset to 100
-		expect(sw.laps()).toEqual([100]);
-		sw.lap(); // current = 250 - 100 = 150
-		expect(sw.laps()).toEqual([100, 150]);
+		const stopwatch = new StopWatch();
+		stopwatch.start(); // startTime = 0
+		stopwatch.lap(); // current = 100 - 0 = 100, startTime reset to 100
+		expect(stopwatch.laps()).toEqual([100]);
+		stopwatch.lap(); // current = 250 - 100 = 150
+		expect(stopwatch.laps()).toEqual([100, 150]);
 	});
 
 	it('duration sums every recorded lap', () => {
 		mockNow(0, 100, 100, 250, 250, 600, 600);
-		const sw = new StopWatch();
-		sw.start();
-		sw.lap(); // 100
-		sw.lap(); // 150
-		sw.lap(); // 350
-		expect(sw.duration()).toBe(600);
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.lap(); // 100
+		stopwatch.lap(); // 150
+		stopwatch.lap(); // 350
+		expect(stopwatch.duration()).toBe(600);
 	});
 
 	it('avarage is the mean of the recorded laps', () => {
 		mockNow(0, 100, 100, 300, 300);
-		const sw = new StopWatch();
-		sw.start();
-		sw.lap(); // 100
-		sw.lap(); // 200
-		expect(sw.avarage()).toBe(150);
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.lap(); // 100
+		stopwatch.lap(); // 200
+		expect(stopwatch.avarage()).toBe(150);
 	});
 
 	it('currentLap returns the most recently completed lap', () => {
 		mockNow(0, 100, 100, 300, 300);
-		const sw = new StopWatch();
-		sw.start();
-		sw.lap();
-		expect(sw.currentLap()).toBe(100);
-		sw.lap();
-		expect(sw.currentLap()).toBe(200);
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.lap();
+		expect(stopwatch.currentLap()).toBe(100);
+		stopwatch.lap();
+		expect(stopwatch.currentLap()).toBe(200);
 	});
 
 	it('estimated projects the average lap time across the remaining laps', () => {
 		mockNow(0, 100, 100, 300, 300);
-		const sw = new StopWatch();
-		sw.start();
-		sw.lap(); // 100
-		sw.lap(); // 200, avarage = 150
-		sw.totalLaps.set(5);
-		expect(sw.estimated()).toBe(150 * (5 - 2));
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.lap(); // 100
+		stopwatch.lap(); // 200, avarage = 150
+		stopwatch.totalLaps.set(5);
+		expect(stopwatch.estimated()).toBe(150 * (5 - 2));
 	});
 });
 
 describe('StopWatch.measure / average', () => {
 	it('records one lap per measured call, without start()', () => {
-		const sw = new StopWatch();
-		expect(sw.measure(() => 42)).toBe(42);
-		sw.measure(() => 1);
-		expect(sw.laps()).toHaveLength(2);
-		expect(sw.average()).toBe(sw.duration() / 2);
+		const stopwatch = new StopWatch();
+		expect(stopwatch.measure(() => 42)).toBe(42);
+		stopwatch.measure(() => 1);
+		expect(stopwatch.laps()).toHaveLength(2);
+		expect(stopwatch.average()).toBe(stopwatch.duration() / 2);
 	});
 
 	it('still records the lap when fn throws', () => {
-		const sw = new StopWatch();
-		expect(() => sw.measure(() => { throw new Error('x'); })).toThrow('x');
-		expect(sw.laps()).toHaveLength(1);
+		const stopwatch = new StopWatch();
+		expect(() => stopwatch.measure(() => { throw new Error('x'); })).toThrow('x');
+		expect(stopwatch.laps()).toHaveLength(1);
 	});
 
 	it('avarage stays as an alias of average', () => {
-		const sw = new StopWatch();
-		expect(sw.avarage).toBe(sw.average);
+		const stopwatch = new StopWatch();
+		expect(stopwatch.avarage).toBe(stopwatch.average);
 	});
 });
 
@@ -112,56 +112,56 @@ describe('StopWatch pause / resume', () => {
 	it('o tempo parado não conta', () => {
 		let now = 1000;
 		vi.spyOn(performance, 'now').mockImplementation(() => now);
-		const sw = new StopWatch();
-		sw.start();
+		const stopwatch = new StopWatch();
+		stopwatch.start();
 		now = 1300;
-		sw.pause();
+		stopwatch.pause();
 		now = 5300; // 4 s parado
-		expect(sw.current()).toBe(300);
-		sw.resume();
+		expect(stopwatch.current()).toBe(300);
+		stopwatch.resume();
 		now = 5400;
-		expect(sw.current()).toBe(400);
-		expect(sw.paused()).toBe(false);
+		expect(stopwatch.current()).toBe(400);
+		expect(stopwatch.paused()).toBe(false);
 	});
 
 	it('pause/resume repetidos e fora de hora são inofensivos', () => {
 		let now = 0;
 		vi.spyOn(performance, 'now').mockImplementation(() => now);
-		const sw = new StopWatch();
-		sw.pause(); // não iniciado
-		sw.resume();
-		sw.start();
+		const stopwatch = new StopWatch();
+		stopwatch.pause(); // não iniciado
+		stopwatch.resume();
+		stopwatch.start();
 		now = 100;
-		sw.pause();
+		stopwatch.pause();
 		now = 150;
-		sw.pause(); // já pausado: mantém o primeiro instante
+		stopwatch.pause(); // já pausado: mantém o primeiro instante
 		now = 200;
-		sw.resume();
-		sw.resume();
+		stopwatch.resume();
+		stopwatch.resume();
 		now = 300;
-		expect(sw.current()).toBe(200);
+		expect(stopwatch.current()).toBe(200);
 	});
 
 	it('lap durante a pausa fecha a volta no instante da pausa', () => {
 		let now = 0;
 		vi.spyOn(performance, 'now').mockImplementation(() => now);
-		const sw = new StopWatch();
-		sw.start();
+		const stopwatch = new StopWatch();
+		stopwatch.start();
 		now = 500;
-		sw.pause();
+		stopwatch.pause();
 		now = 9000;
-		sw.lap();
-		expect(sw.laps()).toEqual([500]);
-		sw.resume();
+		stopwatch.lap();
+		expect(stopwatch.laps()).toEqual([500]);
+		stopwatch.resume();
 		now = 9100;
-		expect(sw.current()).toBe(100);
+		expect(stopwatch.current()).toBe(100);
 	});
 
 	it('start zera a pausa', () => {
-		const sw = new StopWatch();
-		sw.start();
-		sw.pause();
-		sw.start();
-		expect(sw.paused()).toBe(false);
+		const stopwatch = new StopWatch();
+		stopwatch.start();
+		stopwatch.pause();
+		stopwatch.start();
+		expect(stopwatch.paused()).toBe(false);
 	});
 });

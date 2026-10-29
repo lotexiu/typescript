@@ -226,25 +226,25 @@ describe('StringUtils.isLineBreak / isTab / isCarriageReturn / isFormFeed / isVe
 
 describe('StringUtils.isMathOperator / isRelationalOperator / isBitwireOperator', () => {
 	it('recognizes math operators', () => {
-		for (const c of ['+', '-', '*', '/', '%', '^']) expect(StringUtils.isMathOperator(c)).toBe(true);
+		for (const character of ['+', '-', '*', '/', '%', '^']) expect(StringUtils.isMathOperator(character)).toBe(true);
 		expect(StringUtils.isMathOperator('a')).toBe(false);
 	});
 
 	it('recognizes relational operators', () => {
-		for (const c of ['>', '<', '=', '!']) expect(StringUtils.isRelationalOperator(c)).toBe(true);
+		for (const character of ['>', '<', '=', '!']) expect(StringUtils.isRelationalOperator(character)).toBe(true);
 		expect(StringUtils.isRelationalOperator('a')).toBe(false);
 	});
 
 	it('recognizes bitwise operators', () => {
-		for (const c of ['&', '|', '^', '~']) expect(StringUtils.isBitwireOperator(c)).toBe(true);
+		for (const character of ['&', '|', '^', '~']) expect(StringUtils.isBitwireOperator(character)).toBe(true);
 		expect(StringUtils.isBitwireOperator('a')).toBe(false);
 	});
 });
 
 describe('StringUtils.isPunctuation', () => {
 	it('recognizes common ASCII punctuation in basic mode', () => {
-		for (const c of ['.', ',', ';', ':', '(', ')', '"', "'"]) {
-			expect(StringUtils.isPunctuation(c)).toBe(true);
+		for (const character of ['.', ',', ';', ':', '(', ')', '"', "'"]) {
+			expect(StringUtils.isPunctuation(character)).toBe(true);
 		}
 	});
 

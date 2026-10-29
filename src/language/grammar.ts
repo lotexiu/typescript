@@ -224,7 +224,7 @@ class G {
 	 * suficiente pra reconhecer precedência sem multiplicar 1 nó por operador. Sem operador
 	 * nenhum, devolve `operand` sem envolver em nada.
 	 */
-	static binary(kind: string, operand: TRule, op: TRule): TRule {
+	static binary(kind: string, operand: TRule, operator: TRule): TRule {
 		return (ctx, pos) => {
 			const first = operand(ctx, pos)
 			if (!first.ok) return first
@@ -233,7 +233,7 @@ class G {
 			let cursor = first.next
 			let matched = false
 			for (;;) {
-				const opResult = op(ctx, cursor)
+				const opResult = operator(ctx, cursor)
 				if (!opResult.ok) break
 				const rightResult = operand(ctx, opResult.next)
 				if (!rightResult.ok) break

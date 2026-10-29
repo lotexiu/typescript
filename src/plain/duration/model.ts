@@ -49,8 +49,8 @@ class Duration {
 	}
 
 	/** -1, 0 ou 1. */
-	static compare(a: Duration, b: Duration): -1 | 0 | 1 {
-		return Math.sign(a.#ms - b.#ms) as -1 | 0 | 1;
+	static compare(left: Duration, right: Duration): -1 | 0 | 1 {
+		return Math.sign(left.#ms - right.#ms) as -1 | 0 | 1;
 	}
 
 	get sign(): -1 | 0 | 1 {

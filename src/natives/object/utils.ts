@@ -68,19 +68,19 @@ class ObjectUtils {
 	}
 
 	static diff<const A extends TRecord, const B extends TRecord>(
-		a: A,
-		b: B
+		left: A,
+		right: B
 	): TDiff<A, B> {
 		const result: any = {};
-		const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+		const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
 		for (const key of keys) {
-			const aVal: any = a[key];
-			const bVal: any = b[key];
-			if (!(key in b)) {
+			const aVal: any = left[key];
+			const bVal: any = right[key];
+			if (!(key in right)) {
 				result[key] = ['REMOVED', aVal];
 				continue;
 			}
-			if (!(key in a)) {
+			if (!(key in left)) {
 				result[key] = ['ADDED', bVal];
 				continue;
 			}

@@ -136,10 +136,10 @@ function walkSourceFiles(srcDir: string): string[] {
 	const walk = (dir: string) => {
 		const entries = fs.readdirSync(dir, { withFileTypes: true })
 		const files = entries
-			.filter((e) => e.isFile() && e.name.endsWith(".ts") && !e.name.endsWith(".test.ts") && e.name !== "index.ts")
-			.map((e) => e.name)
+			.filter((entry) => entry.isFile() && entry.name.endsWith(".ts") && !entry.name.endsWith(".test.ts") && entry.name !== "index.ts")
+			.map((entry) => entry.name)
 			.sort()
-		const dirs = entries.filter((e) => e.isDirectory() && !skipDir(e.name)).map((e) => e.name).sort()
+		const dirs = entries.filter((entry) => entry.isDirectory() && !skipDir(entry.name)).map((entry) => entry.name).sort()
 		for (const file of files) out.push(path.join(dir, file))
 		for (const sub of dirs) walk(path.join(dir, sub))
 	}

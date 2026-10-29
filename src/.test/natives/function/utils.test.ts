@@ -3,8 +3,8 @@ import { FunctionUtils } from '@tsn-function/utils';
 
 describe('FunctionUtils.thisAsParameter', () => {
 	it('passes the calling `this` as the first explicit argument', () => {
-		const fn = FunctionUtils.thisAsParameter(function (self: any, a: number, b: number) {
-			return [self, a, b];
+		const fn = FunctionUtils.thisAsParameter(function (self: any, first: number, second: number) {
+			return [self, first, second];
 		});
 		const ctx = { tag: 'ctx' };
 		expect(fn.call(ctx, 1, 2)).toEqual([ctx, 1, 2]);
@@ -209,7 +209,7 @@ describe('FunctionUtils.once', () => {
 
 describe('FunctionUtils.memoize', () => {
 	it('caches the result per JSON-stringified args by default', () => {
-		const fn = vi.fn((a: number, b: number) => a + b);
+		const fn = vi.fn((first: number, second: number) => first + second);
 		const memoized = FunctionUtils.memoize(fn);
 		expect(memoized(1, 2)).toBe(3);
 		expect(memoized(1, 2)).toBe(3);
@@ -217,7 +217,7 @@ describe('FunctionUtils.memoize', () => {
 	});
 
 	it('recomputes for different arguments', () => {
-		const fn = vi.fn((a: number, b: number) => a + b);
+		const fn = vi.fn((first: number, second: number) => first + second);
 		const memoized = FunctionUtils.memoize(fn);
 		memoized(1, 2);
 		memoized(2, 3);
@@ -233,7 +233,7 @@ describe('FunctionUtils.memoize', () => {
 	});
 
 	it('exposes the underlying cache', () => {
-		const memoized = FunctionUtils.memoize((a: number) => a * 2);
+		const memoized = FunctionUtils.memoize((value: number) => value * 2);
 		memoized(5);
 		expect(memoized.cache.get('[5]')).toBe(10);
 	});
@@ -241,19 +241,19 @@ describe('FunctionUtils.memoize', () => {
 
 describe('FunctionUtils.curry', () => {
 	it('collects arguments until fn.length is reached, then invokes', () => {
-		const add3 = (a: number, b: number, c: number) => a + b + c;
+		const add3 = (first: number, second: number, third: number) => first + second + third;
 		const curried = FunctionUtils.curry(add3);
 		expect((curried as any)(1)(2)(3)).toBe(6);
 	});
 
 	it('invokes immediately when called with all args at once', () => {
-		const add = (a: number, b: number) => a + b;
+		const add = (first: number, second: number) => first + second;
 		const curried = FunctionUtils.curry(add);
 		expect((curried as any)(1, 2)).toBe(3);
 	});
 
 	it('supports partial application in a single extra call', () => {
-		const add3 = (a: number, b: number, c: number) => a + b + c;
+		const add3 = (first: number, second: number, third: number) => first + second + third;
 		const curried = FunctionUtils.curry(add3);
 		expect((curried as any)(1, 2)(3)).toBe(6);
 	});

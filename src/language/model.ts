@@ -126,7 +126,7 @@ class Language {
 			}))
 		}
 
-		diagnostics.sort((a, b) => a.line - b.line)
+		diagnostics.sort((left, right) => left.line - right.line)
 		return { root: astRoot, diagnostics, tokens }
 	}
 }

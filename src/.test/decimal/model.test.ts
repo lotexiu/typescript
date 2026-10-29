@@ -7,21 +7,21 @@ import vectors from '../../../vectors/decimal.json';
 const noNegativeZero = (text: string) => text.replace(/^-(0(\.0+)?)$/, '$1');
 
 describe('Decimal — vetores (referência: decimal do Python)', () => {
-	for (const v of vectors.parse) it(`parse ${v.text} → ${v.string}`, () => expect(Decimal.parse(v.text).toString()).toBe(v.string));
+	for (const vector of vectors.parse) it(`parse ${vector.text} → ${vector.string}`, () => expect(Decimal.parse(vector.text).toString()).toBe(vector.string));
 
-	for (const v of vectors.ops) {
-		it(`${v.a} e ${v.b}: soma, subtração, produto e comparação`, () => {
-			const a = Decimal.parse(v.a);
-			expect(a.add(v.b).toString()).toBe(v.add);
-			expect(a.subtract(v.b).toString()).toBe(v.sub);
-			expect(a.multiply(v.b).toString()).toBe(v.mul);
-			expect(Decimal.compare(a, v.b)).toBe(v.cmp);
+	for (const vector of vectors.ops) {
+		it(`${vector.a} e ${vector.b}: soma, subtração, produto e comparação`, () => {
+			const left = Decimal.parse(vector.a);
+			expect(left.add(vector.b).toString()).toBe(vector.add);
+			expect(left.subtract(vector.b).toString()).toBe(vector.sub);
+			expect(left.multiply(vector.b).toString()).toBe(vector.mul);
+			expect(Decimal.compare(left, vector.b)).toBe(vector.cmp);
 		});
 	}
 
-	for (const v of vectors.round) it(`${v.value} → ${v.scale} casas (${v.mode}) = ${v.result}`, () => expect(Decimal.parse(v.value).toScale(v.scale, v.mode as TRoundingMode).toString()).toBe(noNegativeZero(v.result)));
+	for (const vector of vectors.round) it(`${vector.value} → ${vector.scale} casas (${vector.mode}) = ${vector.result}`, () => expect(Decimal.parse(vector.value).toScale(vector.scale, vector.mode as TRoundingMode).toString()).toBe(noNegativeZero(vector.result)));
 
-	for (const v of vectors.divide) it(`${v.a} / ${v.b} → ${v.scale} casas (${v.mode}) = ${v.result}`, () => expect(Decimal.parse(v.a).divide(v.b, v.scale, v.mode as TRoundingMode).toString()).toBe(noNegativeZero(v.result)));
+	for (const vector of vectors.divide) it(`${vector.a} / ${vector.b} → ${vector.scale} casas (${vector.mode}) = ${vector.result}`, () => expect(Decimal.parse(vector.a).divide(vector.b, vector.scale, vector.mode as TRoundingMode).toString()).toBe(noNegativeZero(vector.result)));
 });
 
 describe('Decimal — comportamento', () => {

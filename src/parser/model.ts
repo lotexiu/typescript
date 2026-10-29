@@ -96,8 +96,8 @@ class Parser {
 	/** Conta backslashes imediatamente antes de `index` — ímpar = escaped. No-op se `escape` não foi configurado (`text[i] === ''` nunca bate). */
 	private isEscaped(text: string, index: number): boolean {
 		let count = 0
-		let i = index - 1
-		while (i >= 0 && text[i] === this.escape) { count++; i-- }
+		let position = index - 1
+		while (position >= 0 && text[position] === this.escape) { count++; position-- }
 		return count % 2 !== 0
 	}
 

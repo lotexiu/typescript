@@ -176,9 +176,9 @@ const ConditionalType: TRule = (ctx, pos) => {
 	if (!extendsKw.ok) return check;
 	const extendsType = UnionType(ctx, extendsKw.next);
 	if (!extendsType.ok) return check;
-	const q = G.val("?")(ctx, extendsType.next);
-	if (!q.ok) return check;
-	const trueType = G.ref("Type")(ctx, q.next);
+	const questionMark = G.val("?")(ctx, extendsType.next);
+	if (!questionMark.ok) return check;
+	const trueType = G.ref("Type")(ctx, questionMark.next);
 	if (!trueType.ok) return check;
 	const colon = G.val(":")(ctx, trueType.next);
 	if (!colon.ok) return check;

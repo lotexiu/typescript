@@ -49,8 +49,8 @@ class PlainTime {
 		return new PlainTime(Math.floor(day / MS_PER_HOUR), Math.floor((day % MS_PER_HOUR) / MS_PER_MINUTE), Math.floor((day % MS_PER_MINUTE) / MS_PER_SECOND), day % MS_PER_SECOND);
 	}
 
-	static compare(a: PlainTime, b: PlainTime): -1 | 0 | 1 {
-		return Math.sign(a.toMilliseconds() - b.toMilliseconds()) as -1 | 0 | 1;
+	static compare(left: PlainTime, right: PlainTime): -1 | 0 | 1 {
+		return Math.sign(left.toMilliseconds() - right.toMilliseconds()) as -1 | 0 | 1;
 	}
 
 	toMilliseconds(): number {

@@ -30,12 +30,12 @@ class ValueHistory<T> {
 
 	undo(): void {
 		if (this.index() < 0) return;
-		this.index.update((v) => v - 1);
+		this.index.update((current) => current - 1);
 	}
 
 	redo(): void {
 		if (this.index() >= this.#entries().length - 1) return;
-		this.index.update((v) => v + 1);
+		this.index.update((current) => current + 1);
 	}
 
 	add(value: T): void {

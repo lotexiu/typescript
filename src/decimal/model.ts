@@ -72,10 +72,10 @@ class Decimal {
 		const common = Math.max(...decimals.map((weight) => weight.scale));
 		const units = decimals.map((weight) => weight.toScale(common).coefficient);
 		if (units.some((unit) => unit < 0n)) throw new RangeError('Decimal.allocate: pesos negativos');
-		const sum = units.reduce((a, b) => a + b, 0n);
+		const sum = units.reduce((total, unit) => total + unit, 0n);
 		if (sum === 0n) throw new RangeError('Decimal.allocate: a soma dos pesos é zero');
 		const shares = units.map((unit) => (amount * unit) / sum);
-		let leftover = amount - shares.reduce((a, b) => a + b, 0n);
+		let leftover = amount - shares.reduce((total, share) => total + share, 0n);
 		const step = leftover < 0n ? -1n : 1n;
 		for (let index = 0; leftover !== 0n; index = (index + 1) % shares.length) {
 			if (units[index] === 0n) continue;
@@ -90,42 +90,42 @@ class Decimal {
 	}
 
 	/** Mesma escala para os dois, sem alterar o valor. */
-	static #align(a: Decimal, b: Decimal): [bigint, bigint, number] {
-		const scale = Math.max(a.scale, b.scale);
-		return [a.coefficient * DecimalUtils.pow10(scale - a.scale), b.coefficient * DecimalUtils.pow10(scale - b.scale), scale];
+	static #align(left: Decimal, right: Decimal): [bigint, bigint, number] {
+		const scale = Math.max(left.scale, right.scale);
+		return [left.coefficient * DecimalUtils.pow10(scale - left.scale), right.coefficient * DecimalUtils.pow10(scale - right.scale), scale];
 	}
 
 	add(other: TDecimalInput): Decimal {
-		const [a, b, scale] = Decimal.#align(this, Decimal.from(other));
-		return new Decimal(a + b, scale);
+		const [leftUnits, rightUnits, scale] = Decimal.#align(this, Decimal.from(other));
+		return new Decimal(leftUnits + rightUnits, scale);
 	}
 
 	subtract(other: TDecimalInput): Decimal {
-		const [a, b, scale] = Decimal.#align(this, Decimal.from(other));
-		return new Decimal(a - b, scale);
+		const [leftUnits, rightUnits, scale] = Decimal.#align(this, Decimal.from(other));
+		return new Decimal(leftUnits - rightUnits, scale);
 	}
 
 	/** Exato: a escala do resultado é a soma das escalas. */
 	multiply(other: TDecimalInput): Decimal {
-		const b = Decimal.from(other);
-		return new Decimal(this.coefficient * b.coefficient, this.scale + b.scale);
+		const otherDecimal = Decimal.from(other);
+		return new Decimal(this.coefficient * otherDecimal.coefficient, this.scale + otherDecimal.scale);
 	}
 
 	/** Divide e arredonda para `scale` casas. A escala e o modo são **explícitos** (dividir não é exato). */
 	divide(other: TDecimalInput, scale: number, mode: TRoundingMode = 'half-up'): Decimal {
 		Decimal.#checkScale(scale);
-		const b = Decimal.from(other);
-		if (b.coefficient === 0n) throw new RangeError('Decimal: divisão por zero');
-		const numerator = this.coefficient * DecimalUtils.pow10(b.scale + scale);
-		const denominator = b.coefficient * DecimalUtils.pow10(this.scale);
+		const otherDecimal = Decimal.from(other);
+		if (otherDecimal.coefficient === 0n) throw new RangeError('Decimal: divisão por zero');
+		const numerator = this.coefficient * DecimalUtils.pow10(otherDecimal.scale + scale);
+		const denominator = otherDecimal.coefficient * DecimalUtils.pow10(this.scale);
 		return new Decimal(DecimalUtils.divideRounded(numerator, denominator, mode), scale);
 	}
 
 	/** Resto da divisão com o sinal do dividendo (como `%`). */
 	remainder(other: TDecimalInput): Decimal {
-		const [a, b, scale] = Decimal.#align(this, Decimal.from(other));
-		if (b === 0n) throw new RangeError('Decimal: divisão por zero');
-		return new Decimal(a % b, scale);
+		const [leftUnits, rightUnits, scale] = Decimal.#align(this, Decimal.from(other));
+		if (rightUnits === 0n) throw new RangeError('Decimal: divisão por zero');
+		return new Decimal(leftUnits % rightUnits, scale);
 	}
 
 	/** Inteiro não negativo: `Decimal` exato (a escala cresce). */
@@ -168,9 +168,9 @@ class Decimal {
 		return this.coefficient === 0n;
 	}
 
-	static compare(a: TDecimalInput, b: TDecimalInput): -1 | 0 | 1 {
-		const [x, y] = Decimal.#align(Decimal.from(a), Decimal.from(b));
-		return x < y ? -1 : x > y ? 1 : 0;
+	static compare(left: TDecimalInput, right: TDecimalInput): -1 | 0 | 1 {
+		const [leftUnits, rightUnits] = Decimal.#align(Decimal.from(left), Decimal.from(right));
+		return leftUnits < rightUnits ? -1 : leftUnits > rightUnits ? 1 : 0;
 	}
 
 	/** Mesmo valor (`1.0` equals `1.00`). */

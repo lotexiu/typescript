@@ -49,10 +49,10 @@ class ArrayUtils {
 		array: readonly T[],
 		...selectors: Array<{ key: (item: T) => any; order?: 'asc' | 'desc' }>
 	): T[] {
-		return [...array].sort((a, b) => {
+		return [...array].sort((left, right) => {
 			for (const { key, order = 'asc' } of selectors) {
-				const valA = key(a);
-				const valB = key(b);
+				const valA = key(left);
+				const valB = key(right);
 				if (valA < valB) return order === 'asc' ? -1 : 1;
 				if (valA > valB) return order === 'asc' ? 1 : -1;
 			}

@@ -75,7 +75,7 @@ class AhoCorasick {
 
 		const usedCodes = new Set<number>();
 		for (const node of nodes) for (const code of node.children.keys()) usedCodes.add(code);
-		const columns = [...usedCodes].sort((a, b) => a - b);
+		const columns = [...usedCodes].sort((left, right) => left - right);
 		const width = columns.length;
 		const columnOf = new Int32Array(ASCII_ALPHABET_SIZE).fill(-1);
 		columns.forEach((code, column) => {

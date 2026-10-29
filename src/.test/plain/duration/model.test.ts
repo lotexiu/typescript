@@ -4,12 +4,12 @@ import type { TDurationParts } from '@ts/plain/types';
 import vectors from '../../../../vectors/plain.json';
 
 describe('Duration', () => {
-	for (const v of vectors.duration) {
-		it(`${JSON.stringify(v.parts)} ↔ ${v.iso}`, () => {
-			const duration = Duration.from(v.parts as TDurationParts);
-			expect(duration.toMilliseconds()).toBe(v.ms);
-			expect(duration.toString()).toBe(v.iso);
-			expect(Duration.parse(v.iso).toMilliseconds()).toBe(v.ms);
+	for (const vector of vectors.duration) {
+		it(`${JSON.stringify(vector.parts)} ↔ ${vector.iso}`, () => {
+			const duration = Duration.from(vector.parts as TDurationParts);
+			expect(duration.toMilliseconds()).toBe(vector.ms);
+			expect(duration.toString()).toBe(vector.iso);
+			expect(Duration.parse(vector.iso).toMilliseconds()).toBe(vector.ms);
 		});
 	}
 
@@ -21,10 +21,10 @@ describe('Duration', () => {
 	}
 
 	it('componentes são do valor absoluto; o sinal vem à parte', () => {
-		const d = Duration.from({ hours: -1, minutes: -5 });
-		expect(d.sign).toBe(-1);
-		expect([d.hours, d.minutes]).toEqual([1, 5]);
-		expect(d.abs().toString()).toBe('PT1H5M');
+		const duration = Duration.from({ hours: -1, minutes: -5 });
+		expect(duration.sign).toBe(-1);
+		expect([duration.hours, duration.minutes]).toEqual([1, 5]);
+		expect(duration.abs().toString()).toBe('PT1H5M');
 	});
 
 	it('total em qualquer unidade', () => {
@@ -33,11 +33,11 @@ describe('Duration', () => {
 	});
 
 	it('soma, subtração, comparação e igualdade', () => {
-		const a = Duration.from({ minutes: 50 });
-		expect(a.add({ minutes: 20 }).toString()).toBe('PT1H10M');
-		expect(a.subtract('PT1H').toString()).toBe('-PT10M');
-		expect(Duration.compare(a, Duration.from('PT51M'))).toBe(-1);
-		expect(a.equals(Duration.from({ seconds: 3000 }))).toBe(true);
+		const duration = Duration.from({ minutes: 50 });
+		expect(duration.add({ minutes: 20 }).toString()).toBe('PT1H10M');
+		expect(duration.subtract('PT1H').toString()).toBe('-PT10M');
+		expect(Duration.compare(duration, Duration.from('PT51M'))).toBe(-1);
+		expect(duration.equals(Duration.from({ seconds: 3000 }))).toBe(true);
 	});
 
 	it('rejeita não finitos', () => {

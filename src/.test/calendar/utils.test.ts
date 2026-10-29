@@ -5,14 +5,14 @@ import type { TIsoWeekday } from '@ts/plain/types';
 import vectors from '../../../vectors/plain.json';
 
 describe('CalendarUtils.month', () => {
-	for (const v of vectors.grid) {
-		it(`${v.year}-${String(v.month).padStart(2, '0')} semana começa em ${v.weekStart}, ${v.weeks}${v.note ? ` (${v.note})` : ''}`, () => {
-			const cells = CalendarUtils.month(v.year, v.month, { weekStart: v.weekStart as TIsoWeekday, weeks: v.weeks as number | 'auto' });
-			expect(cells).toHaveLength(v.cells);
-			expect(cells[0].date.toString()).toBe(v.first);
-			expect(cells.at(-1)!.date.toString()).toBe(v.last);
-			expect(cells.filter((cell) => cell.inMonth)).toHaveLength(v.inMonth);
-			expect(cells[0].date.dayOfWeek).toBe(v.weekStart);
+	for (const vector of vectors.grid) {
+		it(`${vector.year}-${String(vector.month).padStart(2, '0')} semana começa em ${vector.weekStart}, ${vector.weeks}${vector.note ? ` (${vector.note})` : ''}`, () => {
+			const cells = CalendarUtils.month(vector.year, vector.month, { weekStart: vector.weekStart as TIsoWeekday, weeks: vector.weeks as number | 'auto' });
+			expect(cells).toHaveLength(vector.cells);
+			expect(cells[0].date.toString()).toBe(vector.first);
+			expect(cells.at(-1)!.date.toString()).toBe(vector.last);
+			expect(cells.filter((cell) => cell.inMonth)).toHaveLength(vector.inMonth);
+			expect(cells[0].date.dayOfWeek).toBe(vector.weekStart);
 		});
 	}
 

@@ -1,46 +1,47 @@
-import { TThemeMode } from "../types";
+import { LocaleError } from "@ts/locale/error";
+import { TContrastMetric } from "../color/types";
 import { Palette } from "../palette/model";
-import { ACCENT_SCHEME, NEUTRAL_SCHEME, NEUTRAL_SLOT } from "./declarations";
-import { TRoleScheme, TRoles } from "./types";
+import { TRoleRules } from "../role/types";
+import { STYLE_LOCALES } from "./declarations";
 
+/** Palette id → the palette the style uses when nobody assigns another one. */
+type TPaletteDefaults = Readonly<Record<string, Palette>>;
+
+/**
+ * Everything one visual style decides, and nothing that changes at runtime. The style owns:
+ *  - `palettes`: the palette ids it needs (two, three, four… — its call) and, for each, a **default** palette.
+ *    Defaults are mandatory: they are what a `Theme` falls back to for an id nobody assigned, so switching to a
+ *    style that needs more palettes than the previous one never leaves a role without a color;
+ *  - `roles`: which palette id, which tone per mode, what each sits on and how readable it must be;
+ *  - `components` (radii, fonts…) and the contrast `metric` its `min` values are written in.
+ * The ids mean nothing to the lib; roles may only cite ids declared in `palettes`.
+ */
 class ThemeStyle<
 	const N extends string = string,
-	const S extends Record<string, Palette> = Record<string, Palette>,
+	const P extends TPaletteDefaults = TPaletteDefaults,
+	const R extends TRoleRules = TRoleRules,
 	const C extends Record<string, any> = Record<string, any>
 > {
-	constructor(
-		readonly name: N,
-		readonly slotColors: S,
-		readonly components: C,
-	){}
+	readonly name: N;
+	readonly palettes: P;
+	readonly roles: R;
+	readonly components: C;
+	readonly metric: TContrastMetric;
 
-	/**
-	 * Picks concrete colors out of every slot palette for `mode`.
-	 *
-	 * A slot named `neutral` yields `background`, `surface1..3`, `onSurface`, `muted`, `outline`, `outlineSoft`;
-	 * any other slot yields `main`/`onMain`, `container`/`onContainer`, `bright`. `schemes` adds or replaces
-	 * roles per slot (merged over the defaults), e.g. `{ neutral: { ink: { dark: 100, light: 0 } } }`.
-	 */
-	resolve(mode: TThemeMode, schemes: { readonly [K in keyof S]?: TRoleScheme } = {}): { [K in keyof S]: TRoles } {
-		const resolved = {} as { [K in keyof S]: TRoles };
-		for (const slot of Object.keys(this.slotColors) as (keyof S & string)[]) {
-			const base: TRoleScheme = slot === NEUTRAL_SLOT ? NEUTRAL_SCHEME : ACCENT_SCHEME;
-			resolved[slot] = ThemeStyle.#pick(this.slotColors[slot], { ...base, ...schemes[slot] }, mode);
+	constructor({ name, palettes, roles, components = {} as C, metric = 'WCAG21' }: { name: N; palettes: P; roles: R & TRoleRules<keyof P & string>; components?: C; metric?: TContrastMetric }) {
+		for (const role of Object.keys(roles)) {
+			const palette = roles[role].palette;
+			if (!Object.hasOwn(palettes, palette)) throw new LocaleError(STYLE_LOCALES, 'undeclaredPalette', { cause: { role, palette, declared: Object.keys(palettes) } });
 		}
-		return resolved;
-	}
-
-	static #pick(palette: Palette, scheme: TRoleScheme, mode: TThemeMode): TRoles {
-		const roles: TRoles = {};
-		for (const [role, spec] of Object.entries(scheme)) {
-			const color = palette.get(spec[mode]);
-			roles[role] = color;
-			if (spec.readable) roles[`on${role[0].toUpperCase()}${role.slice(1)}`] = palette.onColor(color);
-		}
-		return roles;
+		this.name = name;
+		this.palettes = palettes;
+		this.roles = roles;
+		this.components = components;
+		this.metric = metric;
 	}
 }
 
 export {
 	ThemeStyle
 }
+export type { TPaletteDefaults }

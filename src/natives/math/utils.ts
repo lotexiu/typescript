@@ -42,7 +42,7 @@ class MathUtils {
 
 	static median(...values: number[]): number {
 		if (values.length === 0) return 0;
-		const sorted = [...values].sort((a, b) => a - b);
+		const sorted = [...values].sort((left, right) => left - right);
 		const mid = Math.floor(sorted.length / 2);
 		return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 	}
@@ -53,7 +53,7 @@ class MathUtils {
 
 	static normalize(min: number, max: number, ...values: number[]) {
 		const range = max - min;
-		return values.map((v) => (v - min) / range);
+		return values.map((value) => (value - min) / range);
 	}
 
 	static map(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {

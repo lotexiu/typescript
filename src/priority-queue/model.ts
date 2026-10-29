@@ -56,9 +56,9 @@ class PriorityQueue<T> {
 		return sorted;
 	}
 
-	#before(a: TEntry<T>, b: TEntry<T>): boolean {
-		const order = this.#compare(a.item, b.item);
-		return order < 0 || (order === 0 && a.order < b.order);
+	#before(left: TEntry<T>, right: TEntry<T>): boolean {
+		const order = this.#compare(left.item, right.item);
+		return order < 0 || (order === 0 && left.order < right.order);
 	}
 
 	#up(index: number): void {

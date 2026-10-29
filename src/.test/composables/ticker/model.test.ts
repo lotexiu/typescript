@@ -7,35 +7,35 @@ describe('ticker', () => {
 	afterEach(() => vi.useRealTimers());
 
 	it('counts once per interval while running', () => {
-		const t = ticker(100);
-		expect(t.running()).toBe(false);
-		t.start();
+		const clock = ticker(100);
+		expect(clock.running()).toBe(false);
+		clock.start();
 		vi.advanceTimersByTime(350);
-		expect(t.count()).toBe(3);
-		t.stop();
+		expect(clock.count()).toBe(3);
+		clock.stop();
 		vi.advanceTimersByTime(500);
-		expect(t.count()).toBe(3);
-		expect(t.running()).toBe(false);
+		expect(clock.count()).toBe(3);
+		expect(clock.running()).toBe(false);
 	});
 
 	it('autoStart, reset and a double start do not duplicate timers', () => {
-		const t = ticker(100, { autoStart: true });
-		t.start();
+		const clock = ticker(100, { autoStart: true });
+		clock.start();
 		vi.advanceTimersByTime(200);
-		expect(t.count()).toBe(2);
-		t.reset();
-		expect(t.count()).toBe(0);
-		expect(t.running()).toBe(true);
-		t.dispose();
+		expect(clock.count()).toBe(2);
+		clock.reset();
+		expect(clock.count()).toBe(0);
+		expect(clock.running()).toBe(true);
+		clock.dispose();
 	});
 
 	it('wakes up a computed that reads count', () => {
-		const t = ticker(10, { autoStart: true });
+		const clock = ticker(10, { autoStart: true });
 		const seen: number[] = [];
-		const label = computed(() => t.count() * 2);
-		label.subscribe((v) => seen.push(v));
+		const label = computed(() => clock.count() * 2);
+		label.subscribe((value) => seen.push(value));
 		vi.advanceTimersByTime(30);
 		expect(seen).toEqual([2, 4, 6]);
-		t.dispose();
+		clock.dispose();
 	});
 });

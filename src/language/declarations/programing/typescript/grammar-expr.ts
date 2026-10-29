@@ -137,7 +137,7 @@ const postfixStep = (prev: AstNode): TRule =>
 			const node = G.build(ctx, "CallExpr", prev.start, args.captures.length ? args.captures[args.captures.length - 1].node.end : prev.end, {
 				callee: prev,
 				typeArgs: typeArgs.captures[0].node,
-				args: args.captures.map((c) => c.node),
+				args: args.captures.map((capture) => capture.node),
 			});
 			return { ok: true, next: args.next, captures: [{ node }] };
 		},
@@ -146,22 +146,22 @@ const postfixStep = (prev: AstNode): TRule =>
 			if (!result.ok) return result;
 			const node = G.build(ctx, "CallExpr", prev.start, ctx.tokens[result.next - 1]?.end ?? prev.end, {
 				callee: prev,
-				args: result.captures.map((c) => c.node),
+				args: result.captures.map((capture) => capture.node),
 			});
 			return { ok: true, next: result.next, captures: [{ node }] };
 		},
 		(ctx, pos) => {
-			const opt = G.val("?.")(ctx, pos);
-			if (!opt.ok) return opt;
-			const args = G.into("paren", ArgList)(ctx, opt.next);
+			const questionDot = G.val("?.")(ctx, pos);
+			if (!questionDot.ok) return questionDot;
+			const args = G.into("paren", ArgList)(ctx, questionDot.next);
 			if (args.ok) {
 				const node = G.build(ctx, "OptionalCallExpr", prev.start, ctx.tokens[args.next - 1]?.end ?? prev.end, {
 					callee: prev,
-					args: args.captures.map((c) => c.node),
+					args: args.captures.map((capture) => capture.node),
 				});
 				return { ok: true, next: args.next, captures: [{ node }] };
 			}
-			const prop = G.ref("IdentifierName")(ctx, opt.next);
+			const prop = G.ref("IdentifierName")(ctx, questionDot.next);
 			if (!prop.ok) return prop;
 			const node = G.build(ctx, "OptionalMemberExpr", prev.start, prop.captures[0].node.end, { object: prev, property: prop.captures[0].node });
 			return { ok: true, next: prop.next, captures: [{ node }] };
@@ -250,14 +250,14 @@ const UnaryExpr: TRule = (ctx, pos) => {
 const ExponentExpr: TRule = (ctx, pos) => {
 	const left = UnaryExpr(ctx, pos);
 	if (!left.ok) return left;
-	const op = G.val("**")(ctx, left.next);
-	if (!op.ok) return left;
-	const right = G.ref("ExponentExpr")(ctx, op.next);
+	const operator = G.val("**")(ctx, left.next);
+	if (!operator.ok) return left;
+	const right = G.ref("ExponentExpr")(ctx, operator.next);
 	if (!right.ok) return left;
 	const leftNode = left.captures[0].node;
 	const node = G.build(ctx, "BinaryExpr", leftNode.start, right.captures[0].node.end, {
 		left: leftNode,
-		op: op.captures[0].node,
+		op: operator.captures[0].node,
 		right: right.captures[0].node,
 	});
 	return { ok: true, next: right.next, captures: [{ node }] };
@@ -275,12 +275,12 @@ const RelationalExpr: TRule = G.binary(
 
 /** `x as Foo`, `x satisfies Foo`, `x!` já ficou no postfix — aqui só as duas keywords de tipo. */
 const AsExpr: TRule = G.chain(RelationalExpr, (prev) => (ctx, pos) => {
-	const kw = G.choice(G.val("as"), G.val("satisfies"))(ctx, pos);
-	if (!kw.ok) return kw;
-	const constKw = G.val("const")(ctx, kw.next);
-	const type = constKw.ok ? constKw : G.field("type", G.ref("Type"))(ctx, kw.next);
+	const keyword = G.choice(G.val("as"), G.val("satisfies"))(ctx, pos);
+	if (!keyword.ok) return keyword;
+	const constKw = G.val("const")(ctx, keyword.next);
+	const type = constKw.ok ? constKw : G.field("type", G.ref("Type"))(ctx, keyword.next);
 	if (!type.ok) return type;
-	const kind = kw.captures[0].node.text === "satisfies" ? "SatisfiesExpr" : "AsExpr";
+	const kind = keyword.captures[0].node.text === "satisfies" ? "SatisfiesExpr" : "AsExpr";
 	const node = G.build(ctx, kind, prev.start, ctx.tokens[type.next - 1]?.end ?? prev.end, constKw.ok ? { expr: prev } : { expr: prev, type: type.captures[0].node });
 	return { ok: true, next: type.next, captures: [{ node }] };
 });
@@ -303,9 +303,9 @@ const LogicalOrExpr: TRule = G.binary("LogicalExpr", LogicalAndExpr, G.choice(G.
 const ConditionalExpr: TRule = (ctx, pos) => {
 	const test = LogicalOrExpr(ctx, pos);
 	if (!test.ok) return test;
-	const q = G.val("?")(ctx, test.next);
-	if (!q.ok) return test;
-	const trueResult = G.ref("AssignmentExpr")(ctx, q.next);
+	const questionMark = G.val("?")(ctx, test.next);
+	if (!questionMark.ok) return test;
+	const trueResult = G.ref("AssignmentExpr")(ctx, questionMark.next);
 	if (!trueResult.ok) return test;
 	const colon = G.val(":")(ctx, trueResult.next);
 	if (!colon.ok) return test;
@@ -338,7 +338,7 @@ const ArrowFunction: TRule = G.node(
 );
 
 const ASSIGN_OPS = ["=", "+=", "-=", "*=", "/=", "%=", "**=", "&&=", "||=", "??=", "&=", "|=", "^=", "<<="] as const;
-const assignOp: TRule = G.choice(...ASSIGN_OPS.map((op) => G.val(op)));
+const assignOp: TRule = G.choice(...ASSIGN_OPS.map((operator) => G.val(operator)));
 
 /** Mesma razão de `ConditionalExpr` acima: computa `ConditionalExpr` 1x, não 2x. */
 const AssignmentExpr: TRule = (ctx, pos) => {

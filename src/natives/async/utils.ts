@@ -42,8 +42,8 @@ export class AsyncUtils {
 
 		const worker = async () => {
 			while (index < items.length) {
-				const i = index++;
-				results[i] = await fn(items[i]);
+				const currentIndex = index++;
+				results[currentIndex] = await fn(items[currentIndex]);
 			}
 		};
 

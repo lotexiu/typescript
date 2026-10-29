@@ -8,9 +8,9 @@ import vectors from '../../../vectors/mask.json';
 beforeEach(() => Mask.resetRulesToDefault());
 
 describe('padrão da direita para a esquerda (reversed)', () => {
-	for (const v of vectors['pattern-reversed']) {
-		it(v.name, () => {
-			expect(Mask.apply(v.input, v.pattern, { reversed: v.reversed })).toBe(v.masked);
+	for (const vector of vectors['pattern-reversed']) {
+		it(vector.name, () => {
+			expect(Mask.apply(vector.input, vector.pattern, { reversed: vector.reversed })).toBe(vector.masked);
 		});
 	}
 
@@ -27,17 +27,17 @@ describe('padrão da direita para a esquerda (reversed)', () => {
 describe("preset 'duration-clock'", () => {
 	const clock = Mask.of<number>('duration-clock');
 
-	for (const v of vectors['duration-clock']) {
-		it(`${v.input} → ${v.masked}${v.note ? ` (${v.note})` : ''}`, () => {
-			const parsed = clock.parse(v.input);
-			expect(parsed.masked).toBe(v.masked);
-			expect(parsed.typed).toBe(v.typed);
-			expect(parsed.check).toEqual(v.ok ? { ok: true } : { ok: false, reason: v.reason });
+	for (const vector of vectors['duration-clock']) {
+		it(`${vector.input} → ${vector.masked}${vector.note ? ` (${vector.note})` : ''}`, () => {
+			const parsed = clock.parse(vector.input);
+			expect(parsed.masked).toBe(vector.masked);
+			expect(parsed.typed).toBe(vector.typed);
+			expect(parsed.check).toEqual(vector.ok ? { ok: true } : { ok: false, reason: vector.reason });
 		});
 	}
 
-	for (const v of vectors['duration-format']) {
-		it(`format(${v.typed} ms) → ${v.masked}`, () => expect(clock.format(v.typed)).toBe(v.masked));
+	for (const vector of vectors['duration-format']) {
+		it(`format(${vector.typed} ms) → ${vector.masked}`, () => expect(clock.format(vector.typed)).toBe(vector.masked));
 	}
 
 	it('ida e volta: format(parse(x).typed) devolve o mesmo texto', () => {
@@ -52,25 +52,25 @@ describe("preset 'duration-clock'", () => {
 
 describe("preset 'time-hm' (faixas por trecho do valor)", () => {
 	const time = Mask.of('time-hm');
-	for (const v of vectors['time-hm']) {
-		it(`${v.input} → ${v.masked} (${v.ok ? 'ok' : v.reason})`, () => {
-			expect(time.check(time.apply(v.input))).toEqual(v.ok ? { ok: true } : { ok: false, reason: v.reason });
+	for (const vector of vectors['time-hm']) {
+		it(`${vector.input} → ${vector.masked} (${vector.ok ? 'ok' : vector.reason})`, () => {
+			expect(time.check(time.apply(vector.input))).toEqual(vector.ok ? { ok: true } : { ok: false, reason: vector.reason });
 		});
 	}
 });
 
 describe('números (separadores e casas são parâmetros)', () => {
-	for (const v of vectors.number) {
-		it(`${JSON.stringify(v.config)} ${v.input} → ${v.masked}${v.note ? ` (${v.note})` : ''}`, () => {
-			const parsed = Mask.number(v.config as TMaskNumber).parse(v.input);
-			expect(parsed.masked).toBe(v.masked);
-			expect(parsed.typed).toBe(v.typed);
-			expect(parsed.unmasked).toBe(v.input.replace(/\D/g, ''));
+	for (const vector of vectors.number) {
+		it(`${JSON.stringify(vector.config)} ${vector.input} → ${vector.masked}${vector.note ? ` (${vector.note})` : ''}`, () => {
+			const parsed = Mask.number(vector.config as TMaskNumber).parse(vector.input);
+			expect(parsed.masked).toBe(vector.masked);
+			expect(parsed.typed).toBe(vector.typed);
+			expect(parsed.unmasked).toBe(vector.input.replace(/\D/g, ''));
 		});
 	}
 
-	for (const v of vectors['number-format']) {
-		it(`format(${v.typed}) → ${v.masked}`, () => expect(Mask.number(v.config as TMaskNumber).format(v.typed)).toBe(v.masked));
+	for (const vector of vectors['number-format']) {
+		it(`format(${vector.typed}) → ${vector.masked}`, () => expect(Mask.number(vector.config as TMaskNumber).format(vector.typed)).toBe(vector.masked));
 	}
 
 	it('digitar um dígito por vez, e apagar com backspace', () => {
@@ -90,10 +90,10 @@ describe('números (separadores e casas são parâmetros)', () => {
 
 describe("preset 'card-groups' (Luhn)", () => {
 	const card = Mask.of('card-groups');
-	for (const v of vectors['card-groups']) {
-		it(`${v.input} → ${v.ok ? 'ok' : v.reason}`, () => {
-			expect(card.apply(v.input)).toBe(v.masked);
-			expect(card.check(card.apply(v.input))).toEqual(v.ok ? { ok: true } : { ok: false, reason: v.reason });
+	for (const vector of vectors['card-groups']) {
+		it(`${vector.input} → ${vector.ok ? 'ok' : vector.reason}`, () => {
+			expect(card.apply(vector.input)).toBe(vector.masked);
+			expect(card.check(card.apply(vector.input))).toEqual(vector.ok ? { ok: true } : { ok: false, reason: vector.reason });
 		});
 	}
 });
@@ -136,25 +136,25 @@ describe('regras por instância (sem estado global)', () => {
 	});
 
 	it('não altera as regras das outras instâncias', () => {
-		const a = new MaskEngine({ Q: { match: ['[abc]'] } });
-		const b = new MaskEngine();
-		expect(a.ruleKeys()).toContain('Q');
-		expect(b.ruleKeys()).not.toContain('Q');
+		const customEngine = new MaskEngine({ Q: { match: ['[abc]'] } });
+		const defaultEngine = new MaskEngine();
+		expect(customEngine.ruleKeys()).toContain('Q');
+		expect(defaultEngine.ruleKeys()).not.toContain('Q');
 	});
 
 	it('herda as regras padrão', () => {
-		const m = Mask.of({ pattern: '00-00', rules: { Q: { match: ['x'] } } });
-		expect(m.apply('1234')).toBe('12-34');
+		const formatter = Mask.of({ pattern: '00-00', rules: { Q: { match: ['x'] } } });
+		expect(formatter.apply('1234')).toBe('12-34');
 	});
 });
 
 describe('presets registráveis', () => {
 	it('registra um preset (dado) e usa pelo id', () => {
 		Mask.preset('test-code', { pattern: '000-000', checks: [{ type: 'range', from: 0, to: 3, min: 1, max: 500 }] });
-		const m = Mask.of('test-code');
-		expect(m.apply('123456')).toBe('123-456');
-		expect(m.check('123-456')).toEqual({ ok: true });
-		expect(m.check('999-456')).toEqual({ ok: false, reason: 'range' });
+		const formatter = Mask.of('test-code');
+		expect(formatter.apply('123456')).toBe('123-456');
+		expect(formatter.check('123-456')).toEqual({ ok: true });
+		expect(formatter.check('999-456')).toEqual({ ok: false, reason: 'range' });
 		expect(Mask.hasPreset('test-code')).toBe(true);
 	});
 
@@ -165,8 +165,8 @@ describe('presets registráveis', () => {
 
 describe('três valores (masked / unmasked / typed)', () => {
 	it('texto sem codec: typed = unmasked', () => {
-		const m = Mask.of('000.000');
-		expect(m.parse('123456')).toMatchObject({ masked: '123.456', unmasked: '123456', typed: '123456' });
+		const formatter = Mask.of('000.000');
+		expect(formatter.parse('123456')).toMatchObject({ masked: '123.456', unmasked: '123456', typed: '123456' });
 	});
 
 	it('inteiro', () => {

@@ -82,7 +82,7 @@ class CustomPalette extends Palette {
 		public readonly seedTones: Record<number, string>
 	) {
 		super(name);
-		this.#anchors = Object.keys(seedTones).map(Number).sort((a, b) => a - b);
+		this.#anchors = Object.keys(seedTones).map(Number).sort((left, right) => left - right);
 	}
 
 	get(toneStop: number): Color {

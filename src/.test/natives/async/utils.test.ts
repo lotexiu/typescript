@@ -8,7 +8,7 @@ describe('AsyncUtils.timeout', () => {
 	});
 
 	it('estoura com TimeoutError', async () => {
-		const error = await AsyncUtils.timeout(AsyncUtils.sleep(50), 5).catch((e: unknown) => e);
+		const error = await AsyncUtils.timeout(AsyncUtils.sleep(50), 5).catch((reason: unknown) => reason);
 		expect(error).toBeInstanceOf(TimeoutError);
 		expect((error as TimeoutError).ms).toBe(5);
 	});
@@ -16,8 +16,8 @@ describe('AsyncUtils.timeout', () => {
 	it('com função, aborta o sinal no estouro', async () => {
 		let signal: AbortSignal | undefined;
 		await expect(
-			AsyncUtils.timeout((s) => {
-				signal = s;
+			AsyncUtils.timeout((abortSignal) => {
+				signal = abortSignal;
 				return AsyncUtils.sleep(50);
 			}, 5)
 		).rejects.toBeInstanceOf(TimeoutError);

@@ -1,4 +1,4 @@
-import { TColor, TColorFormat } from './types';
+import { TColor, TColorFormat, TContrastMetric } from './types';
 
 /**
  * Thin layer over `colorjs.io` — keeps the dependency behind one door and covers what palettes
@@ -24,14 +24,16 @@ class ColorUtils {
 		return copy;
 	}
 
-	/** WCAG 2.1 contrast ratio (`1..21`). */
-	static contrast(a: TColor, b: TColor): number {
-		return a.contrast(b, 'WCAG21');
+	/** Contrast of `foreground` over `background` by `metric` (default WCAG 2.1, `1..21`). APCA is polarity-aware, so order matters there; its sign is dropped. */
+	static contrast(foreground: TColor, background: TColor, metric: TContrastMetric = 'WCAG21'): number {
+		if (typeof metric === 'function') return metric(foreground, background);
+		const value = foreground.contrast(background, metric);
+		return metric === 'APCA' ? Math.abs(value) : value;
 	}
 
 	/** Interpolation between two colors (`amount` `0..1`) in a perceptual space. */
-	static mix(a: TColor, b: TColor, amount = 0.5, space = 'oklch'): TColor {
-		return a.mix(b, amount, { space });
+	static mix(from: TColor, to: TColor, amount = 0.5, space = 'oklch'): TColor {
+		return from.mix(to, amount, { space });
 	}
 }
 

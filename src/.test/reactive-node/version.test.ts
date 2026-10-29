@@ -4,42 +4,42 @@ import { signal } from '@tsr-node/signal/model';
 
 describe('version()', () => {
 	it('a signal bumps only on real changes', () => {
-		const s = signal(1);
-		const v0 = s.version();
-		s.set(1);
-		expect(s.version()).toBe(v0);
-		s.set(2);
-		expect(s.version()).toBe(v0 + 1);
+		const counter = signal(1);
+		const v0 = counter.version();
+		counter.set(1);
+		expect(counter.version()).toBe(v0);
+		counter.set(2);
+		expect(counter.version()).toBe(v0 + 1);
 	});
 
 	it('notify() bumps even though the reference is the same (in-place mutation)', () => {
-		const s = signal({ n: 1 });
-		const v0 = s.version();
-		s().n = 2;
-		s.notify();
-		expect(s.version()).toBe(v0 + 1);
+		const state = signal({ n: 1 });
+		const v0 = state.version();
+		state().n = 2;
+		state.notify();
+		expect(state.version()).toBe(v0 + 1);
 	});
 
 	it('a computed refreshes first and bumps only when its value changes', () => {
-		const s = signal(1);
-		const parity = computed(() => s() % 2);
+		const counter = signal(1);
+		const parity = computed(() => counter() % 2);
 		const v0 = parity.version();
-		s.set(3); // parity is still 1
+		counter.set(3); // parity is still 1
 		expect(parity.version()).toBe(v0);
-		s.set(4);
+		counter.set(4);
 		expect(parity.version()).toBe(v0 + 1);
 	});
 
 	it('is not tracked as a dependency', () => {
-		const s = signal(1);
+		const counter = signal(1);
 		let runs = 0;
-		const c = computed(() => {
+		const doubled = computed(() => {
 			runs++;
-			return s.version();
+			return counter.version();
 		});
-		c();
-		s.set(2);
-		c();
+		doubled();
+		counter.set(2);
+		doubled();
 		expect(runs).toBe(1);
 	});
 });

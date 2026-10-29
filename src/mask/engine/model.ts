@@ -108,7 +108,7 @@ class MaskEngine {
 		if (!reversed) {
 			const tokens = [...pattern.tokens].reverse().map((token) => (token instanceof TMaskStaticToken ? new TMaskStaticToken(MaskEngineUtils.reverse(token.value)) : token));
 			const ruleTokens = [...pattern.ruleTokens].reverse();
-			reversed = new MaskCompiledPattern(`${pattern.source}\u0000reversed`, tokens, ruleTokens, tokens.filter((t) => t instanceof TMaskStaticToken), pattern.flags);
+			reversed = new MaskCompiledPattern(`${pattern.source}\u0000reversed`, tokens, ruleTokens, tokens.filter((token) => token instanceof TMaskStaticToken), pattern.flags);
 			this.#reversedCache.set(pattern, reversed);
 		}
 		return reversed;

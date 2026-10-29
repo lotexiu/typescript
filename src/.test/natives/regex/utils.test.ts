@@ -13,8 +13,8 @@ describe('RegexUtils.escapeReservedKeys', () => {
 	it('produces a string safely usable inside a new RegExp', () => {
 		const raw = '1 + 1 = 2?';
 		const escaped = RegexUtils.escapeReservedKeys(raw);
-		const re = new RegExp(escaped);
-		expect(re.test(raw)).toBe(true);
+		const regex = new RegExp(escaped);
+		expect(regex.test(raw)).toBe(true);
 	});
 
 	it('escapes brackets used to build character classes', () => {
@@ -48,14 +48,14 @@ describe('RegexUtils.hasAstralChar', () => {
 
 describe('RegexUtils.patterns', () => {
 	it('exposes the DATE.ISO pattern matching yyyy-mm-dd / yyyy/mm/dd', () => {
-		const re = new RegExp(`^${RegexUtils.patterns.DATE.ISO}$`);
-		expect(re.test('2024-06-15')).toBe(true);
-		expect(re.test('2024/06/15')).toBe(true);
+		const regex = new RegExp(`^${RegexUtils.patterns.DATE.ISO}$`);
+		expect(regex.test('2024-06-15')).toBe(true);
+		expect(regex.test('2024/06/15')).toBe(true);
 	});
 
 	it('DATE.ISO rejects mismatched separators via the backreference', () => {
-		const re = new RegExp(`^${RegexUtils.patterns.DATE.ISO}$`);
-		expect(re.test('2024-06/15')).toBe(false);
+		const regex = new RegExp(`^${RegexUtils.patterns.DATE.ISO}$`);
+		expect(regex.test('2024-06/15')).toBe(false);
 	});
 });
 

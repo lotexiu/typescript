@@ -3,7 +3,7 @@ import { NODE } from "./declarations";
 import { ReactiveNode } from "./model";
 import { TValueListener, TValueUnsubscribe } from "@ts/subscription/types";
 
-type TEqual<T> = (a: T, b: T) => boolean;
+type TEqual<T> = (left: T, right: T) => boolean;
 
 type TReactive<T> = {
 	(): T;

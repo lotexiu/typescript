@@ -1,39 +1,36 @@
 import { describe, it, expect } from 'vitest';
 import { ThemeStyle } from '@ts/theme/style/model';
-import { CustomPalette, TonalPalette } from '@ts/theme/palette/model';
+import { TonalPalette } from '@ts/theme/palette/model';
+
+const neutral = new TonalPalette('#808080', 'neutral');
 
 describe('ThemeStyle', () => {
-	it('exposes name/slotColors/components as given to the constructor', () => {
-		const primary = new CustomPalette('primary', { 50: '#808080' });
-		const style = new ThemeStyle('my-style', { primary }, { radius: 4 });
+	it('exposes name/palettes/roles/components/metric as given', () => {
+		const palettes = { neutral };
+		const roles = { bg: { palette: 'neutral', tone: { dark: 10, light: 98 } } } as const;
+		const style = new ThemeStyle({ name: 'my-style', palettes, roles, components: { radius: 4 }, metric: 'APCA' });
 		expect(style.name).toBe('my-style');
-		expect(style.slotColors.primary).toBe(primary);
+		expect(style.palettes).toBe(palettes);
+		expect(style.roles).toBe(roles);
 		expect(style.components).toEqual({ radius: 4 });
-	});
-});
-
-describe('ThemeStyle.resolve', () => {
-	const style = new ThemeStyle('s', { primary: new TonalPalette('#1a5fb4', 'p'), neutral: new TonalPalette('#1a5fb4', 'n').neutral() }, {});
-
-	it('emits accent roles for colored slots and neutral roles for `neutral`', () => {
-		const roles = style.resolve('dark');
-		expect(Object.keys(roles.primary).sort()).toEqual(['bright', 'container', 'main', 'onContainer', 'onMain']);
-		expect(Object.keys(roles.neutral)).toContain('surface2');
+		expect(style.metric).toBe('APCA');
 	});
 
-	it('differs by mode, and `on*` roles are readable over their base', () => {
-		const dark = style.resolve('dark');
-		const light = style.resolve('light');
-		expect(dark.primary.main.to('oklch').coords[0]).toBeGreaterThan(light.primary.main.to('oklch').coords[0] ?? 0);
-		for (const roles of [dark, light]) {
-			expect(roles.primary.onMain.contrast(roles.primary.main, 'WCAG21')).toBeGreaterThan(4.5);
-			expect(roles.primary.onContainer.contrast(roles.primary.container, 'WCAG21')).toBeGreaterThan(4.5);
-		}
+	it('defaults to no components and the WCAG 2.1 metric', () => {
+		const style = new ThemeStyle({ name: 's', palettes: { neutral }, roles: {} });
+		expect(style.components).toEqual({});
+		expect(style.metric).toBe('WCAG21');
 	});
 
-	it('merges extra roles over the defaults without dropping them', () => {
-		const roles = style.resolve('dark', { neutral: { ink: { dark: 100, light: 0 } } });
-		expect(roles.neutral.ink.to('oklch').coords[0]).toBeCloseTo(1, 5);
-		expect(roles.neutral.background).toBeDefined();
+	it('refuses, when created, a role that cites a palette id the style does not declare', () => {
+		expect(() => new ThemeStyle({ name: 's', palettes: { neutral }, roles: { bg: { palette: 'nuetral' as 'neutral', tone: 10 } } })).toThrow(
+			expect.objectContaining({ type: 'undeclaredPalette', cause: { role: 'bg', palette: 'nuetral', declared: ['neutral'] } })
+		);
+	});
+
+	it('catches a mistyped palette id at compile time when the ids are literals', () => {
+		// @ts-expect-error 'nuetral' is not one of the declared ids ('neutral')
+		const attempt = () => new ThemeStyle({ name: 's', palettes: { neutral }, roles: { bg: { palette: 'nuetral', tone: 10 } } });
+		expect(attempt).toThrow();
 	});
 });

@@ -16,14 +16,14 @@ class RandomUtils {
 
 	/** splitmix32: espalha uma semente de 32 bits em palavras de estado bem misturadas. */
 	static splitmix(seed: number): () => number {
-		let a = seed | 0;
+		let state = seed | 0;
 		return () => {
-			a = (a + SPLITMIX_INCREMENT) | 0;
-			let t = a ^ (a >>> 16);
-			t = Math.imul(t, SPLITMIX_MUL_A);
-			t = t ^ (t >>> 15);
-			t = Math.imul(t, SPLITMIX_MUL_B);
-			return (t ^ (t >>> 15)) >>> 0;
+			state = (state + SPLITMIX_INCREMENT) | 0;
+			let mixed = state ^ (state >>> 16);
+			mixed = Math.imul(mixed, SPLITMIX_MUL_A);
+			mixed = mixed ^ (mixed >>> 15);
+			mixed = Math.imul(mixed, SPLITMIX_MUL_B);
+			return (mixed ^ (mixed >>> 15)) >>> 0;
 		};
 	}
 }

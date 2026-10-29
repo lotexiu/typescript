@@ -13,7 +13,7 @@ class StopWatch {
 	readonly laps = signal<number[]>([]);
 	readonly totalLaps = signal(NaN);
 
-	readonly duration = computed(() => this.laps().reduce((a, b) => a + b, 0));
+	readonly duration = computed(() => this.laps().reduce((total, lap) => total + lap, 0));
 	readonly average = computed(() => this.duration() / this.laps().length);
 	/** @deprecated Misspelled — use `average`. */
 	readonly avarage = this.average;

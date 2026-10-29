@@ -40,23 +40,23 @@ class Random {
 		return Random.fromState(this.state());
 	}
 
-	#assign([a, b, c, d]: TRandomState): void {
-		const empty = (a | b | c | d) === 0;
-		this.#s0 = empty ? 1 : a;
-		this.#s1 = b;
-		this.#s2 = c;
-		this.#s3 = d;
+	#assign([state0, state1, state2, state3]: TRandomState): void {
+		const empty = (state0 | state1 | state2 | state3) === 0;
+		this.#s0 = empty ? 1 : state0;
+		this.#s1 = state1;
+		this.#s2 = state2;
+		this.#s3 = state3;
 	}
 
 	/** Próxima palavra de 32 bits sem sinal. */
 	nextUint32(): number {
 		const result = Math.imul(RandomUtils.rotl(Math.imul(this.#s1, 5), 7), 9) >>> 0;
-		const t = this.#s1 << 9;
+		const shifted = this.#s1 << 9;
 		this.#s2 ^= this.#s0;
 		this.#s3 ^= this.#s1;
 		this.#s1 ^= this.#s2;
 		this.#s0 ^= this.#s3;
-		this.#s2 ^= t;
+		this.#s2 ^= shifted;
 		this.#s3 = RandomUtils.rotl(this.#s3, 11);
 		this.#s0 >>>= 0;
 		this.#s1 >>>= 0;
@@ -79,15 +79,15 @@ class Random {
 	}
 
 	/** `true` com probabilidade `p` (padrão 0,5). */
-	chance(p = 0.5): boolean {
-		return this.uniform() < p;
+	chance(probability = 0.5): boolean {
+		return this.uniform() < probability;
 	}
 
 	/** Distribuição normal (Box–Muller). */
 	normal(mean = 0, deviation = 1): number {
-		const u1 = 1 - this.uniform();
-		const u2 = this.uniform();
-		return mean + deviation * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+		const firstUniform = 1 - this.uniform();
+		const secondUniform = this.uniform();
+		return mean + deviation * Math.sqrt(-2 * Math.log(firstUniform)) * Math.cos(2 * Math.PI * secondUniform);
 	}
 
 	/** Um item ao acaso (`undefined` se vazio). */

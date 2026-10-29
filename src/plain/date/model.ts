@@ -66,8 +66,8 @@ class PlainDate {
 		return PlainDate.from({ year: yearOfEra + era * YEARS_PER_ERA + (month <= 2 ? 1 : 0), month, day });
 	}
 
-	static compare(a: PlainDate, b: PlainDate): -1 | 0 | 1 {
-		return Math.sign(a.toEpochDays() - b.toEpochDays()) as -1 | 0 | 1;
+	static compare(left: PlainDate, right: PlainDate): -1 | 0 | 1 {
+		return Math.sign(left.toEpochDays() - right.toEpochDays()) as -1 | 0 | 1;
 	}
 
 	toEpochDays(): number {

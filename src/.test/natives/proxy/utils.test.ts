@@ -4,7 +4,7 @@ import { ProxyUtils, proxy } from '@tsn/proxy/utils';
 describe('ProxyUtils.proxy', () => {
 	it('creates a real Proxy wrapping the target with the given handler', () => {
 		const target = { a: 1 };
-		const get = vi.fn((t: any, key: string | symbol) => t[key]);
+		const get = vi.fn((target: any, key: string | symbol) => target[key]);
 		const wrapped = ProxyUtils.proxy(target, { get });
 		expect(wrapped.a).toBe(1);
 		expect(get).toHaveBeenCalledWith(target, 'a', wrapped);
@@ -13,8 +13,8 @@ describe('ProxyUtils.proxy', () => {
 	it('intercepts writes via the set trap', () => {
 		const target: any = { a: 1 };
 		const wrapped = ProxyUtils.proxy(target, {
-			set(t, key, value) {
-				t[key as string] = value;
+			set(target, key, value) {
+				target[key as string] = value;
 				return true;
 			},
 		});

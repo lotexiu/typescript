@@ -3,7 +3,7 @@ import { PriorityQueue } from '@ts/priority-queue/model';
 import { Random } from '@ts/random/model';
 
 describe('PriorityQueue', () => {
-	const ascending = (a: number, b: number) => a - b;
+	const ascending = (left: number, right: number) => left - right;
 
 	it('sai em ordem crescente e vazio devolve undefined', () => {
 		const queue = new PriorityQueue(ascending, [5, 1, 4, 2, 3]);
@@ -17,10 +17,10 @@ describe('PriorityQueue', () => {
 	});
 
 	it('empates saem na ordem de chegada (estável)', () => {
-		const queue = new PriorityQueue<{ p: number; id: string }>((a, b) => a.p - b.p);
+		const queue = new PriorityQueue<{ p: number; id: string }>((left, right) => left.p - right.p);
 		['a', 'b', 'c', 'd'].forEach((id) => queue.push({ p: 1, id }));
 		queue.push({ p: 0, id: 'urgente' });
-		expect(queue.toSortedArray().map((x) => x.id)).toEqual(['urgente', 'a', 'b', 'c', 'd']);
+		expect(queue.toSortedArray().map((entry) => entry.id)).toEqual(['urgente', 'a', 'b', 'c', 'd']);
 		expect(queue.size).toBe(5);
 	});
 

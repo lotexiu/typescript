@@ -3,27 +3,27 @@ import { selection } from '@ts/composables/selection/model';
 
 describe('selection size / isEmpty / set', () => {
 	it('size and isEmpty follow the selection', () => {
-		const s = selection<string>();
-		expect(s.isEmpty()).toBe(true);
-		s.select('a', 'b');
-		expect(s.size()).toBe(2);
-		expect(s.isEmpty()).toBe(false);
-		s.clear();
-		expect(s.size()).toBe(0);
+		const selectionState = selection<string>();
+		expect(selectionState.isEmpty()).toBe(true);
+		selectionState.select('a', 'b');
+		expect(selectionState.size()).toBe(2);
+		expect(selectionState.isEmpty()).toBe(false);
+		selectionState.clear();
+		expect(selectionState.size()).toBe(0);
 	});
 
 	it('set replaces everything with a single notification', () => {
-		const s = selection(['a', 'b']);
+		const selectionState = selection(['a', 'b']);
 		const seen: string[][] = [];
-		s.subscribe((v) => seen.push(v));
-		s.set(['c', 'd', 'e']);
-		expect(s()).toEqual(['c', 'd', 'e']);
+		selectionState.subscribe((selectedItems) => seen.push(selectedItems));
+		selectionState.set(['c', 'd', 'e']);
+		expect(selectionState()).toEqual(['c', 'd', 'e']);
 		expect(seen).toHaveLength(1);
 	});
 
 	it('set accepts the current values without losing them', () => {
-		const s = selection(['a']);
-		s.set(s());
-		expect(s()).toEqual(['a']);
+		const selectionState = selection(['a']);
+		selectionState.set(selectionState());
+		expect(selectionState()).toEqual(['a']);
 	});
 });

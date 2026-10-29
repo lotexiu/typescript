@@ -2,7 +2,7 @@
 
 _Gerado por `scripts/doc/generate.ts` — extração puramente sintática (`src/language` + `TypescriptLang`), sem type-checker._
 
-160 arquivos, 609 declarações top-level.
+167 arquivos, 629 declarações top-level.
 
 ---
 ## src/types.ts
@@ -2027,9 +2027,23 @@ Devolve a permissão. Chamar de novo não faz nada (idempotente).
 
 - `@internal`
 
+## src/theme/declarations.ts
+
+#### `THEME_LOCALES` — const _(exported, L3)_
+
 ## src/theme/model.ts
 
-#### `Theme` — class _(exported, L9)_
+#### `TPaletteAssignment` — type _(exported, L15)_
+
+Palette id → palette. Ids left out (or `undefined`) fall back to the style's default palette.
+
+#### `Theme` — class _(exported, L24)_
+
+A style + the palettes assigned to its ids + the user's settings (`mode`, `contrast`, `enforce`), resolved into
+colors. Everything is a signal, so a UI or an adapter only reads `roles()`/`components()` and re-runs on change.
+How those reach a component (CSS variables, props, bindings) is up to the app.
+
+Which palette an id uses: the one assigned (`palettes`/`setPalettes`), else the style's default for that id.
 
 ## src/theme/types.ts
 
@@ -2043,12 +2057,63 @@ The color object `Palette.get` returns — re-exported so consumers don't need `
 
 #### `TColorFormat` — type _(exported, L6)_
 
+#### `TContrastMetric` — type _(exported, L12)_
+
+How "readable one color is over another" becomes a number — bigger is more readable. `WCAG21` is `1..21`,
+`APCA` is `Lc` (`0..~108`); thresholds are only comparable within the same metric. A function plugs in any other.
+
 ## src/theme/color/utils.ts
 
 #### `ColorUtils` — class _(exported, L7)_
 
 Thin layer over `colorjs.io` — keeps the dependency behind one door and covers what palettes
 need every time: turning a `TColor` into a string that is safe to use (always in sRGB gamut by default).
+
+## src/theme/factory/declarations.ts
+
+#### `FACTORY_LOCALES` — const _(exported, L3)_
+
+## src/theme/factory/model.ts
+
+#### `PaletteFactory` — class _(exported, L17)_
+
+Makes the palettes of a theme from a few colors. It declares two things:
+ - `seeds`: the inputs a user can edit (one color, two colors…), each with a label a UI can show and a default;
+ - `palettes`: for each palette id, a rule that produces it from the seeds (`brand.derive(...)`, `brand.neutral()`…).
+
+`build` runs the rules and returns `{ paletteId: Palette }` — what `Theme.setPalettes`/`bindPalettes` take, and,
+with the default seeds, what a `ThemeStyle` can use as its mandatory default palettes. Any generated palette can be
+replaced by hand (`overrides`). It is a plain function of its arguments, not reactive: call it inside a `computed`.
+
+Swap the factory and the UI adapts, because it reads `seeds` instead of assuming how many colors there are.
+
+## src/theme/factory/types.ts
+
+#### `TPaletteSeed` — type _(exported, L5)_
+
+What a seed can be given as: a ready palette, or just a color (turned into a tonal palette).
+
+#### `TSeedDefinition` — type _(exported, L8)_
+
+One input the user can edit. `label` is what a UI shows (defaults to the seed's id).
+
+#### `TSeedDefinitions` — type _(exported, L13)_
+
+#### `TSeed` — type _(exported, L16)_
+
+The same input after the factory normalized it: always a label and always a `Palette`.
+
+#### `TPaletteContext` — type _(exported, L22)_
+
+What a palette rule receives: every seed, already as a `Palette`.
+
+#### `TPaletteRule` — type _(exported, L27)_
+
+How one palette is produced from the seeds.
+
+#### `TPaletteRules` — type _(exported, L30)_
+
+Palette id → rule. The ids are the ones a `ThemeStyle` declares in its `palettes`.
 
 ## src/theme/palette/declarations.ts
 
@@ -2100,39 +2165,80 @@ Palette defined by hand-picked colors per tone; tones in between are interpolate
 
 Recipe for `Palette.derive` — a new palette whose seed is this palette's mid tone, adjusted.
 
+## src/theme/role/declarations.ts
+
+#### `ROLE_LOCALES` — const _(exported, L3)_
+
+## src/theme/role/types.ts
+
+#### `TRoleContext` — type _(exported, L5)_
+
+What a role's tone can depend on. `contrast` is a user-facing level (`-1..1`, `0` = default) for tone functions to honor.
+
+#### `TRoleTone` — type _(exported, L11)_
+
+The tone (`0..100`) a role takes: one for every mode, one per mode, or computed from the context.
+
+#### `TRoleRule` — type _(exported, L18)_
+
+One role of a style: which palette it comes from, which tone, and — optionally — which other role it sits
+on (`on`) and how readable it must be there (`min`, in the units of the metric used to resolve).
+Names (`P` for palettes, `R` for roles) are whatever the style's author chose; the lib gives none a meaning.
+
+#### `TRoleRules` — type _(exported, L27)_
+
+Role name → rule. Resolved in declaration order, so `on` must name a role declared before it.
+
+#### `TRoleNames` — type _(exported, L32)_
+
+The role names a rule map declares, and the palette names those rules need.
+
+#### `TRolePalettes` — type _(exported, L33)_
+
+#### `TRoleOptions` — type _(exported, L35)_
+
+#### `TRoleSuggestion` — type _(exported, L46)_
+
+The nearest tone that satisfies `min`; if none does, the most readable one the palette has.
+
+#### `TRoleCheck` — type _(exported, L53)_
+
+The result of one role's `on`/`min` check, measured on the color as authored.
+
+#### `TRolesResolved` — type _(exported, L63)_
+
+## src/theme/role/utils.ts
+
+#### `RoleUtils` — class _(exported, L14)_
+
+Turns the roles a style declares into colors. The style decides tones and which role sits on which; this only
+evaluates them in declaration order and checks the readability of every `on`/`min` pair. Names carry no meaning here.
+
+`Palette.get` is reactive, so calling `resolve` inside a `derived` re-runs it when a palette's seed changes.
+
 ## src/theme/style/declarations.ts
 
-#### `NEUTRAL_SLOT` — const _(exported, L4)_
-
-Slot with this name uses `NEUTRAL_SCHEME`; every other slot uses `ACCENT_SCHEME`.
-
-#### `ACCENT_SCHEME` — const _(exported, L7)_
-
-Roles of a colored slot (`primary`, `secondary`, ...). Emits `main`, `onMain`, `container`, `onContainer`, `bright`.
-
-#### `NEUTRAL_SCHEME` — const _(exported, L14)_
-
-Roles of the neutral slot: backgrounds, stacked surfaces, text and lines.
+#### `STYLE_LOCALES` — const _(exported, L3)_
 
 ## src/theme/style/model.ts
 
-#### `ThemeStyle` — class _(exported, L6)_
+#### `TPaletteDefaults` — type _(exported, L8)_
+
+Palette id → the palette the style uses when nobody assigns another one.
+
+#### `ThemeStyle` — class _(exported, L19)_
+
+Everything one visual style decides, and nothing that changes at runtime. The style owns:
+ - `palettes`: the palette ids it needs (two, three, four… — its call) and, for each, a **default** palette.
+   Defaults are mandatory: they are what a `Theme` falls back to for an id nobody assigned, so switching to a
+   style that needs more palettes than the previous one never leaves a role without a color;
+ - `roles`: which palette id, which tone per mode, what each sits on and how readable it must be;
+ - `components` (radii, fonts…) and the contrast `metric` its `min` values are written in.
+The ids mean nothing to the lib; roles may only cite ids declared in `palettes`.
 
 ## src/theme/style/types.ts
 
-#### `SlotColor` — type _(exported, L5)_
-
-#### `TRoleSpec` — type _(exported, L11)_
-
-Tone (`0..100`) a role takes in each mode; `readable` also emits `on<Role>` — the palette's best text color over it.
-
-#### `TRoleScheme` — type _(exported, L14)_
-
-Role name → how it is picked from a palette.
-
-#### `TRoles` — type _(exported, L17)_
-
-Resolved colors of one slot, by role name.
+#### `SlotColor` — type _(exported, L4)_
 
 ## src/time/model.ts
 

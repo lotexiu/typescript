@@ -55,7 +55,7 @@ declare global {
 	}
 
 	interface ObjectConstructor {
-		entries<T>(o: T): TEntriesReturn<T>;
+		entries<T>(object: T): TEntriesReturn<T>;
 	}
 
 	interface Array<T> {

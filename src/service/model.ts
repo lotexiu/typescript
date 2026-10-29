@@ -58,8 +58,8 @@ abstract class Service {
 		for (let i = 0, len = list.length; i < len; i++) {
 			const { route, handler } = list[i];
 			let isExcluded = false;
-			for (let e = 0, eLen = route.exclude.length; e < eLen; e++) {
-				if (route.exclude[e].test(url)) {
+			for (let excludeIndex = 0, excludeCount = route.exclude.length; excludeIndex < excludeCount; excludeIndex++) {
+				if (route.exclude[excludeIndex].test(url)) {
 					isExcluded = true;
 					break;
 				}

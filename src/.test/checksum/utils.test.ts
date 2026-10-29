@@ -4,9 +4,9 @@ import type { TWeightedSpec } from '@ts/checksum/types';
 import vectors from '../../../vectors/checksum.json';
 
 describe('ChecksumUtils.digit (vetores compartilhados)', () => {
-	for (const v of vectors.weighted) {
-		it(v.name, () => {
-			expect(ChecksumUtils.digit(v.text, v.spec as TWeightedSpec)).toBe(v.digit ?? undefined);
+	for (const vector of vectors.weighted) {
+		it(vector.name, () => {
+			expect(ChecksumUtils.digit(vector.text, vector.spec as TWeightedSpec)).toBe(vector.digit ?? undefined);
 		});
 	}
 });
@@ -14,9 +14,9 @@ describe('ChecksumUtils.digit (vetores compartilhados)', () => {
 type TLuhnVector = { full?: string; valid?: boolean; body?: string; digit?: number };
 
 describe('ChecksumUtils.luhn', () => {
-	for (const v of vectors.luhn as TLuhnVector[]) {
-		if (v.full !== undefined) it(`luhnValid(${v.full}) = ${v.valid}`, () => expect(ChecksumUtils.luhnValid(v.full!)).toBe(v.valid));
-		else it(`luhnDigit(${v.body}) = ${v.digit}`, () => expect(ChecksumUtils.luhnDigit(v.body!)).toBe(v.digit));
+	for (const vector of vectors.luhn as TLuhnVector[]) {
+		if (vector.full !== undefined) it(`luhnValid(${vector.full}) = ${vector.valid}`, () => expect(ChecksumUtils.luhnValid(vector.full!)).toBe(vector.valid));
+		else it(`luhnDigit(${vector.body}) = ${vector.digit}`, () => expect(ChecksumUtils.luhnDigit(vector.body!)).toBe(vector.digit));
 	}
 
 	it('texto com letra não é válido', () => {
@@ -26,7 +26,7 @@ describe('ChecksumUtils.luhn', () => {
 });
 
 describe('ChecksumUtils.mod97', () => {
-	for (const v of vectors.mod97) it(v.note, () => expect(ChecksumUtils.mod97(v.text)).toBe(v.remainder));
+	for (const vector of vectors.mod97) it(vector.note, () => expect(ChecksumUtils.mod97(vector.text)).toBe(vector.remainder));
 
 	it('IBAN com um dígito trocado deixa de dar 1', () => {
 		expect(ChecksumUtils.mod97('WEST12345698765433GB82')).not.toBe(1);

@@ -34,8 +34,8 @@ describe('global Function prototype extensions', () => {
 	it('adds thisAsParameter', () => {
 		// `self` here, not `this` — a parameter literally named `this` is a TS this-parameter
 		// annotation and gets erased at compile time, so it would never receive a real argument.
-		function fn(self: any, a: number) {
-			return [self, a];
+		function fn(self: any, value: number) {
+			return [self, value];
 		}
 		const wrapped = fn.thisAsParameter();
 		const ctx = { tag: 'ctx' };

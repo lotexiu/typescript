@@ -83,10 +83,10 @@ const TypescriptLang: TLanguageSpec = {
 		template: { open: "`", close: "`", interpolate: ["${", "}"] },
 	},
 	charClass: {
-		space: { start: (c) => c === 32 || c === 9 || c === 11 || c === 12, trivia: true },
-		newline: { start: (c) => c === 10 || c === 13, trivia: true },
+		space: { start: (charCode) => charCode === 32 || charCode === 9 || charCode === 11 || charCode === 12, trivia: true },
+		newline: { start: (charCode) => charCode === 10 || charCode === 13, trivia: true },
 		identifier: { start: isIdentStart, continue: isIdentContinue },
-		number: { start: isDigit, continue: (c) => isDigit(c) || c === 46 },
+		number: { start: isDigit, continue: (charCode) => isDigit(charCode) || charCode === 46 },
 	},
 	literal: {
 		keyword: [...KEYWORDS],
