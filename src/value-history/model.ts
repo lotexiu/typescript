@@ -1,102 +1,68 @@
-import { TIndexedItem, TValueHistoryState, TValueHistoryCallBack, TValueHistoryClearCallback, TNewValueHistoryState } from "./types";
+import { computed } from "@tsr-node/computed/model";
+import { Signal, signal } from "@tsr-node/signal/model";
+import { TIndexedValue } from "./types";
 
-/** An undo/redo stack: registers values in sequence, and lets you step back/forward through them. */
+/** Undo/redo over a list of values: `add` drops the redo branch, `cacheSize` limits how many are kept. */
 class ValueHistory<T> {
-  private history: T[] = []
-  private index: number = -1;
+	// Mutado no lugar + `notify()` — sem copiar o array a cada `add`.
+	readonly #entries = signal<T[]>([]);
 
-  get canUndo(): boolean {return this.index > 0;}
-  get canRedo(): boolean {return this.index < this.history.length - 1;}
+	/** Position of the current value (-1 when empty or fully undone). */
+	readonly index = signal(-1);
 
-  get previous(): TIndexedItem<T> {
-    return {
-      index: this.index - 1,
-      value: this.history[this.index - 1]
-    }
-  }
+	/** Value before the current one. */
+	readonly previous = computed(() => this.#at(this.index() - 1));
+	/** Current value. */
+	readonly current = computed(() => this.#at(this.index()));
+	/** Value after the current one (what `redo` goes to). */
+	readonly next = computed(() => this.#at(this.index() + 1));
 
-  get current(): TIndexedItem<T> {
-    return {
-      index: this.index,
-      value: this.history[this.index]
-    }
-  }
+	/** `undo()` would move (it can step back to `index === -1`, the state before the first entry). */
+	readonly canUndo = computed(() => this.index() >= 0);
+	/** Whether there is something to redo. */
+	readonly canRedo = computed(() => this.index() < this.#entries().length - 1);
 
-  get next(): TIndexedItem<T> {
-    return {
-      index: this.index + 1,
-      value: this.history[this.index + 1]
-    }
-  }
+	/** Number of values kept. */
+	readonly length = computed(() => this.#entries().length);
+	/** Every value with its index. */
+	readonly history = computed(() => this.#entries().map((value, index) => ({ index, value })));
 
-  get state(): TValueHistoryState<T> {
-    return {
-      previous: this.previous,
-      current: this.current,
-      next: this.next,
-    }
-  }
+	// Quantas entradas manter (as mais antigas saem primeiro); negativo = sem limite.
+	/** Creates an empty history; `cacheSize` -1 keeps everything. */
+	constructor(public cacheSize: number = -1) {}
 
-  constructor(
-    private cacheSize: number,
-    private onBeforeRedo?: TValueHistoryCallBack<T>,
-    private onBeforeUndo?: TValueHistoryCallBack<T>,
-    private onBeforeRegister?: TValueHistoryCallBack<T>,
-    private onBeforeClear?: TValueHistoryClearCallback<T>
-  ) {
-  }
+	#at(index: number): TIndexedValue<T> | undefined {
+		const entries = this.#entries();
+		if (index < 0 || index >= entries.length) return undefined;
+		return { index, value: entries[index] };
+	}
 
-  clear(): void {
-    this.onBeforeClear?.(this.history);
-    this.history = [];
-    this.index = -1;
-  }
+	/** Moves one value back. */
+	undo(): void {
+		if (this.index() < 0) return;
+		this.index.update((current) => current - 1);
+	}
 
-  undo(): T | undefined {
-    if (!this.canUndo) return undefined;
-    this.onBeforeUndo?.(this.state);
-    this.index--;
-    return this.history[this.index];
-  }
+	/** Moves one value forward. */
+	redo(): void {
+		if (this.index() >= this.#entries().length - 1) return;
+		this.index.update((current) => current + 1);
+	}
 
-  redo(): T | undefined {
-    if (!this.canRedo) return undefined;
-    this.onBeforeRedo?.(this.state);
-    this.index++;
-    return this.history[this.index];
-  }
-
-  add(item: T): void {
-    const state= this.registerState(item)
-    this.onBeforeRegister?.(state);
-    item = state.new.value as T;
-    this.removeFuture();
-    this.history.push(item);
-    this.index++;
-    this.maintainHistorySize();
-  }
-
-  private registerState(item: T): TNewValueHistoryState<T> {
-    const state = this.state as TNewValueHistoryState<T>;
-    state.new = {
-      index: this.index + 1,
-      value: item
-    }
-    return state
-  }
-
-  private removeFuture(): void {
-    this.history = this.history.slice(0, this.index + 1);
-  }
-
-  private maintainHistorySize() {
-    if (this.history.length > this.cacheSize) {
-      this.history.shift();
-      this.index--;
-    }
-  }
+	/** Adds a value after the current one, dropping what could be redone. */
+	add(value: T): void {
+		Signal.batch(() => {
+			const entries = this.#entries();
+			// Registrar depois de um undo descarta o que dava para refazer.
+			entries.length = this.index() + 1;
+			entries.push(value);
+			if (this.cacheSize >= 0 && entries.length > this.cacheSize) {
+				entries.splice(0, entries.length - this.cacheSize);
+			}
+			this.#entries.notify();
+			this.index.set(entries.length - 1);
+		});
+	}
 }
 
-export {
-  ValueHistory
-}
+export { ValueHistory };

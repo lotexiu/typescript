@@ -1,58 +1,69 @@
-const _typeof = typeof "";
+import { TExclude } from '@tsn/types';
 
-/** The literal union of every possible result of the `typeof` operator (`"string"`, `"number"`, etc). */
+const _typeof = typeof '';
+
+/** Strings `typeof` can return. */
 type TTypeOfValue = typeof _typeof;
 
-/** `Type` widened with `undefined`/`null` (and `void`, unless `NoVoid` is `true`). */
-type TNullable<
-	Type = null,
-	NoVoid extends boolean = false,
-> = NoVoid extends false
-	? Type | undefined | null | void
-	: Type | undefined | null;
+/** Wrapper types of the primitives. */
+type TPrimitiveTypes =
+	| String
+	| Number
+	| Boolean
+	| BigInt
+	| Symbol
+	| Function
+	| null
+	| undefined
+	| object
+	| readonly any[];
 
-/** `T` with `undefined` excluded from the union. */
-type TNotUndefined<T> = T extends undefined ? never : T;
+/** `null` or `undefined`. */
+type TNil = null | undefined;
+
+/** Falsy values. */
+type TFalse = TNil | '' | 0 | false;
+
+/** Falsy values plus empty object and array. */
+type TEmpty = TFalse | {} | [];
+
+/** `Result`, or `null`/`undefined` when `WeakType` can be one of them. */
+type TNullPropagation<WeakType, Result> = Extract<WeakType, TNil> | Result;
+
+/** The type or `null`/`undefined`. */
+type TNullable<Type = null> = Type | TNil;
+
+/** The type without `undefined`. */
+type TNonUndefined<T> = TExclude<T, undefined>;
+
+/** The type when it has keys, `never` otherwise. */
+type TNotUnkown<T> = keyof T extends never ? never : T;
+
+/** The type when it has no keys, `never` otherwise. */
+type TUnkown<T> = keyof T extends never ? T : never;
 
 /** `T` narrowed/cast to `T & U` when `T` is assignable to `U`, otherwise `never`. */
 type TAs<T, U> = T extends U ? T & U : never;
 
-/** `T` itself if it has no known keys (e.g. `unknown`, `{}`), otherwise `never`. */
-type TUnkown<T> = keyof T extends never ? T : never;
+/** `true` when `A` and `B` are exactly the same type. */
+type TEquals<A, B> =
+	A extends B ?
+		B extends A ?
+			true
+		:	false
+	:	false;
 
-/** `A` if `A` and `B` are structurally identical (mutually assignable), otherwise `never`. */
-type TSameType<A,B> =
-	A extends B
-		? B extends A
-			? A
-			: never
-		: never
-
-type TUnionToIntersection<U> = 
-  (U extends any ? (x: U) => void : never) extends (x: infer I) => void ? I : never
-
-type TLastOf<U> = U extends any ? () => U : never
-  // TUnionToIntersection<U extends any ? () => U : never> //extends () => infer L ? L : never
-
-type TUnionToList<U, Last = TLastOf<U>> =
-  [U] extends [never]
-    ? []
-    : [...TUnionToList<Exclude<U, Last>>, Last]
-
-type Test = TLastOf<{a:1}|{b:2}>
-
-type R = (() => 'a') & (() => 'b') & (() => 'c') extends () => infer L ? L : never
-
-
-// type Test = 
-// 	(() => {a: 1;}) & 
-// 	(() => {b: 2;})
-
-export type {
-	TNullable,
-	TNotUndefined,
+export {
 	TTypeOfValue,
-	TAs,
+	TPrimitiveTypes,
+	TNil,
+	TFalse,
+	TEmpty,
+	TNullPropagation,
+	TNullable,
+	TNonUndefined,
+	TNotUnkown,
 	TUnkown,
-	TSameType,
+	TAs,
+	TEquals,
 };

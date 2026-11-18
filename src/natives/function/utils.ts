@@ -1,0 +1,213 @@
+import { Timeout } from '@tsn-class/declarations';
+import {
+	TDebounceFn,
+	TFn,
+	TLazy,
+	TMemoizeFn,
+	TOnceFn,
+	TScheduleOnceFn,
+	TStepFn,
+	TThrottleFn,
+	TThrottleOptions,
+} from './types';
+
+/** Function wrappers: rate limiting (debounce, throttle, once, step), binding, memoizing and currying. */
+class FunctionUtils {
+	/** Wraps `fn` so its `this` is passed as an explicit leading parameter instead of the calling context. */
+	static thisAsParameter(fn: TFn): TFn {
+		return function (this: any, ...args: any[]): any {
+			return fn.call(null, this, ...args);
+		};
+	}
+
+	/**
+	 * Binds `this` and leading arguments like `Function.prototype.bind`, keeping a reference to the original function.
+	 */
+	static rebind<Applied extends any[], Rest extends any[], Return>(
+		fn: TFn<[...Applied, ...Rest], Return>,
+		thisArg: any,
+		...args: Applied
+	): TFn<Rest, Return> {
+		function rebinded(...nextArgs: Rest): Return {
+			return rebinded.children.call(thisArg, ...args, ...nextArgs);
+		}
+		rebinded.origin = fn.origin ?? fn;
+		rebinded.children = fn;
+		return rebinded;
+	}
+
+	/** Delays calling `fn` until `delay` ms have passed with no further calls — each call reschedules with the latest arguments. */
+	static debounce<Args extends any[]>(
+		fn: TFn<Args>,
+		delay: TLazy<number>
+	): TDebounceFn<Args> {
+		let timeoutId: Timeout | undefined;
+		function handler(this: any, ...args: Args) {
+			handler.clear();
+			const ms = typeof delay === 'number' ? delay : delay();
+			if (ms === 0) return fn.apply(this, args);
+			timeoutId = setTimeout(() => {
+				timeoutId = undefined;
+				fn.apply(this, args);
+			}, ms);
+		}
+		handler.clear = () => {
+			if (timeoutId !== undefined) clearTimeout(timeoutId);
+			timeoutId = undefined;
+		};
+		return handler;
+	}
+
+	/** Runs on the first call, then ignores calls until `delay` ms pass without any. */
+	static leadingDebounce<Args extends any[]>(fn: TFn<Args>, delay: number): TFn<Args, void> {
+		let timeoutId: Timeout | undefined;
+		return function handler(this: any, ...args: Args) {
+			const callNow = timeoutId === undefined;
+			if (timeoutId !== undefined) clearTimeout(timeoutId);
+			timeoutId = setTimeout(() => {
+				timeoutId = undefined;
+			}, delay);
+			if (callNow) fn.apply(this, args);
+		};
+	}
+
+	/**
+	 * Calls `fn` immediately, then ignores further calls until `interval` ms have passed.
+	 * With `trailing: true` the last ignored call is replayed when the interval ends, so the final value is never lost.
+	 */
+	static throttle<Args extends any[]>(
+		fn: TFn<Args, void>,
+		interval: number = 50,
+		options: TThrottleOptions = {}
+	): TThrottleFn<Args> {
+		const { trailing = false } = options;
+		let lastTime = 0;
+		let timeoutId: Timeout | undefined;
+		let pending: { self: any; args: Args } | undefined;
+
+		function cancelTrailing() {
+			if (timeoutId !== undefined) clearTimeout(timeoutId);
+			timeoutId = undefined;
+			pending = undefined;
+		}
+
+		function invoke(self: any, args: Args) {
+			lastTime = Date.now();
+			fn.apply(self, args);
+		}
+
+		function handler(this: any, ...args: Args) {
+			const remaining = interval - (Date.now() - lastTime);
+			if (remaining <= 0) {
+				cancelTrailing();
+				invoke(this, args);
+				return;
+			}
+			if (!trailing) return;
+			pending = { self: this, args };
+			timeoutId ??= setTimeout(() => {
+				const call = pending!;
+				timeoutId = undefined;
+				pending = undefined;
+				invoke(call.self, call.args);
+			}, remaining);
+		}
+		handler.clear = () => {
+			lastTime = 0;
+			cancelTrailing();
+		};
+		return handler;
+	}
+
+	/** Calls `fn` every `amount` calls (resetting the counter afterwards unless `autoClear` is `false`). */
+	static step<Args extends any[]>(
+		fn: TFn<Args, void>,
+		amount: number = 10,
+		autoClear: boolean = true
+	): TStepFn<Args> {
+		let counter = 0;
+		function handler(this: any, ...args: Args) {
+			counter++;
+			if (counter >= amount) {
+				fn.apply(this, args);
+				if (autoClear) counter = 0;
+			}
+		}
+		handler.clear = () => {
+			counter = 0;
+		};
+		return handler;
+	}
+
+	/** Calls `fn` at most once — every call after the first is a no-op until `clear()` resets it. */
+	static once<Args extends any[]>(fn: TFn<[...Args], void>): TOnceFn<Args> {
+		let runned = false;
+		function handler(this: any, ...args: Args) {
+			if (runned) return;
+			fn.apply(this, args);
+			runned = true;
+		}
+		handler.clear = () => {
+			runned = false;
+		};
+		return handler;
+	}
+
+	/** Caches results by arguments (by default `JSON.stringify(args)`; pass `keyResolver` for other keys). */
+	static memoize<Args extends any[], Return>(
+		fn: TFn<Args, Return>,
+		keyResolver?: (...args: Args) => string
+	): TMemoizeFn<Args, Return> {
+		const cache = new Map<string, any>();
+		function handler(this: any, ...args: Args) {
+			const key = keyResolver ? keyResolver(...args) : JSON.stringify(args);
+			if (cache.has(key)) return cache.get(key);
+			const result = fn.apply(this, args);
+			cache.set(key, result);
+			return result;
+		}
+		handler.cache = cache;
+		return handler;
+	}
+
+	/** Collects arguments across calls until there are as many as `fn` declares, then calls it. */
+	static curry(fn: TFn): TFn {
+		return function curried(this: any, ...args: any[]) {
+			if (args.length >= fn.length) {
+				return fn.apply(this, args);
+			}
+			return (...nextArgs: any[]) => curried.apply(this, args.concat(nextArgs));
+		};
+	}
+
+	/** Coalesces calls within the same microtask into a single `fn()` run. `clear()` cancels a pending run, `flush()` runs it immediately instead of waiting for the microtask. */
+	static scheduleOnce(fn: () => void): TScheduleOnceFn {
+		let scheduled = false;
+		function handler() {
+			if (!scheduled) {
+				scheduled = true;
+				queueMicrotask(() => {
+					if (!scheduled) return;
+					scheduled = false;
+					fn();
+				});
+			}
+		}
+		handler.clear = () => {
+			scheduled = false;
+		};
+		handler.flush = () => {
+			if (!scheduled) return;
+			scheduled = false;
+			fn();
+		};
+		return handler;
+	}
+
+	/** Turns a lazy value (`TLazy`) into a function: functions are returned as they are, plain values get wrapped. */
+	static toFunction<T>(value: TLazy<T>): () => T {
+		return typeof value === 'function' ? (value as () => T) : () => value;
+	}
+}
+
+export { FunctionUtils };

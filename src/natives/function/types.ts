@@ -1,76 +1,121 @@
-import { TArrayOf, TArrayRest } from "@tsn-array/types";
+import { TArrayRest } from '@tsn-array/types';
 
-type TFnOption = {
-	args?: any[]
-	infAs?: any
-	returnType: any
-}
+type TFnType = 'constructor' | 'normal';
 
-/** Generic function-type shape, parameterized by argument list/inference target/return type — the base other function-type utilities here build on. */
-type TFn<Option extends TFnOption = TFnOption> = (
-	...args: TArrayOf<{args: Option['args'], infAs: Option['infAs']}>
-) => Option['returnType']
+/** A function type from its parameters and return type; `'constructor'` gives a constructor type. */
+type TFn<Args extends any[] = any[], Return = any, Type extends TFnType = 'normal'> =
+	Type extends 'constructor' ? abstract new (...args: Args) => Return : (...args: Args) => Return;
 
 /** Rewrites a function type with a leading "this-like" parameter into a method declaration with an explicit `this: V` parameter (used to type `thisAsParameter`-wrapped functions). */
 type TFnDeclaration<T extends TFn> =
-	T extends (value: infer This, ...args: infer Args) => infer R
-		? <V extends This>(this: V, ...args: Args) => R
-		: never
+	T extends (value: infer This, ...args: infer Args) => infer R ?
+		<V extends This>(this: V, ...args: Args) => R
+	:	never;
 
 // Questionando utilidade de TBindFnOption
 type TBindFnOption = {
-	fn: TFn | TBindFn
-	context: any
-	args: any[]
-}
+	/** The original function. */
+	fn: TFn | TBindFn;
+	/** The bound `this`. */
+	context: any;
+	/** Arguments already applied. */
+	args: any[];
+};
 
 /** Callable shape returned by `_Function.rebind` — carries the original `fn`, the bound `context`, and the accumulated `args` alongside the callable signature. */
 type TBindFn<Option extends TBindFnOption = TBindFnOption> = {
-	(...args: TArrayRest<TParameters<Option['fn']>, Option['args']>): TReturnType<Option['fn']>
-	fn: TFn
-	context: Option['context']
-	args: Option['args']
-}
+	(...args: TArrayRest<TParameters<Option['fn']>, Option['args']>): TReturnType<Option['fn']>;
+	/** The original function. */
+	fn: TFn;
+	/** The bound `this`. */
+	context: Option['context'];
+	/** Arguments already applied. */
+	args: Option['args'];
+};
 
 /** `Fn`'s type with its parameter list replaced by `Args`, keeping its original return type. */
 type TModifyFnParameters<Fn extends TFn, Args extends any[]> =
-	Fn extends (...args: any[]) => infer ReturnType
-		? (...args: Args) => ReturnType
-		: never;
+	Fn extends (...args: any[]) => infer ReturnType ? (...args: Args) => ReturnType : never;
 
 /** `Fn`'s type with its return type replaced by `ReturnType`, keeping its original parameters. */
 type TModifyFnReturn<Fn extends TFn, ReturnType> =
-	Fn extends (...args: infer Args) => any
-		? (...args: Args) => ReturnType
-		: never;
+	Fn extends (...args: infer Args) => any ? (...args: Args) => ReturnType : never;
 
 /** Extracts a function type's parameter tuple (tolerates non-function `T`, resolving to `never` instead of requiring `(...args: any) => any`). */
 type TParameters<T> = T extends (...args: infer P) => any ? P : never;
 
-/** Extracts a function type's return type — thin alias over the built-in `ReturnType`. */
+/** Extracts a function type's return type — thin alias ov'er the built-in `ReturnType`. */
 type TReturnType<T extends (...args: any) => any> = ReturnType<T>;
 
-/** An abstract constructor type shape: `abstract new (...args: Args) => T`. */
-type TConstructor<
-	T = any,
-	Args extends any[] = any[]
-> = abstract new (...args: Args) => T;
+/** A constructor type with another parameter list and the same instance type. */
+type TReplaceConstructor<
+	T extends TConstructor,
+	NewCtor extends abstract new (...args: any) => any,
+> = {
+	[K in keyof T]: T[K];
+} & NewCtor;
+
+/** Any constructor, abstract or not. */
+type TAbstractConstructor<T = any, Args extends any[] = any[]> = abstract new (...args: Args) => T;
+
+/** A concrete constructor. */
+type TConstructor<T = any, Args extends any[] = any[]> = new (...args: Args) => T;
 
 /** Splits a constructor type into its `{ instance, parameters }` shape. */
 type TConstructorInfo<T> =
-	T extends TConstructor<infer I, infer P>
-		? {instance: I, parameters: P}
-		: never;
+	T extends TAbstractConstructor<infer I, infer P> ? { instance: I; parameters: P } : never;
 
 /** Extracts a constructor type's parameter tuple. */
-type TConstructorParameters<T> =
-	T extends TConstructor<any, infer P>
-		? P
-		: never;
+type TConstructorParameters<T> = T extends TAbstractConstructor<any, infer P> ? P : never;
 
 /** Extracts a constructor type's instance type — thin alias over the built-in `InstanceType`. */
-type TInstanceType<T extends abstract new (...args: any) => any> =
-	InstanceType<T>;
+type TInstanceType<T extends abstract new (...args: any) => any> = InstanceType<T>;
+
+/** The wrapped function `debounce()` returns — callable like `T`, plus `clear()` to cancel a pending call. */
+type TDebounceFn<Args extends any[]> = TFn<Args, void> & {
+	clear: () => void;
+};
+
+/** Options for `throttle()` — `trailing` replays the last ignored call once the interval ends. */
+type TThrottleOptions = {
+	/** Also run the last call that arrived during the wait. Default `false` (leading only). */
+	trailing?: boolean;
+};
+
+/** The wrapped function `throttle()` returns — callable like `T`, plus `clear()` to reset its interval tracking. */
+type TThrottleFn<Args extends any[]> = TFn<Args, void> & {
+	clear: () => void;
+};
+
+/** The wrapped function `step()` returns — callable like `T`, plus `clear()` to reset its call counter. */
+type TStepFn<Args extends any[]> = TFn<Args, void> & {
+	clear: () => void;
+};
+
+/** The wrapped function `once()` returns — callable like `T`, plus `clear()` to allow it to run again. */
+type TOnceFn<Args extends any[]> = TFn<Args, void> & {
+	clear: () => void;
+};
+
+/** The wrapped function `scheduleOnce()` returns — `clear()` cancels a pending call, `flush()` runs it immediately (if pending) instead of waiting for the microtask. */
+type TScheduleOnceFn = {
+	(): void;
+	/** Cancels a pending run. */
+	clear: () => void;
+	/** Runs a pending call now instead of at the end of the microtask. */
+	flush: () => void;
+};
+
+/** A memoized function, with its `cache` exposed. */
+type TMemoizeFn<Args extends any[], Return> = TFn<Args, Return> & {
+	cache: Map<string, any>;
+};
+
+/** A value, or a function that produces it when needed. */
+type TLazy<T> = (() => T) | T;
+
+/** Receives the current value and returns the next one. */
+type TUpdateFn<T> = TFn<[value: T], T>;
 
 export {
 	TFn,
@@ -81,7 +126,18 @@ export {
 	TParameters,
 	TReturnType,
 	TInstanceType,
+	TAbstractConstructor,
 	TConstructor,
 	TConstructorInfo,
 	TConstructorParameters,
+	TReplaceConstructor,
+	TDebounceFn,
+	TThrottleFn,
+	TThrottleOptions,
+	TStepFn,
+	TOnceFn,
+	TScheduleOnceFn,
+	TMemoizeFn,
+	TLazy,
+	TUpdateFn,
 };

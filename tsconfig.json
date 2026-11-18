@@ -1,6 +1,7 @@
 {
   "extends": "@lotexiu/typescript-config/base.json",
   "compilerOptions": {
+    "experimentalDecorators": true,
     "rootDir": "./src",
     "outDir": "./dist",
 		"types": [
@@ -16,10 +17,11 @@
       "@tsn-object/*": ["./src/natives/object/*"],
       "@tsn-string/*": ["./src/natives/string/*"],
       "@tsn-validation/*": ["./src/natives/validation/*"],
+      "@tsr-node/*": ["./src/reactive-node/*"],
       "@tsn/*": ["./src/natives/*"],
       "@ts/*": ["./src/*"]
 		}
   },
-  "include": ["src/**/*", "src/.test/**/*" ],
+  "include": ["src/**/*", "src/.*/**/*" ],
   "exclude": ["node_modules", "dist"]
 }

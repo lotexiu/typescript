@@ -1,19 +1,101 @@
-import { _Object } from "./implementations";
+import { TAs, TNullable } from '@ts/types';
+import { TDiff, TPath, TPathValue, TRecord } from './types';
 
-
-/** Public static wrapper over `_Object` — object/path/diff helpers (path-based get/set, shallow merge, entries, null checks, safe JSON, structural diff). */
+/**
+ * @internal
+ */
 class ObjectUtils {
-	static readonly valueFromPath = _Object.valueFromPath;
-	static readonly setValueFromPath = _Object.setValueFromPath;
-	static readonly update = _Object.update;
-	static readonly entries = _Object.entries;
-	static readonly isNullOrUndefined = _Object.isNullOrUndefined;
-	static readonly isObjectLike = _Object.isObject;
-	static readonly json = _Object.json;
-	static readonly isNull = _Object.isNull;
-	static readonly diffs = _Object.diffs;
+	static valueFromPath<const T, const P extends TPath<T> | undefined>(
+		obj: T,
+		path?: P
+	): T | TPathValue<T, P> {
+		if (!path) return obj;
+		return String(path)
+			.split('.')
+			.reduce((acc: any, key: string): any => {
+				return acc[key];
+			}, obj);
+	}
+
+	static setValueFromPath<
+		const T,
+		const Path extends TPath<T>,
+		const Value extends TPathValue<T, Path>,
+	>(obj: T, path: Path, value: Value): Value {
+		const keys: string[] = String(path).split('.');
+		keys.reduce((acc: any, key: string, idx: number): any => {
+			if (idx === keys.length - 1) {
+				acc[key] = value;
+			}
+			return acc[key];
+		}, obj);
+		return value;
+	}
+
+	static update<T extends object, U extends Partial<T>>(obj: T, updates: U): TAs<T, U> {
+		return Object.assign(obj, updates) as TAs<T, U>;
+	}
+
+	static isNullOrUndefined<T>(value: TNullable<T>): value is TNullable {
+		return value === null || value === undefined;
+	}
+
+	static isObject(value: any): value is Object {
+		return value && typeof value === 'object';
+	}
+
+	static json(obj: any, compact: boolean = true): string {
+		const seen = new Set();
+		return JSON.stringify(
+			obj,
+			(_, value) => {
+				if (!ObjectUtils.isObject(value)) return value;
+				if (seen.has(value)) return undefined;
+				seen.add(value);
+				return value;
+			},
+			compact ? undefined : 2
+		);
+	}
+
+	static isNull<T>(value: TNullable<T>, nullValues: any[] = []): value is TNullable {
+		if (value === null || value === undefined) return true;
+		if (nullValues.length === 0) return false;
+		for (const candidate of nullValues) {
+			if (candidate === value) return true;
+		}
+		return false;
+	}
+
+	static diff<const A extends TRecord, const B extends TRecord>(
+		left: A,
+		right: B
+	): TDiff<A, B> {
+		const result: any = {};
+		const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+		for (const key of keys) {
+			const aVal: any = left[key];
+			const bVal: any = right[key];
+			if (!(key in right)) {
+				result[key] = ['REMOVED', aVal];
+				continue;
+			}
+			if (!(key in left)) {
+				result[key] = ['ADDED', bVal];
+				continue;
+			}
+			if (aVal === bVal) continue;
+			if (isObject(aVal) && isObject(bVal)) {
+				result[key] = ObjectUtils.diff(aVal, bVal);
+				continue;
+			}
+			result[key] = ['CHANGED', aVal, bVal];
+		}
+		return result;
+	}
 }
 
-export {
-	ObjectUtils
-}
+/** Shortcuts for the `ObjectUtils` methods of the same name. */
+const { isNull, isNullOrUndefined, json, isObject } = ObjectUtils;
+
+export { ObjectUtils, isNull, isNullOrUndefined, json, isObject };

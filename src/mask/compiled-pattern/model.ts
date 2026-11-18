@@ -1,0 +1,30 @@
+import { RegexUtils } from "@tsn/regex/utils";
+import { TMaskRuleToken, TMaskStaticToken, TMaskToken } from "../token/model";
+import { readonlyValue } from "@ts/composables/readonly-value/model";
+
+/** @internal */
+class MaskCompiledPattern {
+	validWithMask = readonlyValue(()=>{
+		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken
+			? `(?:${token.value}){${token.min},${token.max}}`
+			: `${RegexUtils.escapeReservedKeys(token.value)}`
+		).join('')+'$', this.flags)
+	})
+	validWithoutMask = readonlyValue(()=>{
+		return new RegExp('^'+this.tokens.map(token => token instanceof TMaskRuleToken
+			? `(?:${token.value}){${token.min},${token.max}}` : ``
+		).join('')+'$', this.flags)
+	})
+
+	constructor(
+		readonly source: string,
+		readonly tokens: TMaskToken[],
+		readonly ruleTokens: TMaskRuleToken[],
+		readonly staticTokens: TMaskStaticToken[],
+		readonly flags: string
+	){}
+}
+
+export {
+	MaskCompiledPattern
+}

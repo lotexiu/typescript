@@ -1,0 +1,115 @@
+# Referência da API — `@lotexiu/typescript`
+
+_Gerado por `src/.scripts/doc/generate.ts` a partir do código-fonte — não editar à mão._
+
+Tudo o que o pacote exporta, agrupado pela pasta de origem em `src/`. As assinaturas são recortadas do código; os textos vêm do JSDoc. Símbolos marcados com `@internal` ficam de fora.
+
+Cobertura de documentação: **1582/1582** (100%). Detalhes em [COVERAGE.md](../COVERAGE.md).
+
+| Módulo | Símbolos | Documentados |
+|---|---|---|
+| [`aho-corasick`](aho-corasick.md) | 5 | 100% |
+| [`cache`](cache.md) | 4 | 100% |
+| [`calendar`](calendar.md) | 3 | 100% |
+| [`checksum`](checksum.md) | 4 | 100% |
+| [`chunk`](chunk.md) | 2 | 100% |
+| [`composables/active-index`](composables/active-index.md) | 4 | 100% |
+| [`composables/bit-flag`](composables/bit-flag.md) | 3 | 100% |
+| [`composables/debounced-value`](composables/debounced-value.md) | 3 | 100% |
+| [`composables/field`](composables/field.md) | 5 | 100% |
+| [`composables/readonly-value`](composables/readonly-value.md) | 2 | 100% |
+| [`composables/selection`](composables/selection.md) | 3 | 100% |
+| [`composables/sort`](composables/sort.md) | 4 | 100% |
+| [`composables/task`](composables/task.md) | 1 | 100% |
+| [`composables/ticker`](composables/ticker.md) | 3 | 100% |
+| [`composables/toggle`](composables/toggle.md) | 3 | 100% |
+| [`composables/ui-interaction`](composables/ui-interaction.md) | 3 | 100% |
+| [`composables/variant`](composables/variant.md) | 5 | 100% |
+| [`composables/writable`](composables/writable.md) | 2 | 100% |
+| [`core`](core.md) | 12 | 100% |
+| [`decimal`](decimal.md) | 4 | 100% |
+| [`geometry/path`](geometry/path.md) | 2 | 100% |
+| [`global`](global.md) | 2 | 100% |
+| [`headless`](headless.md) | 9 | 100% |
+| [`headless/checkbox`](headless/checkbox.md) | 4 | 100% |
+| [`headless/collection`](headless/collection.md) | 4 | 100% |
+| [`headless/combobox`](headless/combobox.md) | 4 | 100% |
+| [`headless/control`](headless/control.md) | 3 | 100% |
+| [`headless/definition`](headless/definition.md) | 12 | 100% |
+| [`headless/dialog`](headless/dialog.md) | 3 | 100% |
+| [`headless/disclosure`](headless/disclosure.md) | 1 | 100% |
+| [`headless/form`](headless/form.md) | 5 | 100% |
+| [`headless/layer`](headless/layer.md) | 1 | 100% |
+| [`headless/list-control`](headless/list-control.md) | 3 | 100% |
+| [`headless/listbox`](headless/listbox.md) | 3 | 100% |
+| [`headless/menu`](headless/menu.md) | 2 | 100% |
+| [`headless/navigation`](headless/navigation.md) | 2 | 100% |
+| [`headless/pagination`](headless/pagination.md) | 6 | 100% |
+| [`headless/popover`](headless/popover.md) | 2 | 100% |
+| [`headless/position`](headless/position.md) | 8 | 100% |
+| [`headless/radio-group`](headless/radio-group.md) | 2 | 100% |
+| [`headless/select`](headless/select.md) | 2 | 100% |
+| [`headless/slider`](headless/slider.md) | 4 | 100% |
+| [`headless/switch`](headless/switch.md) | 1 | 100% |
+| [`headless/tabs`](headless/tabs.md) | 3 | 100% |
+| [`headless/text-field`](headless/text-field.md) | 5 | 100% |
+| [`id`](id.md) | 3 | 100% |
+| [`language`](language.md) | 17 | 100% |
+| [`language/declarations/programing/typescript`](language/declarations/programing/typescript.md) | 8 | 100% |
+| [`language/node`](language/node.md) | 3 | 100% |
+| [`locale`](locale.md) | 6 | 100% |
+| [`mask`](mask.md) | 16 | 100% |
+| [`mask/checks`](mask/checks.md) | 1 | 100% |
+| [`mask/date`](mask/date.md) | 3 | 100% |
+| [`mask/engine`](mask/engine.md) | 2 | 100% |
+| [`mask/formatter`](mask/formatter.md) | 1 | 100% |
+| [`mask/number`](mask/number.md) | 1 | 100% |
+| [`matrix`](matrix.md) | 3 | 100% |
+| [`motion/easing`](motion/easing.md) | 2 | 100% |
+| [`motion/frame`](motion/frame.md) | 2 | 100% |
+| [`motion/spring`](motion/spring.md) | 5 | 100% |
+| [`motion/tween`](motion/tween.md) | 2 | 100% |
+| [`mutex`](mutex.md) | 1 | 100% |
+| [`natives`](natives.md) | 5 | 100% |
+| [`natives/array`](natives/array.md) | 12 | 100% |
+| [`natives/async`](natives/async.md) | 2 | 100% |
+| [`natives/bitwise`](natives/bitwise.md) | 2 | 100% |
+| [`natives/class`](natives/class.md) | 7 | 100% |
+| [`natives/date`](natives/date.md) | 3 | 100% |
+| [`natives/function`](natives/function.md) | 23 | 100% |
+| [`natives/math`](natives/math.md) | 3 | 100% |
+| [`natives/number`](natives/number.md) | 9 | 100% |
+| [`natives/object`](natives/object.md) | 29 | 100% |
+| [`natives/proxy`](natives/proxy.md) | 4 | 100% |
+| [`natives/regex`](natives/regex.md) | 2 | 100% |
+| [`natives/string`](natives/string.md) | 7 | 100% |
+| [`noise`](noise.md) | 2 | 100% |
+| [`parser`](parser.md) | 1 | 100% |
+| [`parser/node`](parser/node.md) | 4 | 100% |
+| [`plain`](plain.md) | 7 | 100% |
+| [`plain/date`](plain/date.md) | 1 | 100% |
+| [`plain/duration`](plain/duration.md) | 1 | 100% |
+| [`plain/time`](plain/time.md) | 1 | 100% |
+| [`priority-queue`](priority-queue.md) | 2 | 100% |
+| [`random`](random.md) | 5 | 100% |
+| [`reactive-node`](reactive-node.md) | 5 | 100% |
+| [`reactive-node/computed`](reactive-node/computed.md) | 3 | 100% |
+| [`reactive-node/signal`](reactive-node/signal.md) | 3 | 100% |
+| [`result`](result.md) | 4 | 100% |
+| [`semaphore`](semaphore.md) | 2 | 100% |
+| [`service`](service.md) | 5 | 100% |
+| [`state/keyboard`](state/keyboard.md) | 1 | 100% |
+| [`state/mouse`](state/mouse.md) | 1 | 100% |
+| [`stopwatch`](stopwatch.md) | 2 | 100% |
+| [`subscription`](subscription.md) | 5 | 100% |
+| [`theme`](theme.md) | 6 | 100% |
+| [`theme/adjustment`](theme/adjustment.md) | 5 | 100% |
+| [`theme/color`](theme/color.md) | 4 | 100% |
+| [`theme/factory`](theme/factory.md) | 9 | 100% |
+| [`theme/palette`](theme/palette.md) | 10 | 100% |
+| [`theme/role`](theme/role.md) | 12 | 100% |
+| [`theme/style`](theme/style.md) | 6 | 100% |
+| [`time`](time.md) | 1 | 100% |
+| [`value-history`](value-history.md) | 7 | 100% |
+
+Veja também: [extensões globais](globals.md) (`String`, `Function`, …).

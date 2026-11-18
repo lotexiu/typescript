@@ -1,0 +1,257 @@
+{
+  "$comment": "Vetores de teste do ALGORITMO (sem nada de país/documento), compartilháveis entre TS e a futura versão Rust. Casos de documentos ficam nos pacotes de região.",
+  "weighted": [
+    {
+      "name": "mód. 11, pesos 10..2, 'complement-zero-below-2' (9 dígitos)",
+      "text": "123456789",
+      "spec": {
+        "weights": [
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": 0
+    },
+    {
+      "name": "mód. 11, pesos 11..2, 'complement-zero-below-2' (10 dígitos)",
+      "text": "1234567890",
+      "spec": {
+        "weights": [
+          11,
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": 9
+    },
+    {
+      "name": "mód. 11, pesos 5..2,9..2, 12 dígitos",
+      "text": "123456780001",
+      "spec": {
+        "weights": [
+          5,
+          4,
+          3,
+          2,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": 9
+    },
+    {
+      "name": "mód. 11, pesos 6..2,9..2, 13 dígitos",
+      "text": "1234567800019",
+      "spec": {
+        "weights": [
+          6,
+          5,
+          4,
+          3,
+          2,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": 5
+    },
+    {
+      "name": "ascii-48 (letras valem 17+): 12 posições alfanuméricas, 1º dígito",
+      "text": "12ABC34501DE",
+      "spec": {
+        "weights": [
+          5,
+          4,
+          3,
+          2,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2",
+        "charValue": "ascii-48"
+      },
+      "digit": 3
+    },
+    {
+      "name": "ascii-48 (letras valem 17+): 13 posições alfanuméricas, 2º dígito",
+      "text": "12ABC34501DE3",
+      "spec": {
+        "weights": [
+          6,
+          5,
+          4,
+          3,
+          2,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2",
+        "charValue": "ascii-48"
+      },
+      "digit": 5
+    },
+    {
+      "name": "mód. 11, 'remainder-zero-above-9', pesos 1,3,4,5,6,7,8,10",
+      "text": "11004249",
+      "spec": {
+        "weights": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10
+        ],
+        "modulus": 11,
+        "rule": "remainder-zero-above-9"
+      },
+      "digit": 0
+    },
+    {
+      "name": "mód. 11, 'remainder-zero-above-9', pesos 3,2,10..2",
+      "text": "11004249011",
+      "spec": {
+        "weights": [
+          3,
+          2,
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "remainder-zero-above-9"
+      },
+      "digit": 4
+    },
+    {
+      "name": "letra em checagem só de dígitos -> indefinido",
+      "text": "12A456789",
+      "spec": {
+        "weights": [
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": null
+    },
+    {
+      "name": "tamanho diferente dos pesos -> indefinido",
+      "text": "123",
+      "spec": {
+        "weights": [
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "modulus": 11,
+        "rule": "complement-zero-below-2"
+      },
+      "digit": null
+    }
+  ],
+  "luhn": [
+    {
+      "full": "79927398713",
+      "valid": true
+    },
+    {
+      "full": "4111111111111111",
+      "valid": true
+    },
+    {
+      "full": "4111111111111112",
+      "valid": false
+    },
+    {
+      "body": "7992739871",
+      "digit": 3
+    },
+    {
+      "body": "411111111111111",
+      "digit": 1
+    }
+  ],
+  "mod97": [
+    {
+      "text": "WEST12345698765432GB82",
+      "remainder": 1,
+      "note": "reordenado para o formato numérico mod 97 (exemplo clássico)"
+    },
+    {
+      "text": "3214282912345698765432161182",
+      "remainder": 1,
+      "note": "forma numérica do mesmo exemplo"
+    }
+  ]
+}

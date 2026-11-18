@@ -1,0 +1,48 @@
+import { RegexUtils } from '@tsn/regex/utils';
+import { TMaskNumber } from '../types';
+import { DEFAULT_GROUP_SIZE } from './declarations';
+
+/** Número "da direita para a esquerda" a partir dos dígitos digitados (`1234567`, escala 2 → `12.345,67`). Só não negativos. */
+class MaskNumberUtils {
+	/** Só os dígitos do texto. */
+	static digits(text: string): string {
+		return RegexUtils.stripNonDigits(text);
+	}
+
+	/** Dígitos digitados → número formatado com escala, separador decimal e de milhar. */
+	static format(digits: string, config: TMaskNumber): string {
+		if (digits === '') return '';
+		const padded = digits.padStart(config.scale + 1, '0');
+		const split = padded.length - config.scale;
+		const integer = RegexUtils.trimLeadingZeros(padded.slice(0, split));
+		const fraction = padded.slice(split);
+		const grouped = config.group ? MaskNumberUtils.group(integer, config.group, config.groupSize ?? DEFAULT_GROUP_SIZE) : integer;
+		return config.scale > 0 ? `${grouped}${config.decimal}${fraction}` : grouped;
+	}
+
+	/** Separa a parte inteira em grupos de `size` dígitos a partir da direita. */
+	static group(integer: string, separator: string, size: number): string {
+		let result = '';
+		for (let end = integer.length; end > 0; end -= size) {
+			const chunk = integer.slice(Math.max(0, end - size), end);
+			result = result === '' ? chunk : `${chunk}${separator}${result}`;
+		}
+		return result;
+	}
+
+	/** Dígitos digitados → número, com `scale` casas decimais. */
+	static toTyped(digits: string, scale: number): number | undefined {
+		if (digits === '') return undefined;
+		const padded = digits.padStart(scale + 1, '0');
+		const split = padded.length - scale;
+		return Number(scale > 0 ? `${padded.slice(0, split)}.${padded.slice(split)}` : padded);
+	}
+
+	/** Número → dígitos com `scale` casas; `undefined` para negativos e não finitos. */
+	static fromTyped(value: number, scale: number): string | undefined {
+		if (!Number.isFinite(value) || value < 0) return undefined;
+		return RegexUtils.trimLeadingZeros(value.toFixed(scale).replace('.', ''));
+	}
+}
+
+export { MaskNumberUtils };

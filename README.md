@@ -26,12 +26,8 @@ A única dependência real de runtime é [`colorjs.io`](https://colorjs.io) — 
 
 ## Documentação
 
-- [`docs/API.md`](docs/API.md) — referência da API pública: o que fica disponível depois de `pnpm add @lotexiu/typescript`.
-- [`docs/PROJECT.md`](docs/PROJECT.md) — referência completa do projeto (inclui código interno), com link direto pra cada declaração no código-fonte.
-- [`.changes/CHANGELOG.md`](.changes/CHANGELOG.md) — histórico de releases.
+- [`docs/EXTRACTED.md`](docs/EXTRACTED.md) — superfície de cada arquivo (declarações top-level + JSDoc), gerado por `pnpm docs:ast`. Não edite à mão.
 - [`CLAUDE.md`](CLAUDE.md) — arquitetura e decisões de design em profundidade, pra quem for mexer no código (incluindo assistentes de IA).
-
-`docs/API.md`, `docs/PROJECT.md` e `docs/modules/*` são gerados a partir do JSDoc do código-fonte (`pnpm run docs`) — não edite esses arquivos à mão.
 
 ## Licença
 

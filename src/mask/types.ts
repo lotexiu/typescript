@@ -1,61 +1,74 @@
-/** The named character class a mask token matches (`digit`, `letter`, ...), or a custom key registered via `MaskUtils.registerToken`. */
-type TMaskTokenKind =
-	| 'digit'
-	| 'letterOrDigit'
-	| 'letter'
-	| 'uppercaseLetter'
-	| 'lowercaseLetter'
-	| 'any'
-	| (string & {});
+import type { TWeightedSpec } from '@ts/checksum/types';
 
-/** Predicate a mask token uses to test whether a single character matches it. */
-type TMaskTokenMatcher = (char: string) => boolean;
-
-/** A registered mask token: its named kind (for display/diagnostics) and the matcher it validates characters against. */
-type TMaskTokenRule = {
-	kind?: TMaskTokenKind;
-	match: TMaskTokenMatcher;
+/** Uma regra de caractere: quais caracteres a letra aceita. */
+type TMaskRule = {
+	/** Fontes de regex (sem âncoras) aceitas pela letra. */
+	match: string[];
+	/** Flags do regex (`u` para propriedades Unicode). */
+	flags?: string;
 };
 
-/** One parsed element of a compiled mask pattern — either a literal character to insert as-is, or a token slot with a min/max repeat count. */
-type TMaskParserEntry =
-	| {
-			kind: 'literal';
-			value: string;
-	  }
-	| {
-			kind: 'token';
-			token: TMaskTokenKind;
-			key: string;
-			min: number;
-			max: number;
-	  };
+/** Preenchimento do valor cru antes de aplicar o padrão (só se houver algo digitado). `side` padrão: `start` se `reversed`, senão `end`. */
+type TMaskPad = Readonly<{ char: string; length: number; side?: 'start' | 'end' }>;
 
-/** A single compiled alternative of a mask (masks can have `||`-separated alternative patterns) — its parsed entries and how many are token slots. */
-type TMaskCompiledPattern = {
-	source: string;
-	entries: TMaskParserEntry[];
-	tokenCount: number;
-};
+/**
+ * Checagens sobre o valor **sem máscara**, descritas só com dados (portáveis).
+ * `from`/`to` seguem `String.slice` (negativos contam do fim — úteis em formatos alinhados à direita).
+ */
+/** Trecho do valor sem máscara (`String.slice`). */
+type TMaskSlice = Readonly<{ from: number; to?: number }>;
 
-/** The fully compiled form of a mask string — every `||`-separated alternative pattern, ready for `apply`/`unapply`/`isValid` to try against a value. */
-type TMaskCompiled = {
-	source: string;
-	patterns: TMaskCompiledPattern[];
-};
+/**
+ * Uma checagem sobre o valor sem máscara (faixa, lista, tamanho, dígito verificador, data) — dado, não código.
+ */
+type TMaskCheck =
+	Readonly<{ type: 'range'; from?: number; to?: number; min: number; max: number }>
+	| Readonly<{ type: 'enum'; from?: number; to?: number; values: readonly string[] }>
+	| Readonly<{ type: 'length'; min?: number; max?: number }>
+	/** Últimos `specs.length` caracteres são dígitos verificadores, calculados em sequência (o 2º usa corpo + 1º). */
+	| Readonly<{ type: 'weighted'; specs: readonly TWeightedSpec[] }>
+	| Readonly<{ type: 'luhn' }>
+	| Readonly<{ type: 'mod97' }>
+	/** A data formada pelos 3 trechos existe no calendário (bissexto, dia por mês). Trecho ainda vazio = incompleto, passa. */
+	| Readonly<{ type: 'date'; year: TMaskSlice; month: TMaskSlice; day: TMaskSlice }>;
 
-/** Options for `MaskUtils.apply` — `applyWhenValid` restricts formatting to only fully-valid values. */
-type TMaskApplyOptions = {
-	applyWhenValid?: boolean;
-};
+/** Motivo de uma falha de `check`. */
+type TMaskIssue = 'pattern' | 'range' | 'enum' | 'length' | 'check-digit' | 'calendar';
+/** Resultado de `check`: ok ou o motivo. */
+type TMaskCheckResult = Readonly<{ ok: true }> | Readonly<{ ok: false; reason: TMaskIssue }>;
 
+/** Número decimal "da direita para a esquerda": os dígitos digitados entram por último; separadores são parâmetros. */
+type TMaskNumber = Readonly<{ scale: number; decimal: string; group?: string; groupSize?: number }>;
 
-export {
-	TMaskTokenKind,
-	TMaskTokenMatcher,
-	TMaskTokenRule,
-	TMaskParserEntry,
-	TMaskCompiledPattern,
-	TMaskCompiled,
-	TMaskApplyOptions,
-}
+/** Codecs embutidos. */
+type TMaskCodecId = 'text' | 'integer' | 'duration';
+
+/** Converte o texto sem máscara num valor tipado e de volta. */
+type TMaskCodec<T = unknown> = Readonly<{
+	/** valor sem máscara → valor tipado (`undefined` se não dá para interpretar) */
+	parse(unmasked: string): T | undefined;
+	/** valor tipado → valor sem máscara */
+	format(typed: T): string | undefined;
+}>;
+
+/** Opções de uma máscara além do padrão. */
+type TMaskOptions = Readonly<{
+	/** Preenche da direita para a esquerda (números, durações). */
+	reversed?: boolean;
+	pad?: TMaskPad;
+	checks?: readonly TMaskCheck[];
+	/** Como o valor sem máscara vira valor tipado. Padrão: `text`. */
+	codec?: TMaskCodecId | TMaskCodec;
+	/** Formato numérico (substitui o padrão de caracteres). */
+	number?: TMaskNumber;
+	/** Regras de caractere **só desta máscara** (somam-se às padrão; não mexem no estado global). */
+	rules?: Readonly<Record<string, TMaskRule>>;
+}>;
+
+/** Máscara registrável: um padrão (string) + opções. É só dado. */
+type TMaskDefinition = TMaskOptions & Readonly<{ pattern?: string }>;
+
+/** Os três valores de um texto: mascarado, sem máscara e tipado, mais o resultado das checagens. */
+type TMaskParsed<T> = Readonly<{ masked: string; unmasked: string; typed: T | undefined; check: TMaskCheckResult }>;
+
+export type { TMaskRule, TMaskPad, TMaskSlice, TMaskCheck, TMaskIssue, TMaskCheckResult, TMaskNumber, TMaskCodecId, TMaskCodec, TMaskOptions, TMaskDefinition, TMaskParsed };

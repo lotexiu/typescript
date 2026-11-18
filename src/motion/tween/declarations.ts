@@ -1,0 +1,6 @@
+/**
+ * @internal
+ */
+const DEFAULT_TWEEN_MILLISECONDS = 200;
+
+export { DEFAULT_TWEEN_MILLISECONDS };
