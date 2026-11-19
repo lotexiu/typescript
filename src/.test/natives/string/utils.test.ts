@@ -173,12 +173,13 @@ describe('StringUtils.isHexadecimal', () => {
 		expect(StringUtils.isHexadecimal('gg')).toBe(false);
 	});
 
-	it('rejects an odd-length string longer than 4 characters', () => {
-		expect(StringUtils.isHexadecimal('abcde')).toBe(false);
+	it('accepts any length, odd or even', () => {
+		expect(StringUtils.isHexadecimal('abcde')).toBe(true);
+		expect(StringUtils.isHexadecimal('abcdef')).toBe(true);
 	});
 
-	it('accepts an even-length string longer than 4 characters', () => {
-		expect(StringUtils.isHexadecimal('abcdef')).toBe(true);
+	it('rejects the empty string', () => {
+		expect(StringUtils.isHexadecimal('')).toBe(false);
 	});
 });
 

@@ -133,10 +133,10 @@ class ApiRender {
 		return lines.join("\n") + "\n"
 	}
 
-	static indexPage(modules: readonly TApiModule[], coverage: readonly TCoverageItem[], hasGlobals: boolean): string {
+	static indexPage(packageName: string, modules: readonly TApiModule[], coverage: readonly TCoverageItem[], hasGlobals: boolean): string {
 		const documented = coverage.filter((item) => item.documented).length
 		const lines = [
-			"# Referência da API — `@lotexiu/typescript`",
+			`# Referência da API — \`${packageName}\``,
 			"",
 			GENERATED_NOTE,
 			"",

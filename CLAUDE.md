@@ -26,49 +26,33 @@ O que é mais volátil (checar antes de confiar): a árvore de "Estrutura de mó
 
 **"Removido" tem dois sentidos possíveis, e não dá pra saber qual de fora:** às vezes é definitivo — o conceito foi descartado, não volta. Às vezes é intencional-pra-refazer-diferente — o conceito continua válido, só a implementação vai mudar de forma quando for reconstruído. As notas de "X foi removido" espalhadas por este arquivo (sistema de plugins, reactive proxy, `ValueCell`/`VariantCell`, etc.) registram **que sumiu e quando**, não qual dos dois casos é — isso só o autor sabe com certeza. Não assumir nenhum dos lados: nem que vai voltar igual, nem que morreu de vez. Se a resposta importar pra uma decisão (ex.: vale a pena reconstruir algo parecido agora?), perguntar em vez de supor.
 
-Estado registrado nesta revisão (2026-08-25, branch `clean-code`, commits `temp`): módulos inteiros do `master` foram removidos — `html/` (managers de tema + sistema de plugins inteiro: `MaskPlugin`, `NumberPlugin`, `AsyncCheckPlugin`, `ValidationPlugin`, registry), `capture-manager/`, `palette/` (top-level, virou `theme/palette/`), `rule-factory/`, `value-cell/`, `variant-cell/`, `natives/object/proxy/`, `natives/validation/`, `spy/`, `time/`, `path-map/`. Confirmado via grep: zero referências remanescentes a esses caminhos em `src/`, e `src/index.ts` (gerado) não tenta exportar nada deles. **Não há testes nem docs de nível de módulo neste momento, de propósito** — e **desde 2026-08 não há `*.test.ts` nenhum no repo**: as suites de `scripts/tools/` foram deletadas junto com os próprios scripts (ver "Removido em 2026-08" em Comandos). `Mask`, `_String`, `Parser`, etc. nunca tiveram suite própria. Não trazer nada disso de volta especulativamente (mesma regra de "Decisões técnicas" para código removido de propósito) — e não estranhar a ausência de testes/docs como se fosse descuido.
+Estado registrado em 2026-11-18 (branch `master`, depois de juntar o `clean-code`): há testes (`src/.test/`, ~1150, espelhando `src/`), documentação gerada em `docs/api/` com JSDoc em 100% do público, e diagnóstico da própria gramática em `docs/DIAGNOSTICS.md` (0 erros, 0 avisos). Módulos removidos na reescrita de 2026-08 (`html/`, plugins, `capture-manager/`, `value-cell/`, `variant-cell/`, `natives/validation/`, `spy/`, `path-map/`, proxy reativo) continuam fora — não trazer de volta especulativamente.
 
 ---
 
 ## Estrutura de módulos
 
+Uma pasta por módulo (`model.ts`/`utils.ts`/`types.ts`/`declarations.ts`), testes em `src/.test/<mesmo caminho>`.
+
 ```
 src/
-  filters/            — debounce, throttle, step, once
-  global/             — extensões de prototype nativas (_Global.register)
-  field/              — field/readField — derived sobre parte de um signal (field também escreve de volta)
-  item/               — Item<V> — item reativo genérico (id, label: TReadable, value: TSignal)
-  mask/               — Mask — formatação/validação por máscara (classe totalmente static)
-    token/            — TMaskToken / TMaskRuleToken — tokens compilados de um pattern
-  natives/
-    array/            — ArrayUtils
-    class/            — instanceOf/ClassUtils + Timeout (construtor NodeJS.Timeout recuperado)
-    date/             — parseISO (estrito, valida calendário real) + formatMS
-    function/         — _Function (thisAsParameter, rebind, negate)
-    math/             — _Math / MathUtils
-    number/           — _Number / NumberUtils
-    object/           — _Object / ObjectUtils
-    regex/            — REGEX_PATTERNS, _Regex (escapeReservedKeys, hasAstralChar)
-    string/           — _String, utilitários de string
-  parser/             — parser de escopos genérico configurável
-  signal/             — núcleo reativo: signal/derived (fachada) + ReactiveNode (@internal, o grafo)
-  state/
-    keyboard/         — KeyboardState (signal de Set mutado no lugar + notify)
-    mouse/            — MouseState<Buttons> (idem — capture-manager foi removido/inlined)
-  stopwatch/          — medição de tempo/performance
-  subscription/       — Subscription<T> (emissor sem valor) + ListenerUtils (@internal, armazenamento de listeners)
-  theme/              — Theme (style + paletas + mode/contrast/enforce, todos signals → roles/checks/components computed)
-    palette/          — Palette / CustomPalette / TonalPalette (cache de tons = derived da seed) + presets.ts (PALETTES)
-    factory/          — PaletteFactory: seeds editáveis (com rótulo e padrão) + regra por id de paleta → `build(valores, overrides)`
-    role/             — RoleUtils.resolve: regras de papéis (paleta, tom por modo, `on`/`min`) → cores + checks de contraste
-    style/            — ThemeStyle (nome + ids de paleta com padrão obrigatório + regras de papéis + components + métrica), SlotColor
-  value-history/      — ValueHistory<T> (undo/redo, construído sobre signal/derived)
-  variant/            — Variant<K,V> — chave → valor derivado (chave muda → recomputa)
-  declarations.ts     — monkey-patch de prototypes nativos (@required, não exporta)
-
-.old/                 — (na raiz do pacote, não em src/) Model/Computed/Subscription antigos, arquivados em
-                        2026-09-24 na troca pelo núcleo signal/derived. Fora de `src/` porque o tsconfig inclui
-                        `src/.*/**/*` (pastas com ponto dentro de src/ SÃO type-checked). Só referência.
+  reactive-node/      — núcleo reativo: signal/computed (fachadas) + ReactiveNode (@internal). Alias `@tsr-node/*`
+  composables/        — fábricas sobre o núcleo: field, variant, selection, activeIndex, toggle, bitFlag, ticker, task,
+                        sort, debouncedValue, readonlyValue, uiInteraction, writable
+  headless/           — controles de UI sem DOM (ver seção "Headless"): control, list-control, collection, navigation,
+                        checkbox, switch, disclosure, slider, pagination, text-field, listbox, select, radio-group, tabs,
+                        dialog, popover, menu, combobox, position, layer, definition, form
+  theme/              — Theme, palette/, factory/, role/, style/, color/, adjustment/
+  mask/               — Mask v2 (engine/, formatter/, checks/, number/, date/, token/, compiled-pattern/)
+  plain/ calendar/    — PlainDate/PlainTime/Duration (vocabulário do Temporal) e grade de mês
+  motion/ geometry/ noise/ — easing, Spring, Tween; PathBuilder (SVG/Path2D); ValueNoise
+  language/ parser/ aho-corasick/ — motor de gramática + TypescriptLang, parser de escopos, busca multi-padrão
+  natives/            — utilitários de tipos nativos (StringUtils, ObjectUtils, FunctionUtils, MathUtils, ...)
+  decimal/ random/ id/ result/ checksum/ cache/ chunk/ matrix/ priority-queue/ semaphore/ mutex/ service/
+  state/ (keyboard, mouse) · stopwatch/ · subscription/ · value-history/ · locale/ · global/ · time/ (legado)
+  declarations.ts     — extensões de prototype nativo (`declare global` + GlobalUtils.register)
+  .scripts/doc/       — extrator, gerador de index e de docs (type-checked junto com src)
+  .test/              — testes (vitest)
 ```
 
 ---
@@ -76,21 +60,14 @@ src/
 ## Comandos
 
 ```bash
-pnpm build          # pnpm clean && vite build → dist/ (ESM + UMD/CJS + bundled .d.ts)
-pnpm clean          # rm -rf dist
-pnpm test           # vitest run --passWithNoTests (não há suites hoje, de propósito)
-pnpm test:watch     # vitest watch mode
-pnpm test:ui        # vitest UI
-pnpm docs:ast       # tsx scripts/doc/generate.ts → docs/EXTRACTED.md (extração sintática via src/language + TypescriptLang)
+pnpm build          # clean + docs:check + vite build → dist/ (ESM + CJS + .d.ts único)
+pnpm test           # vitest run
+pnpm docs:ast       # gera src/index.ts, docs/api/, docs/COVERAGE.md e docs/DIAGNOSTICS.md
+pnpm docs:check     # idem, e falha se a gramática não entender algum trecho (usado no build)
+pnpm docs:strict    # idem, e falha também se algo público ficar sem JSDoc (para CI)
 ```
 
-**Removido em 2026-08** (branch `clean-code`): `scripts/analyzer/` (todo o `AnalyzerProject` sobre `ts.Program`), `scripts/tools/` inteiro (`index-generator`, `validator`, `docs-generator`, `api-snapshot`/`api-diff`/`api-signature`/`generate-changes`) e o workflow `pr-analysis.yml`. Sobrou `scripts/doc/` (AST próprio) + `scripts/vite-plugin.ts`. Não há mais `pnpm run docs`, `pnpm changes`, `pnpm changes:check`, `pnpm ast:example`. Versionamento semântico por diff de API foi descartado — bump/tag voltaram a ser manuais (`docs/guide/release.md`).
-
-Não há mais `pnpm dev`/`pnpm debug` — pra watch mode, rodar `vite build --watch` direto (`scripts/vite-plugin.ts` reage a `config.build.watch`, ver "Armadilhas do watcher" abaixo).
-
-**Não há nenhum `*.test.ts` no repo hoje, de propósito** — as suites dos scripts foram deletadas junto com os scripts; `Mask`/`_String`/`Parser` nunca tiveram suite própria. `pnpm test` passa vazio (`--passWithNoTests`).
-
-Scripts em `scripts/` **não são type-checked pelo `tsc -p tsconfig.json`** (include é só `src/**/*`). A única verificação real é rodá-los: `pnpm build` (exercita `scripts/doc/index-gen.ts` via `scripts/vite-plugin.ts`) e `pnpm docs:ast`.
+Scripts de documentação ficam em `src/.scripts/doc/` e **são** type-checked pelo `tsc -p tsconfig.json`. Não há compiler API do TypeScript em lugar nenhum. Versionamento é manual (`docs/guide/release.md`).
 
 ---
 
@@ -143,6 +120,8 @@ Sempre importar via alias ao cruzar boundaries de `src/natives/<x>/`. Dentro de 
 
 Reescritos em 2026-09-24 (branch `clean-code`): `Model`/`Computed`/`SubscriptionController` saíram (cópias em `.old/`), tudo passou a ser construído sobre `src/signal/`. Modelo push-pull com versões, o mesmo do Angular (`@angular/core/primitives/signals`), com diferenças medidas — ver "Decisões de performance do núcleo reativo" abaixo.
 
+> **Nomes atuais (2026-11):** `derived` virou `computed`, `src/signal/` virou `src/reactive-node/` (`signal/model.ts`, `computed/model.ts`), tipos `Signal<T>`/`Computed<T>`/`TReactive<T>`; `field`/`variant` moram em `src/composables/`. O comportamento descrito abaixo continua valendo.
+
 ### `signal(initial, equal?)` / `derived(compute, equal?)` — `src/signal/model.ts`
 - **Instância é uma função**: `s()` lê. Não existe `.value` (decisão do autor: uma forma só). Métodos são propriedades da função: signal tem `set`/`update`/`notify`/`subscribe`/`dispose`; derived tem `subscribe`/`dispose`. Tipos: `TSignal<T>`, `TDerived<T>`, `TReadable<T>` (o que os dois têm em comum) em `src/signal/types.ts`.
 - **Dependências automáticas**: ler um signal/derived dentro do `compute` de um derived registra a dependência (`activeConsumer`). Não existe mais lista manual de dependências (`Computed.setDependencies`, parâmetro `dependencies` de `field`) — quem precisava ler algo só para registrar dependência lê explicitamente (ex.: `Parser._root` lê `configVersion()`).
@@ -160,8 +139,8 @@ Derived sobre parte de um signal; `field` escreve de volta mutando a fonte no lu
 ### `Variant<K,V>`
 Classe: `key()`/`value()` (leituras reativas), `set(key)`, `prevKey`/`prevValue` (não reativos), `subscribe(fn)` (valor). `prevValue` saiu do núcleo e vive só aqui.
 
-### `ReadonlyValue<T>` — mantido como classe com `.value`
-Não é reativo (calcula uma vez e guarda). Medido em 2026-09-24: a classe (104 bytes) é **menor e mais rápida** que uma closure equivalente (168 bytes, leitura 2x mais lenta — closure com variável mutável aloca um objeto de contexto extra). Não trocar por closure.
+### `readonlyValue(compute)` — closure, por decisão do autor (2026-11-17)
+Não é reativo (calcula uma vez e guarda). Uma medição de 2026-09-24 mostrou a versão em classe menor e mais rápida (104 vs 168 bytes, leitura 2x), mas o autor preferiu manter a closure pela consistência com os outros composables; a diferença só pesa em milhões de instâncias.
 
 `ValueCell<T>` e `VariantCell<TName, TValue>` **não existem mais** — removidos junto com o sistema de plugins (`html/plugins/`) que era o único consumidor de `ValueCell`; `VariantCell` (o padrão "nome ativo + valor derivado cacheado, dois eixos independentes") não tem substituto direto hoje — `Theme` (`src/theme/model.ts`) usa dois signals simples (`mode`, `style`) em vez disso. Se o padrão de dois eixos independentes for necessário de novo, ele precisa ser reconstruído, não presumido presente.
 
@@ -300,13 +279,13 @@ Ver `PROMPT-parser-refactor.md` para o prompt completo. Resumo:
 
 ---
 
-## `src/language/` + `TypescriptLang` (`src/ast/ts/`)
+## `src/language/` + `TypescriptLang` (`src/language/declarations/programing/typescript/`)
 
 `src/language/` é o motor de gramática declarativo da lib — substituiu por completo o motor antigo (`src/ast/grammar/` + `src/lexer/`, removidos em 2026-09-14 junto com a conclusão do `TypescriptLang`: lexer e gramática separados viraram uma única `TLanguageSpec`). Uma `TLanguageSpec` só declara `scope`/`delimited`/`charClass`/`literal`/`grammar`, e `Language.define(spec).parse(source)`/`.analyze(source)` fazem tudo (tokeniza + roda a gramática). Combinadores em `G` (`src/language/grammar.ts`): `tok`/`val`/`seq`/`choice`/`many`/`opt`/`sepBy`/`field`/`ref`/`node` básicos, mais `into` (desce num escopo aninhado do `Parser` — aceita nome de regra registrada **ou** uma regra inline, `G.into("paren", G.sepBy(item, val(",")))`), `placeholder` (casa o escopo sem descer), `build` (constrói `AstNode` de baixo nível fora do fluxo normal), `binary` (cadeia binária esquerda-associativa achatada — 1 nó por nível, não 1 por operador) e `chain` (encadeamento postfix tipo `a.b().c` — cada `step` recebe o nó já construído e decide como envolvê-lo).
 
 `TypescriptLang` (`src/ast/ts/declarations.ts` + `grammar-shared.ts`/`grammar-type.ts`/`grammar-expr.ts`/`grammar-stmt.ts`/`grammar-decl.ts`) é uma espec real de TypeScript sobre esse motor — não mais só "declaração top-level + `declTail` que pula o corpo" (isso foi a v1; virou uma reescrita completa em 2026-09-14): tipos (union/intersection/generics/mapped/condicional/tupla/função), expressões (precedência completa, arrow functions, template literals, optional chaining, generics em chamada), statements (`if`/`for`/`for-in`/`for-of`/`while`/`switch`/`try`), declarações com corpo real (classe com membros/decorators/heritage, interface, enum, namespace, `import`/`export` em todas as formas comuns). Cada `grammar-*.ts` só referencia as outras por nome (`G.ref`), nunca importa o objeto — sem risco de ciclo de import. `scripts/doc/extract.ts` (usado por `pnpm docs:ast`) consome essa gramática real: toda declaração de topo é `AstNode.kind === "Declaration"` com campo `kind` (a keyword) e `name` (ou `declarators` pra `const`/`let`/`var`, com `BindingName` podendo ser `ObjectPattern`/`ArrayPattern` — `collectBindingNames` em `extract.ts` desce recursivamente). Smoke test (não vitest, ver nota de testes no topo do arquivo): `src/.test/typescript-lang.ts`, rodável direto via `tsx`.
 
-**Limitações aceitas de propósito** (documentadas também no JSDoc de `declarations.ts`): sem regex literal (`/…/` ambíguo com divisão sem lookback no `Parser` atual), sem `>>`/`>>>`/`>>=`/`>>>=` (colidiria com fechamento de generics aninhados, `Array<Array<T>>`), sem JSX, ASI não simulada, e uma palavra "quase-reservada" (`as`, `type`, `satisfies`, `get`, `set`, `of`, ...) não pode ser usada como nome de binding mesmo sendo legal em JS de verdade.
+**Limitações aceitas de propósito** (documentadas também no JSDoc de `declarations.ts`): sem regex literal (`/…/` ambíguo com divisão sem lookback no `Parser` atual — use `new RegExp('...')`), sem JSX, e ASI só em `return`/`break`/`continue`. Desde 2026-11-17 `>>`/`>>>`/`>=`/`>>=` funcionam (tokens colados, `G.adjacent`) e palavras contextuais (`type`, `get`, `set`, `of`, `out`...) valem como nome — ver "Rodada 2026-11-17 (2ª parte)". O smoke test `src/.test/typescript-lang.ts` deu lugar a `src/.test/language/typescript.test.ts`.
 
 ---
 
@@ -333,7 +312,7 @@ Tudo roda sobre `src/language` (`TypescriptLang`, `src/ast/ts/`) + `src/ast/node
 
 - `scripts/doc/extract.ts` — `extractSource`/`extractFile`/`walkSourceFiles`: extração puramente sintática de um `.ts` (declarações top-level, `export { }`, `declare global`, `@required`)
 - `scripts/doc/index-gen.ts` — `buildIndex`/`writeIndex`: gera `src/index.ts`. Rodável direto (`tsx scripts/doc/index-gen.ts`)
-- `scripts/doc/generate.ts` — `pnpm docs:ast` → `docs/EXTRACTED.md`
+- `scripts/doc/generate.ts` — `pnpm docs:ast` → `docs/api/`, `docs/COVERAGE.md`, `docs/DIAGNOSTICS.md` (hoje em `src/.scripts/doc/`)
 - `scripts/doc/tsconfig-alias.ts` — lê `paths` do `tsconfig.json` → alias de Vite/Vitest (substituiu `AnalyzerProject.resolvedAlias()`)
 - `scripts/vite-plugin.ts` — `indexGenPlugin`: no `buildStart` roda `scripts/doc/index-gen.ts` num processo `tsx` separado (o loader de config do Vite não resolve os aliases `@ts/*`) + chokidar em `src/` pra pegar arquivo novo no watch
 
@@ -345,9 +324,7 @@ Tudo roda sobre `src/language` (`TypescriptLang`, `src/ast/ts/`) + `src/ast/node
 
 ## Geração de documentação
 
-`pnpm docs:ast` gera `docs/EXTRACTED.md` — uma seção por arquivo, cada declaração top-level com kind, flag exported/local, linha e o JSDoc parseado. Extração sintática pura, sem type-checker. (O gerador antigo `docs-generator.ts` — `docs/modules/*.md` + `PROJECT.md` + `API.md`, sobre o compiler API — foi removido.)
-
-**Não adicionar JSDoc proativamente** como subproduto de trabalho não relacionado — o autor quer pensar em uma estratégia de documentação antes de acumular comentários ad-hoc.
+`pnpm docs:ast` gera `docs/api/<pasta de src>.md` (assinaturas recortadas da fonte, membros públicos, herança, JSDoc) + `docs/api/README.md` (índice) + `docs/api/globals.md` (extensões de prototype) + `docs/COVERAGE.md`. Público = exportado e sem `@internal`. **JSDoc só no que é público** (decisão do autor, 2026-11-17): resumo, `@param`, `@returns`, `@example`, `@deprecated`; nada de comentário em código interno.
 
 ---
 
@@ -423,7 +400,7 @@ Possível reescrita de módulos de baixo nível em Rust/WASM
 
 **Por que Lexer/AST é bloqueante:** o compiler API do TypeScript é ~500ms para projetos pequenos, aloca objetos demais e tem API difícil. O AST próprio resolve geração de documentação, versionamento semântico por diff real e geração do `index.ts` de forma mais rápida e controlada.
 
-**Atualização 2026-08:** a geração do `index.ts` **migrou para o AST próprio** (`scripts/doc/index-gen.ts` sobre `extract.ts`) e todo o código que dependia do compiler API foi **removido** — `scripts/analyzer/`, `scripts/tools/` inteiro (incl. o versionamento semântico por diff de API que chegou a existir sobre o `AnalyzerProject`) e o workflow `pr-analysis.yml`. `docs/EXTRACTED.md` (via `pnpm docs:ast`) é a única geração de doc hoje. Versionamento voltou a ser manual. `Parser` refatorado / AST mais completo continuam não implementados.
+**Atualização 2026-08:** a geração do `index.ts` **migrou para o AST próprio** (`scripts/doc/index-gen.ts` sobre `extract.ts`) e todo o código que dependia do compiler API foi **removido** — `scripts/analyzer/`, `scripts/tools/` inteiro (incl. o versionamento semântico por diff de API que chegou a existir sobre o `AnalyzerProject`) e o workflow `pr-analysis.yml`. `docs/EXTRACTED.md` era a única geração de doc (substituído por `docs/api/` em 2026-11-17). Versionamento voltou a ser manual. `Parser` refatorado / AST mais completo continuam não implementados.
 
 ---
 
@@ -467,7 +444,7 @@ densidade. Duas regras concretas que caíram bem na reescrita do `aho-corasick` 
 - **Não adicionar dependências de runtime** sem justificativa clara
 - **Não escrever em signal dentro do `compute` de um derived** — lança erro de propósito (lazy = o efeito dependeria de quando alguém lê; o derived se dá por atualizado com valor inconsistente; listeners rodariam no meio do cálculo). Efeito colateral vai em `subscribe`
 - **Não ressuscitar especulativamente** código removido intencionalmente (`isEmptyObj`, `ValidationPlugin`, etc.) — só se surgir necessidade concreta. E mesmo com necessidade concreta: checar primeiro se foi remoção definitiva ou "vai ser refeito diferente" (ver "⚠️ Este arquivo pode estar desatualizado" no topo) — trazer de volta na forma antiga quando o autor já queria uma forma nova é tão errado quanto ressuscitar sem necessidade nenhuma
-- **Não adicionar JSDoc proativamente** sem uma estratégia definida
+- **Não deixar API pública sem JSDoc** (a estratégia foi definida em 2026-11-17: só no público) — `pnpm docs:strict` acusa
 - **Não manter estado eager em field initializer/constructor** em managers que rodam sob Node em testes — manter lazy no primeiro acesso (`matchMedia`, `localStorage`, `document`)
 - **Não fundir `Parser` e `Lexer` num autômato/scan único perseguindo performance** — testado de verdade (branch `clean-code`, 2026-08-26): um protótipo `Scanner` com um `AhoCorasick` só (padrões de gate + padrões de token juntos, 1 scan sobre o texto inteiro) saiu no empate com a composição atual `Lexer` (que usa `Parser` internamente + um segundo `AhoCorasick` só sobre os gaps) — e até um pouco pior no texto grande (500K chars: 34.4ms fundido vs 33.7ms composto). Razão: a composição atual já pula o interior de string/comentário inteiro na passada de literais (`Parser` devolve isso como gap excluído); o autômato fundido precisa transicionar por *todo* char do texto, inclusive dentro de delimitadores (só descarta o match ali, não evita o lookup na tabela `goto`). Ou seja, "1 passada com autômato maior" perde exatamente o que "2 passadas com autômatos menores, uma pulando region conhecida" ganha. Resultado idêntico byte-a-byte confirmado antes de descartar (não foi só benchmark, foi corretude + benchmark). Não tentar de novo sem um motivo novo que mude essa equação (ex: gaps ficarem raros/pequenos no uso real).
 
@@ -596,3 +573,10 @@ Armadilha de inferência: `computed(() => [...])` escrito **dentro** das opçõe
 **Motion/gráficos agnósticos:** `motion/` (`EasingUtils` com `cubicBezier`, `Spring` física de mola, `Tween`, `FrameUtils.schedule` injetável), `geometry/path` (`PathBuilder` → texto `d` de SVG / `Path2D`; `polar`, `arc`, `slice`, `star`, `roundedRect`), `noise/` (`ValueNoise` com semente, `fractal`). Nada de DOM: desenhar é do app.
 **Adaptador React:** `useFocusTrap`, `useOutsidePointer`, `useFloating` (DOM fica aqui, não no núcleo; se vier Angular/Svelte, extrair um `@lotexiu/dom`).
 **Bugs achados lendo o código:** `DateUtils.setEnd({ month })` ia para janeiro do ano seguinte; `charCodeArray` tipado como `string[]`; `toFunction` com tipo `() => T | T`; `invalidBy` (opção morta) removida de `TDelimitedSpec`; `LOCALES` tinha `/* @internal */` (1 asterisco — nunca funcionou).
+
+## Publicação (2026-11-18)
+- **`files` é obrigatório em todo pacote**: sem ele o npm usa o `.gitignore`, que exclui `dist/` — o tarball sairia com `src/` e sem build (era o caso da lib). Hoje: `files: ["dist", "README.md", "LICENSE"]` + `exports` com `types`/`import`/`require`. Conferir sempre com `npm pack --dry-run` e instalando o `.tgz` num projeto vazio (ESM e CJS).
+- **Todo pacote publica `./dist`** (`pnpm release` = build + `npm publish ./dist --access public`). O último passo do build é `pnpm dist:prepare` (`src/.scripts/publish/prepare.ts`, o mesmo para todos os pacotes, rodado a partir da pasta de cada um): escreve `dist/package.json` só com os campos de publicação (entradas apontando para dentro do `dist`, `workspace:` trocado pela versão real — falha se sobrar algum; preserva o que o `ng-packagr` gerar), copia `LICENSE`, gera `dist/README.md` com links absolutos do GitHub (o npm resolve links relativos contra o repositório) e `dist/API.md` com todos os símbolos públicos e o resumo do JSDoc.
+- Pacote Angular com compilação parcial só roda depois do *linker* do Angular CLI (ou com `import '@angular/compiler'` antes); importar no Node puro falha de propósito.
+- Versões: `@lotexiu/typescript` 2.0.0 (1.x e alfas/betas depreciados), `@lotexiu/react`/`dom`/`angular` 1.0.0. `react-native`, `scss` e `tailwind` são da estrutura antiga de testes e foram depreciados por inteiro.
+- Os outros pacotes (`dom`, `react`, `angular`) seguem as regras deste arquivo — ver o `CLAUDE.md` de cada um.

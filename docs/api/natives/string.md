@@ -199,7 +199,7 @@ Whether the character is a letter or a digit. `extended` uses Unicode properties
 
 #### `static isHexadecimal(str: string): boolean`
 
-Whether every character is a hexadecimal digit. Odd lengths above 4 are refused.
+Whether the text is not empty and every character is a hexadecimal digit (`0-9`, `a-f`, `A-F`).
 
 #### `static isFormatting(char: string, extended: boolean = false): boolean`
 

@@ -14,6 +14,7 @@ const ENTRY = "src/index.ts"
 const API_DIRECTORY = path.join(ROOT, "docs/api")
 const DIAGNOSTICS_FILE = path.join(ROOT, "docs/DIAGNOSTICS.md")
 const COVERAGE_FILE = path.join(ROOT, "docs/COVERAGE.md")
+const PACKAGE_NAME: string = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")).name
 const CHECK_FLAG = "--check"
 const REQUIRE_DOCS_FLAG = "--require-docs"
 
@@ -57,7 +58,7 @@ function writeApiPages(files: readonly TFileDoc[]): { written: number; coverage:
 	const coverage = ApiModel.coverage(modules)
 	const globals = files.flatMap((file) => file.globals.map((augmentation) => ({ file, augmentation })))
 	const pages = new Map<string, string>()
-	pages.set("README.md", ApiRender.indexPage(modules, coverage, globals.length > 0))
+	pages.set("README.md", ApiRender.indexPage(PACKAGE_NAME, modules, coverage, globals.length > 0))
 	if (globals.length > 0) pages.set("globals.md", ApiRender.globalsPage(globals))
 	const docsDirectory = path.relative(ROOT, API_DIRECTORY)
 	const symbols = ApiRender.symbolPages(modules, docsDirectory)

@@ -22,7 +22,7 @@ class PaletteFactory<
 	readonly seeds: Readonly<Record<keyof D & string, TSeed>>;
 	readonly #rules: R;
 
-	constructor({ seeds, palettes }: { seeds: D; palettes: R }) {
+	constructor({ seeds, palettes }: { seeds: D; palettes: R & TPaletteRules<keyof NoInfer<D> & string, keyof R & string> }) {
 		this.seeds = Object.fromEntries(
 			Object.entries(seeds).map(([id, definition]) => [id, { label: definition.label ?? id, default: PaletteFactory.#toPalette(definition.default, id) }])
 		) as Record<keyof D & string, TSeed>;

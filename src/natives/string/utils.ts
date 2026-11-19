@@ -174,10 +174,10 @@ class StringUtils {
 		return StringUtils.isLetter(char, extended) || StringUtils.isDigit(char, undefined, extended);
 	}
 
-	/** Whether every character is a hexadecimal digit. Odd lengths above 4 are refused. */
+	/** Whether the text is not empty and every character is a hexadecimal digit (`0-9`, `a-f`, `A-F`). */
 	static isHexadecimal(str: string): boolean {
 		const len = str.length;
-		if (len > 4 && len % 2) return false;
+		if (len === 0) return false;
 		const lower = str.toLowerCase();
 		for (let index = 0; index < len; index++) {
 			const code = lower.charCodeAt(index);

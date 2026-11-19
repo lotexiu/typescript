@@ -61,7 +61,7 @@ Estende [`TSeedDefinitions`](factory.md#tseeddefinitions) — os membros herdado
 
 ### Construtor
 
-#### `constructor({ seeds, palettes }: { seeds: D; palettes: R })`
+#### `constructor({ seeds, palettes }: { seeds: D; palettes: R & TPaletteRules<keyof NoInfer<D> & string, keyof R & string> })`
 
 ### Propriedades
 
